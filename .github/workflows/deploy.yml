@@ -1,0 +1,43 @@
+name: Deploy Lux Lumina
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+
+            echo "===== Go to app folder ====="
+            cd /opt/apps/lux-lumina
+
+            echo "===== Fetch latest code ====="
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "===== Ensure production env exists ====="
+            test -f .env.prod
+
+            echo "===== Build and restart containers ====="
+            docker compose -f docker-compose.prod.yml up -d --build
+
+            echo "===== Cleanup unused docker images ====="
+            docker image prune -f
+
+            echo "===== Status ====="
+            docker ps --filter "name=luminaire"
