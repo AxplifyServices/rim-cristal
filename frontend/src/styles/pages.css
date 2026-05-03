@@ -119,7 +119,70 @@
 .shop-breadcrumb a:hover { color: var(--gold); }
 .breadcrumb-sep { opacity: .4; }
 
-.shop-layout { display: grid; grid-template-columns: 268px 1fr; gap: 36px; padding-top: 48px; padding-bottom: 96px; }
+.shop-layout {
+  display: grid;
+  grid-template-columns: 268px 1fr;
+  gap: 36px;
+  padding-top: 48px;
+  padding-bottom: 96px;
+}
+
+.shop-layout-no-sidebar {
+  grid-template-columns: 1fr;
+}
+
+.prod-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.filter-trigger {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  transition: all var(--ease);
+  white-space: nowrap;
+}
+
+.filter-trigger:hover {
+  border-color: var(--gold);
+  color: var(--black);
+}
+
+.filter-trigger svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+
+.filter-trigger b {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: var(--gold);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+}
 
 .prod-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
 .prod-count { font-size: 13px; color: var(--text-2); }
@@ -432,7 +495,6 @@
 @media (max-width: 960px) {
   .cat-grid { grid-template-columns: repeat(3, 1fr); padding: 0 20px; }
   .shop-layout { grid-template-columns: 1fr; }
-  .sidebar { position: static; }
   .product-grid { grid-template-columns: repeat(2, 1fr); }
   .pd-grid { grid-template-columns: 1fr; gap: 36px; padding-top: 40px; padding-bottom: 72px; }
   .pd-gallery { position: static; }
@@ -464,4 +526,47 @@
   .checkout-page { padding: 36px 0 72px; }
   .cart-page { padding: 36px 0 72px; }
   .confirmation-banner { padding: 40px 24px; }
+
+    .shop-hero {
+    padding-top: 34px;
+    padding-bottom: 34px;
+  }
+
+  .shop-hero h1 {
+    font-size: 2rem;
+  }
+
+  .shop-layout {
+    padding-top: 28px;
+    padding-bottom: 72px;
+  }
+
+  .prod-bar {
+    align-items: stretch;
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .prod-bar-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filter-trigger {
+    flex: 1;
+  }
+
+  .prod-count {
+    display: none;
+  }
+
+  .sort-sel {
+    width: 100%;
+    height: 42px;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
 }
