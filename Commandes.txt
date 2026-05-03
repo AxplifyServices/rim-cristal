@@ -1,0 +1,16 @@
+cd OneDrive\Bureau\Projet Dev\Luminaire
+
+serv :ssh ubuntu@51.75.252.139
+Code serveur : zitanezac
+
+cd /opt/apps
+
+Pour Git :
+
+git status
+
+git add .
+git commit -m "message clair"
+git push origin main
+
+
