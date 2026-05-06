@@ -6,33 +6,70 @@ import Link from 'next/link'
 import ProductCard from '../components/ProductCard'
 import { fetchProducts, mapProduct } from '../lib/products'
 
-const SIZES = ['small', 'medium', 'large']
-const STYLES = ['modern', 'industrial', 'scandinavian', 'art-deco', 'vintage']
-const COLORS = ['black', 'gold', 'white', 'silver', 'copper']
-const SOURCES = ['LED Compatible', 'Dimmable', 'Smart / App Control']
+const PAGE_SIZE = 24
 
-const CAT_LABELS = {
-  pendant: 'Pendant Lights',
-  sconce: 'Wall Sconces',
-  floor: 'Floor Lamps',
-  table: 'Table Lamps',
+const SIZES = ['standard']
+
+const COLORS = [
+  'black',
+  'gold',
+  'white',
+  'silver',
+  'brown',
+  'copper',
+  'grey',
+  'blue',
+  'green',
+]
+
+const CATEGORY_CONFIG = {
+  suspension: {
+    label: 'Suspensions',
+    api: { categorie: 'suspension' },
+  },
+  applique: {
+    label: 'Appliques',
+    api: { categorie: 'applique' },
+  },
+  plafonnier: {
+    label: 'Plafonniers',
+    api: { categorie: 'plafonnier' },
+  },
+  'lampe-de-table': {
+    label: 'Lampes de table',
+    api: { categorie: 'lampe de table' },
+  },
+  spot: {
+    label: 'Spots',
+    api: { categorie: 'spot' },
+  },
+  lampadaire: {
+    label: 'Lampadaires',
+    api: { categorie: 'lampadaire' },
+  },
+  led: {
+    label: 'Ampoules LED',
+    api: { categorie: 'led' },
+  },
+  exterieur: {
+    label: 'Éclairage extérieur',
+    api: { rubrique: "éclairage d'extérieur" },
+  },
 }
 
 const SORT_OPTIONS = [
-  'Featured',
-  'Price: Low to High',
-  'Price: High to Low',
-  'Newest Arrivals',
-  'Best Sellers',
+  'Pertinence',
+  'Prix croissant',
+  'Prix décroissant',
+  'Nouveautés',
+  'Meilleures ventes',
 ]
 
 const DEFAULT_FILTERS = {
   priceMin: 0,
-  priceMax: 800,
+  priceMax: 10000,
   colors: [],
   sizes: [],
-  styles: [],
-  sources: [],
 }
 
 function toggle(arr, val) {
@@ -47,8 +84,6 @@ function countActiveFilters(filters) {
 
   count += filters.colors.length
   count += filters.sizes.length
-  count += filters.styles.length
-  count += filters.sources.length
 
   return count
 }
@@ -78,14 +113,14 @@ function Sidebar({ filters, onChange, onReset }) {
   return (
     <aside className="sidebar">
       <div className="sb-block">
-        <div className="sb-title">Price Range</div>
+        <div className="sb-title">Prix</div>
 
         <div className="price-disp">
           <span>
-            From <b>${filters.priceMin}</b>
+            De <b>{filters.priceMin} MAD</b>
           </span>
           <span>
-            To <b>${filters.priceMax}</b>
+            À <b>{filters.priceMax} MAD</b>
           </span>
         </div>
 
@@ -93,33 +128,33 @@ function Sidebar({ filters, onChange, onReset }) {
           <div
             className="slider-fill"
             style={{
-              left: `${(filters.priceMin / 800) * 100}%`,
-              right: `${100 - (filters.priceMax / 800) * 100}%`,
+              left: `${(filters.priceMin / 10000) * 100}%`,
+              right: `${100 - (filters.priceMax / 10000) * 100}%`,
             }}
           />
 
           <input
             type="range"
             min="0"
-            max="800"
-            step="10"
+            max="10000"
+            step="100"
             value={filters.priceMin}
-            onChange={e => onChange('priceMin', Math.min(+e.target.value, filters.priceMax - 40))}
+            onChange={e => onChange('priceMin', Math.min(+e.target.value, filters.priceMax - 100))}
           />
 
           <input
             type="range"
             min="0"
-            max="800"
-            step="10"
+            max="10000"
+            step="100"
             value={filters.priceMax}
-            onChange={e => onChange('priceMax', Math.max(+e.target.value, filters.priceMin + 40))}
+            onChange={e => onChange('priceMax', Math.max(+e.target.value, filters.priceMin + 100))}
           />
         </div>
       </div>
 
       <div className="sb-block">
-        <div className="sb-title">Finish / Colour</div>
+        <div className="sb-title">Couleur</div>
 
         <div className="swatches">
           {COLORS.map(c => (
@@ -137,7 +172,7 @@ function Sidebar({ filters, onChange, onReset }) {
       </div>
 
       <div className="sb-block">
-        <div className="sb-title">Size</div>
+        <div className="sb-title">Taille</div>
 
         <div className="chk-list">
           {SIZES.map(s => (
@@ -154,44 +189,8 @@ function Sidebar({ filters, onChange, onReset }) {
         </div>
       </div>
 
-      <div className="sb-block">
-        <div className="sb-title">Style</div>
-
-        <div className="chk-list">
-          {STYLES.map(s => (
-            <button
-              key={s}
-              type="button"
-              className={`chk-row${filters.styles.includes(s) ? ' on' : ''}`}
-              onClick={() => onChange('styles', s)}
-            >
-              <span className="chk-box" />
-              <span style={{ textTransform: 'capitalize' }}>{s.replace('-', ' ')}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="sb-block">
-        <div className="sb-title">Light Source</div>
-
-        <div className="chk-list">
-          {SOURCES.map(s => (
-            <button
-              key={s}
-              type="button"
-              className={`chk-row${filters.sources.includes(s) ? ' on' : ''}`}
-              onClick={() => onChange('sources', s)}
-            >
-              <span className="chk-box" />
-              <span>{s}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       <button className="btn btn-ghost btn-full" style={{ marginTop: 22 }} onClick={onReset}>
-        Clear All Filters
+        Réinitialiser les filtres
       </button>
     </aside>
   )
@@ -232,22 +231,22 @@ function FilterDrawer({
         className={`filter-drawer${open ? ' open' : ''}`}
         role="dialog"
         aria-modal="true"
-        aria-label="Product filters"
+        aria-label="Filtres produits"
       >
         <div className="filter-drawer-head">
           <div>
-            <p>Filters</p>
+            <p>Filtres</p>
             <span>
               {activeFiltersCount > 0
-                ? `${activeFiltersCount} active filter${activeFiltersCount > 1 ? 's' : ''}`
-                : 'Refine the collection'}
+                ? `${activeFiltersCount} filtre${activeFiltersCount > 1 ? 's' : ''} actif${activeFiltersCount > 1 ? 's' : ''}`
+                : 'Affiner la sélection'}
             </span>
           </div>
 
           <button
             type="button"
             className="filter-close"
-            aria-label="Close filters"
+            aria-label="Fermer les filtres"
             onClick={onClose}
           >
             ×
@@ -260,11 +259,11 @@ function FilterDrawer({
 
         <div className="filter-drawer-footer">
           <button type="button" className="btn btn-ghost" onClick={onReset}>
-            Reset
+            Réinitialiser
           </button>
 
           <button type="button" className="btn btn-dark" onClick={onClose}>
-            Apply filters
+            Appliquer
           </button>
         </div>
       </div>
@@ -276,29 +275,77 @@ export default function Shop() {
   const params = useParams()
   const searchParams = useSearchParams()
 
-  const category = params?.category
+  const categorySlug = params?.category ? decodeURIComponent(params.category) : ''
+  const categoryConfig = categorySlug ? CATEGORY_CONFIG[categorySlug] : null
 
-  const [allProducts, setAll] = useState([])
+  const [products, setProducts] = useState([])
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    page_size: PAGE_SIZE,
+    pages: 1,
+  })
   const [loading, setLoading] = useState(true)
-  const [sort, setSort] = useState('Featured')
+  const [sort, setSort] = useState('Pertinence')
   const [filters, setFil] = useState(DEFAULT_FILTERS)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [page, setPage] = useState(1)
 
-  const catLabel = category ? CAT_LABELS[category] || 'All Lights' : 'All Lights'
+  const catLabel = categoryConfig?.label || 'Tous les luminaires'
   const activeFiltersCount = countActiveFilters(filters)
 
   useEffect(() => {
-    setLoading(true)
+    setPage(1)
     setFil(DEFAULT_FILTERS)
+  }, [categorySlug, searchParams])
 
-    const apiParams = { page_size: 100 }
-    if (category) apiParams.categorie = category
+  useEffect(() => {
+    setLoading(true)
+
+    const apiParams = {
+      page,
+      page_size: PAGE_SIZE,
+    }
+
+    if (categoryConfig?.api) {
+      Object.assign(apiParams, categoryConfig.api)
+    }
+
+    const q = searchParams.get('q')
+    if (q) {
+      apiParams.q = q
+    }
+
+    const filterQ = searchParams.get('filter')
+    if (filterQ === 'new') {
+      apiParams.new = true
+    }
+
+    if (filterQ === 'sale') {
+      apiParams.sale = true
+    }
 
     fetchProducts(apiParams)
-      .then(data => setAll((data.items || []).map(mapProduct).filter(Boolean)))
-      .catch(() => setAll([]))
+      .then(data => {
+        setProducts((data.items || []).map(mapProduct).filter(Boolean))
+        setPagination({
+          total: data.total || 0,
+          page: data.page || page,
+          page_size: data.page_size || PAGE_SIZE,
+          pages: data.pages || 1,
+        })
+      })
+      .catch(() => {
+        setProducts([])
+        setPagination({
+          total: 0,
+          page: 1,
+          page_size: PAGE_SIZE,
+          pages: 1,
+        })
+      })
       .finally(() => setLoading(false))
-  }, [category])
+  }, [categorySlug, categoryConfig, page, searchParams])
 
   const onChange = (key, val) => {
     if (key === 'priceMin' || key === 'priceMax') {
@@ -314,48 +361,26 @@ export default function Shop() {
   }
 
   const filteredSorted = useMemo(() => {
-    let list = [...allProducts]
+    let list = [...products]
 
-    const filterQ = searchParams.get('filter')
-    if (filterQ === 'new') list = list.filter(p => p.isNew)
-    if (filterQ === 'sale') list = list.filter(p => p.discount > 0)
-
-    const q = searchParams.get('q')
-    if (q) {
-      const ql = q.toLowerCase()
-
-      list = list.filter(p =>
-        p.name.toLowerCase().includes(ql) ||
-        p.categoryLabel.toLowerCase().includes(ql) ||
-        (p.marque || '').toLowerCase().includes(ql)
-      )
-    }
-
-    list = list.filter(p => {
-      const productStyles = Array.isArray(p.styles) ? p.styles : []
-      const productSources = Array.isArray(p.sources) ? p.sources : []
-
-      return (
-        p.salePrice >= filters.priceMin &&
-        p.salePrice <= filters.priceMax &&
-        (filters.colors.length === 0 || p.colors.some(c => filters.colors.includes(c))) &&
-        (filters.sizes.length === 0 || p.sizes.some(s => filters.sizes.includes(s))) &&
-        (filters.styles.length === 0 || productStyles.some(s => filters.styles.includes(s))) &&
-        (filters.sources.length === 0 || productSources.some(s => filters.sources.includes(s)))
-      )
-    })
+    list = list.filter(p => (
+      p.salePrice >= filters.priceMin &&
+      p.salePrice <= filters.priceMax &&
+      (filters.colors.length === 0 || p.colors.some(c => filters.colors.includes(c))) &&
+      (filters.sizes.length === 0 || p.sizes.some(s => filters.sizes.includes(s)))
+    ))
 
     switch (sort) {
-      case 'Price: Low to High':
+      case 'Prix croissant':
         list.sort((a, b) => a.salePrice - b.salePrice)
         break
-      case 'Price: High to Low':
+      case 'Prix décroissant':
         list.sort((a, b) => b.salePrice - a.salePrice)
         break
-      case 'Newest Arrivals':
+      case 'Nouveautés':
         list.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0))
         break
-      case 'Best Sellers':
+      case 'Meilleures ventes':
         list.sort((a, b) => (b.bestSeller ? 1 : 0) - (a.bestSeller ? 1 : 0))
         break
       default:
@@ -363,17 +388,20 @@ export default function Shop() {
     }
 
     return list
-  }, [allProducts, filters, sort, searchParams])
+  }, [products, filters, sort])
+
+  const canGoPrev = page > 1
+  const canGoNext = page < pagination.pages
 
   return (
     <>
       <div className="shop-hero">
         <div className="page-wrap">
           <div className="shop-breadcrumb">
-            <Link href="/">Home</Link>
+            <Link href="/">Accueil</Link>
             <span className="breadcrumb-sep">›</span>
-            <span>Shop</span>
-            {category && (
+            <span>Boutique</span>
+            {categorySlug && (
               <>
                 <span className="breadcrumb-sep">›</span>
                 <span>{catLabel}</span>
@@ -382,7 +410,11 @@ export default function Shop() {
           </div>
 
           <h1>{catLabel}</h1>
-          <p>{loading ? 'Loading…' : `${filteredSorted.length} products available`}</p>
+          <p>
+            {loading
+              ? 'Chargement…'
+              : `${pagination.total} produit${pagination.total > 1 ? 's' : ''} disponible${pagination.total > 1 ? 's' : ''}`}
+          </p>
         </div>
       </div>
 
@@ -397,14 +429,16 @@ export default function Shop() {
                   onClick={() => setFiltersOpen(true)}
                 >
                   <FilterIcon />
-                  <span>Filters</span>
+                  <span>Filtres</span>
                   {activeFiltersCount > 0 && <b>{activeFiltersCount}</b>}
                 </button>
 
                 <p className="prod-count">
-                  {loading ? 'Loading products…' : (
+                  {loading ? 'Chargement des produits…' : (
                     <>
-                      Showing <b>{filteredSorted.length}</b> products
+                      Page <b>{pagination.page}</b> / <b>{pagination.pages}</b>
+                      {' — '}
+                      Affichage de <b>{filteredSorted.length}</b> produits
                     </>
                   )}
                 </p>
@@ -414,7 +448,7 @@ export default function Shop() {
                 className="sort-sel"
                 value={sort}
                 onChange={e => setSort(e.target.value)}
-                aria-label="Sort products"
+                aria-label="Trier les produits"
               >
                 {SORT_OPTIONS.map(s => (
                   <option key={s}>{s}</option>
@@ -435,19 +469,51 @@ export default function Shop() {
                   <path d="m21 21-4.35-4.35" />
                 </svg>
 
-                <h3>No products found</h3>
-                <p>Try adjusting your filters or browsing all lights.</p>
+                <h3>Aucun produit trouvé</h3>
+                <p>Essaie d'ajuster les filtres ou de consulter tous les luminaires.</p>
 
                 <button className="btn btn-dark" onClick={onResetFilters}>
-                  Clear Filters
+                  Réinitialiser les filtres
                 </button>
               </div>
             ) : (
-              <div className="product-grid">
-                {filteredSorted.map(p => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
+              <>
+                <div className="product-grid">
+                  {filteredSorted.map(p => (
+                    <ProductCard key={p.id} product={p} />
+                  ))}
+                </div>
+
+                <div className="shop-pagination">
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    disabled={!canGoPrev || loading}
+                    onClick={() => {
+                      setPage(p => Math.max(1, p - 1))
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                  >
+                    Précédent
+                  </button>
+
+                  <span>
+                    Page {pagination.page} sur {pagination.pages}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="btn btn-dark"
+                    disabled={!canGoNext || loading}
+                    onClick={() => {
+                      setPage(p => Math.min(pagination.pages, p + 1))
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                  >
+                    Suivant
+                  </button>
+                </div>
+              </>
             )}
           </section>
         </div>

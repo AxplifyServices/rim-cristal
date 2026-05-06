@@ -109,10 +109,40 @@ export function mapProduct(p) {
   if (!p) return null
 
   const price = toNumber(p.price)
-  const salePrice = toNumber(p.sale_price, price)
+  const salePrice = p.sale_price === null || p.sale_price === undefined
+    ? price
+    : toNumber(p.sale_price, price)
 
   const colors = Array.isArray(p.colors) ? p.colors : []
   const sizes = Array.isArray(p.sizes) ? p.sizes : []
+
+  const images = [
+    p.url_image1,
+    p.url_image2,
+    p.url_image3,
+    p.url_image4,
+    p.url_image5,
+  ].filter(url => {
+    if (!url) return false
+
+    const lowered = String(url).toLowerCase()
+
+    if (lowered.includes('/img/eglo.png')) return false
+    if (lowered.includes('/img/m/')) return false
+    if (lowered.includes('/img/p/')) return false
+    if (lowered.includes('fr-default')) return false
+
+    return (
+      lowered.endsWith('.jpg') ||
+      lowered.endsWith('.jpeg') ||
+      lowered.endsWith('.png') ||
+      lowered.endsWith('.webp')
+    )
+  })
+
+  if (images.length === 0) {
+    return null
+  }
 
   return {
     id: p.id,
@@ -121,7 +151,7 @@ export function mapProduct(p) {
 
     name: p.name,
     category: p.categorie || '',
-    categoryLabel: p.famille || p.categorie || '',
+    categoryLabel: p.categorie || p.famille || '',
     marque: p.marque || '',
     rubrique: p.rubrique || '',
     categorie: p.categorie || '',
@@ -131,13 +161,7 @@ export function mapProduct(p) {
     salePrice,
     discount: toNumber(p.discount_percent),
 
-    images: [
-      p.url_image1,
-      p.url_image2,
-      p.url_image3,
-      p.url_image4,
-      p.url_image5,
-    ].filter(Boolean),
+    images,
 
     colors,
     sizes,

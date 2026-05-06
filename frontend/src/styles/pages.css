@@ -570,3 +570,32 @@
     gap: 14px;
   }
 }
+
+.shop-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 42px 0 12px;
+}
+
+.shop-pagination span {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.shop-pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .shop-pagination {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .shop-pagination button {
+    width: 100%;
+  }
+}

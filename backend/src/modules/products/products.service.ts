@@ -9,7 +9,7 @@ export class ProductsService {
     const page = Math.max(Number(query.page || 1), 1);
     const pageSize = Math.min(
       Math.max(Number(query.page_size || query.limit || 24), 1),
-      200,
+      20,
     );
 
     const where: any = {};
@@ -19,9 +19,14 @@ export class ProductsService {
     }
 
     const categorie = query.categorie || query.category;
+    const rubrique = query.rubrique;
 
     if (categorie) {
       where.categorie = String(categorie);
+    }
+
+    if (rubrique) {
+      where.rubrique = String(rubrique);
     }
 
     if (query.featured !== undefined) {
@@ -35,6 +40,12 @@ export class ProductsService {
     if (query.is_new !== undefined || query.new !== undefined) {
       where.is_new = String(query.is_new || query.new) === 'true';
     }
+
+    if (query.sale !== undefined) {
+      where.discount_percent = {
+        gt: 0,
+      };
+    }    
 
     const search = query.search || query.q;
 

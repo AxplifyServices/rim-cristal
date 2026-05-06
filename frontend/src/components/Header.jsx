@@ -6,13 +6,15 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 
 const NAV = [
-  { label: 'All Lights',     path: '/shop' },
-  { label: 'Pendant Lights', path: '/shop/pendant',  sub: ['Nordic & Scandi','Industrial','Cluster Pendants','Dome & Globe','Rattan & Natural'] },
-  { label: 'Wall Sconces',   path: '/shop/sconce',   sub: ['Arch Sconces','LED Sconces','Swing Arm','Plug-in Sconces'] },
-  { label: 'Floor Lamps',    path: '/shop/floor',    sub: ['Arc Lamps','Tripod','Tower Lamps','Reading Lamps'] },
-  { label: 'Table Lamps',    path: '/shop/table',    sub: ['Ceramic Base','Metal Base','Desk Lamps'] },
-  { label: 'New Arrivals',   path: '/shop?filter=new' },
-  { label: 'Sale',           path: '/shop?filter=sale', sale: true },
+  { label: 'Tous', path: '/shop' },
+  { label: 'Suspensions', path: '/shop/suspension' },
+  { label: 'Appliques', path: '/shop/applique' },
+  { label: 'Plafonniers', path: '/shop/plafonnier' },
+  { label: 'Lampes de table', path: '/shop/lampe-de-table' },
+  { label: 'Spots', path: '/shop/spot' },
+  { label: 'Lampadaires', path: '/shop/lampadaire' },
+  { label: 'Ampoules', path: '/shop/led' },
+  { label: 'Extérieur', path: '/shop/exterieur' },
 ]
 
 export default function Header() {
@@ -108,7 +110,7 @@ export default function Header() {
               <input
                 autoFocus={searchOpen}
                 type="text"
-                placeholder="Search pendants, sconces…"
+                placeholder="Rechercher une suspension, applique…"
                 onKeyDown={handleSearch}
               />
             </div>

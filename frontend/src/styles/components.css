@@ -20,8 +20,14 @@
 }
 .p-img-wrap .img-a { z-index: 1; }
 .p-img-wrap .img-b { z-index: 2; opacity: 0; transition: opacity .55s ease; }
-.p-card:hover .img-a { transform: scale(1.04); opacity: 0.15; transition: transform .55s ease, opacity .55s ease; }
-.p-card:hover .img-b { opacity: 1; }
+.p-card.has-second-image:hover .img-a {
+  transform: scale(1.04);
+  opacity: 0.15;
+}
+
+.p-card.has-second-image:hover .img-b {
+  opacity: 1;
+}
 
 .p-card-badge {
   position: absolute; top: 12px; left: 12px;

@@ -94,7 +94,7 @@ export default function Home() {
       <section className="hero">
         <div className="hero-bg">
         <img
-          src="/images/Pendant Lights/Elegant Dining Pendant/1.jpg"
+          src="/placeholder-product.svg"
           alt="Lux Lumina hero"
           onError={handleImgError}
         />
@@ -176,7 +176,7 @@ export default function Home() {
       {/* ── BRAND BANNER ── */}
       <section style={{ position: 'relative', height: 360, overflow: 'hidden' }}>
         <img
-          src="/images/Floor Lamps/Minimal Arc Lamp/1.jpg"
+          src="/placeholder-product.svg"
           alt="Lux Lumina brand"
           onError={handleImgError}
           style={{ height: '100%', objectFit: 'cover', filter: 'brightness(.62)', width: '100%' }}
