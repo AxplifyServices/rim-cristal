@@ -1,0 +1,52 @@
+services:
+  rim-cristal-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rim-cristal-backend
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      PORT: 3000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - web
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+
+      - traefik.http.routers.rim-cristal-api.rule=Host(`rim-cristal.axplitest.com`) && PathPrefix(`/api`)
+      - traefik.http.routers.rim-cristal-api.entrypoints=websecure
+      - traefik.http.routers.rim-cristal-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.rim-cristal-api.priority=100
+      - traefik.http.services.rim-cristal-api.loadbalancer.server.port=3000
+
+  rim-cristal-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://rim-cristal.axplitest.com/api
+    container_name: rim-cristal-frontend
+    restart: unless-stopped
+    depends_on:
+      - rim-cristal-backend
+    env_file:
+      - .env.prod
+    networks:
+      - web
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+
+      - traefik.http.routers.rim-cristal-front.rule=Host(`rim-cristal.axplitest.com`)
+      - traefik.http.routers.rim-cristal-front.entrypoints=websecure
+      - traefik.http.routers.rim-cristal-front.tls.certresolver=letsencrypt
+      - traefik.http.routers.rim-cristal-front.priority=10
+      - traefik.http.services.rim-cristal-front.loadbalancer.server.port=3000
+
+networks:
+  web:
+    external: true
