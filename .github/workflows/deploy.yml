@@ -1,4 +1,4 @@
-name: Deploy Lux Lumina
+name: Deploy Rim Cristal
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
             set -e
 
             echo "===== Go to app folder ====="
-            cd /opt/apps/lux-lumina
+            cd /opt/apps/rim_cristal
 
             echo "===== Fetch latest code ====="
             git fetch origin main
@@ -35,10 +35,10 @@ jobs:
             test -f .env.prod
 
             echo "===== Build and restart containers ====="
-            docker compose -f docker-compose.prod.yml up -d --build
+            docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 
             echo "===== Cleanup unused docker images ====="
             docker image prune -f
 
             echo "===== Status ====="
-            docker ps --filter "name=luminaire"
+            docker ps
