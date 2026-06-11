@@ -1,4 +1,4 @@
-cd OneDrive\Bureau\Projet Dev\Luminaire
+cd OneDrive\Bureau\Projet Dev\Rim_cristal
 
 serv :ssh ubuntu@51.75.252.139
 Code serveur : zitanezac
