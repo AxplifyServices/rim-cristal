@@ -5,7 +5,7 @@ Code serveur : zitanezac
 
 cd /opt/apps
 
-Pour Git :
+** Pour Git :
 
 git status
 
@@ -14,6 +14,17 @@ git commit -m "message clair"
 git push origin main
 
 
-MDP PostgreSQL serveur :
+** MDP PostgreSQL serveur :
 
 22072001Zak
+
+
+** lancer le back : 
+
+npm run start:dev
+
+
+** Lancer le front :
+
+npm run dev
+
