@@ -4,12 +4,18 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwt: JwtService,
+    private readonly config: ConfigService,
+  ) {}
 
   async register(body: any) {
     const email = String(body.email || '').toLowerCase().trim();
@@ -38,6 +44,7 @@ export class AuthService {
         phone: body.phone || null,
         is_active: true,
         is_admin: false,
+        role: 'customer',
       },
       select: this.userSelect(),
     });
@@ -58,6 +65,9 @@ export class AuthService {
 
     const user = await this.prisma.users.findUnique({
       where: { email },
+      include: {
+        point_of_sales: true,
+      },
     });
 
     if (!user || !user.is_active) {
@@ -70,45 +80,60 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    await this.prisma.users.update({
+      where: { id: user.id },
+      data: {
+        last_login_at: new Date(),
+      },
+    });
+
+    const safeUser = this.cleanUser(user);
+
     return {
       success: true,
-      user: this.cleanUser(user),
+      access_token: await this.signToken(safeUser),
+      user: safeUser,
     };
   }
 
-  async me(params: { userId?: string; email?: string }) {
-    if (params.userId) {
-      const user = await this.prisma.users.findUnique({
-        where: { id: Number(params.userId) },
-        select: this.userSelect(),
-      });
+  async me(userId: number) {
+    const user = await this.prisma.users.findUnique({
+      where: { id: userId },
+      select: this.userSelect(),
+    });
 
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-
-      return user;
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    if (params.email) {
-      const user = await this.prisma.users.findUnique({
-        where: { email: params.email.toLowerCase().trim() },
-        select: this.userSelect(),
-      });
+    return user;
+  }
 
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
+  private async signToken(user: any) {
+    const secret = this.config.get<string>('JWT_SECRET');
+    const expiresIn = this.config.get<string>('JWT_EXPIRES_IN') || '7d';
 
-      return user;
-    }
-
-    throw new BadRequestException('user_id or email is required');
+    return this.jwt.signAsync(
+      {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+        point_of_sale_id: user.point_of_sale_id,
+      },
+      {
+        secret,
+        expiresIn,
+      },
+    );
   }
 
   private cleanUser(user: any) {
-    const { hashed_password, ...safe } = user;
-    return safe;
+    const { hashed_password, point_of_sales, ...safe } = user;
+
+    return {
+      ...safe,
+      point_of_sale: point_of_sales || null,
+    };
   }
 
   private userSelect() {
@@ -120,6 +145,9 @@ export class AuthService {
       phone: true,
       is_admin: true,
       is_active: true,
+      role: true,
+      point_of_sale_id: true,
+      last_login_at: true,
       created_at: true,
       updated_at: true,
     };

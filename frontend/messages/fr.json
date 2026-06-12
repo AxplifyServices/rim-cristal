@@ -1,0 +1,89 @@
+{
+  "app": {
+    "name": "Rim Cristal Admin",
+    "subtitle": "Gestion stock & points de vente"
+  },
+  "auth": {
+    "loginTitle": "Connexion",
+    "loginSubtitle": "Accédez à votre espace de gestion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "submit": "Se connecter",
+    "logout": "Déconnexion",
+    "invalid": "Identifiants invalides"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "products": "Produits",
+    "pointsOfSale": "Points de vente",
+    "sales": "Ventes",
+    "stock": "Stock",
+    "orders": "Commandes"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "adminSubtitle": "Vue globale du stock, des ventes et des commandes.",
+    "posSubtitle": "Vue de votre point de vente.",
+    "globalStock": "Stock global",
+    "posStock": "Stock point de vente",
+    "orders": "Commandes",
+    "sales": "Ventes",
+    "revenue": "Chiffre d'affaires"
+  },
+  "products": {
+    "title": "Produits",
+    "subtitleAdmin": "Gérez le catalogue, les prix et le stock global.",
+    "subtitlePos": "Consultez uniquement les produits disponibles dans votre point de vente.",
+    "product": "Produit",
+    "category": "Catégorie",
+    "retailPrice": "Prix particulier",
+    "wholesalePrice": "Prix gros",
+    "wholesaleMinQty": "Seuil gros",
+    "globalStock": "Stock global",
+    "posStock": "Stock point de vente",
+    "status": "Statut",
+    "active": "Actif",
+    "inactive": "Retiré"
+  },
+  "pointsOfSale": {
+    "title": "Points de vente",
+    "subtitle": "Créez, modifiez et suivez les points de vente.",
+    "name": "Nom",
+    "city": "Ville",
+    "address": "Adresse",
+    "phone": "Téléphone",
+    "manager": "Responsable",
+    "create": "Créer le point de vente"
+  },
+  "sales": {
+    "title": "Ventes",
+    "subtitleAdmin": "Toutes les ventes réalisées dans les points de vente.",
+    "subtitlePos": "Signalez les ventes réalisées dans votre point de vente.",
+    "newSale": "Nouvelle vente",
+    "quantity": "Quantité",
+    "total": "Total",
+    "customer": "Client",
+    "submit": "Valider la vente"
+  },
+  "stock": {
+    "title": "Stock",
+    "subtitle": "Transferts, recharges, sorties et historique.",
+    "transfer": "Transférer vers un point de vente",
+    "adjust": "Ajuster le stock",
+    "movements": "Mouvements de stock"
+  },
+  "orders": {
+    "title": "Commandes",
+    "subtitle": "Commandes web associées aux points de vente."
+  },
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "search": "Rechercher",
+    "empty": "Aucune donnée",
+    "language": "Langue"
+  }
+}

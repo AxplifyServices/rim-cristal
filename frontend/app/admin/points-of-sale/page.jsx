@@ -1,6 +1,6 @@
 'use client'
 
-import AdminProducts from '../../../src/admin/views/AdminProducts'
+import AdminProducts from '../../../src/admin/views/AdminPoint_of_sales'
 
 export default function AdminProductsPage() {
   return <AdminProducts />

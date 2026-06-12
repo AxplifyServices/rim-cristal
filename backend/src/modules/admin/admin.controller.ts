@@ -10,14 +10,18 @@ import {
   Query,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
+import { UseGuards, Req } from '@nestjs/common';
+import { AuthGuard } from '../../common/auth/auth.guard';
 
 @Controller('admin')
+@UseGuards(AuthGuard)
 export class AdminController {
   constructor(private readonly service: AdminService) {}
+  
 
   @Get('stats')
-  stats() {
-    return this.service.stats();
+  stats(@Req() req: any) {
+    return this.service.stats(req.user);
   }
 
   @Get('points-of-sale')

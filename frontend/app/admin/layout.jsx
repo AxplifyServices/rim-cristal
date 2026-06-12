@@ -1,5 +1,14 @@
+import { AdminI18nProvider } from '../../src/admin/i18n/AdminI18nProvider'
+
+export const metadata = {
+  title: 'Rim Cristal Admin',
+  description: 'Gestion stock et points de vente Rim Cristal',
+}
+
 export default function AdminLayout({ children }) {
-  // Admin pages use their own AdminShell with sidebar nav
-  // We render children directly — AdminShell provides its own full-page layout
-  return children
+  return (
+    <AdminI18nProvider>
+      {children}
+    </AdminI18nProvider>
+  )
 }

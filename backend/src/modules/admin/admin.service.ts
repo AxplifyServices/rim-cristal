@@ -9,7 +9,48 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async stats() {
+  async stats(user?: any) {
+    if (user?.role === 'point_of_sale') {
+  const pointOfSaleId = Number(user.point_of_sale_id);
+
+  if (!pointOfSaleId) {
+    return {
+      point_of_sale_stock_units: 0,
+      sales: 0,
+      revenue: 0,
+    };
+  }
+
+  const [stockResult, salesCount, revenueResult] = await Promise.all([
+    this.prisma.point_of_sale_stocks.aggregate({
+      where: {
+        point_of_sale_id: pointOfSaleId,
+      },
+      _sum: {
+        quantity: true,
+      },
+    }),
+    this.prisma.point_of_sale_sales.count({
+      where: {
+        point_of_sale_id: pointOfSaleId,
+      },
+    }),
+    this.prisma.point_of_sale_sales.aggregate({
+      where: {
+        point_of_sale_id: pointOfSaleId,
+      },
+      _sum: {
+        total: true,
+      },
+    }),
+  ]);
+
+  return {
+    point_of_sale_stock_units: Number(stockResult._sum.quantity || 0),
+    sales: salesCount,
+    revenue: Number(revenueResult._sum.total || 0),
+  };
+}
     const [
       products,
       activeProducts,

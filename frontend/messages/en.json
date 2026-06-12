@@ -1,0 +1,89 @@
+{
+  "app": {
+    "name": "Rim Cristal Admin",
+    "subtitle": "Stock & point of sale management"
+  },
+  "auth": {
+    "loginTitle": "Login",
+    "loginSubtitle": "Access your management area",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "logout": "Logout",
+    "invalid": "Invalid credentials"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "pointsOfSale": "Points of sale",
+    "sales": "Sales",
+    "stock": "Stock",
+    "orders": "Orders"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "adminSubtitle": "Global view of stock, sales and orders.",
+    "posSubtitle": "View of your point of sale.",
+    "globalStock": "Global stock",
+    "posStock": "Point of sale stock",
+    "orders": "Orders",
+    "sales": "Sales",
+    "revenue": "Revenue"
+  },
+  "products": {
+    "title": "Products",
+    "subtitleAdmin": "Manage catalog, pricing and global stock.",
+    "subtitlePos": "View only products available in your point of sale.",
+    "product": "Product",
+    "category": "Category",
+    "retailPrice": "Retail price",
+    "wholesalePrice": "Wholesale price",
+    "wholesaleMinQty": "Wholesale threshold",
+    "globalStock": "Global stock",
+    "posStock": "POS stock",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "pointsOfSale": {
+    "title": "Points of sale",
+    "subtitle": "Create, edit and monitor points of sale.",
+    "name": "Name",
+    "city": "City",
+    "address": "Address",
+    "phone": "Phone",
+    "manager": "Manager",
+    "create": "Create point of sale"
+  },
+  "sales": {
+    "title": "Sales",
+    "subtitleAdmin": "All sales made from points of sale.",
+    "subtitlePos": "Report sales made from your point of sale.",
+    "newSale": "New sale",
+    "quantity": "Quantity",
+    "total": "Total",
+    "customer": "Customer",
+    "submit": "Submit sale"
+  },
+  "stock": {
+    "title": "Stock",
+    "subtitle": "Transfers, restocking, stock exits and history.",
+    "transfer": "Transfer to point of sale",
+    "adjust": "Adjust stock",
+    "movements": "Stock movements"
+  },
+  "orders": {
+    "title": "Orders",
+    "subtitle": "Web orders linked to points of sale."
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "empty": "No data",
+    "language": "Language"
+  }
+}

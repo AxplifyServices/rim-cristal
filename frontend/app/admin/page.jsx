@@ -1,3 +1,7 @@
 'use client'
-import AdminOverview from '../../src/views/admin/AdminOverview'
-export default function AdminPage() { return <AdminOverview /> }
+
+import AdminDashboard from '../../src/admin/views/AdminDashboard'
+
+export default function AdminPage() {
+  return <AdminDashboard />
+}
