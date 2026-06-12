@@ -28,3 +28,10 @@ npm run start:dev
 
 npm run dev
 
+
+** Profil admin :
+
+Email : admin@rim-cristal.local
+ou
+Email : admin@rim-cristal.axplitest.com
+Mot de passe : Admin1234!
