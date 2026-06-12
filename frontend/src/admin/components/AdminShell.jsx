@@ -19,6 +19,20 @@ export default function AdminShell({ children }) {
     setUser(getAdminUser())
   }, [router])
 
+    useEffect(() => {
+    if (!user) return
+
+    const adminOnlyPaths = [
+      '/admin/points-of-sale',
+      '/admin/stock',
+      '/admin/orders',
+    ]
+
+    if (user.role !== 'admin' && adminOnlyPaths.includes(pathname)) {
+      router.replace('/admin')
+    }
+  }, [user, pathname, router])
+
   const nav = useMemo(() => {
     const role = user?.role
 

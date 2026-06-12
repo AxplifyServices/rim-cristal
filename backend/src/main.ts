@@ -10,9 +10,17 @@ async function bootstrap() {
 
   const config = app.get(ConfigService);
   const frontendUrl = config.get<string>('FRONTEND_URL') || 'http://localhost:3001';
+  const adminFrontendUrl = config.get<string>('ADMIN_FRONTEND_URL');
+
+  const allowedOrigins = [
+    frontendUrl,
+    adminFrontendUrl,
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+  ].filter(Boolean);
 
   app.enableCors({
-    origin: [frontendUrl, 'http://localhost:3001', 'http://127.0.0.1:3001'],
+    origin: allowedOrigins,
     credentials: true,
   });
 

@@ -11,6 +11,8 @@ const emptyForm = {
   address: '',
   phone: '',
   manager_name: '',
+  email: '',
+  password: '',
 }
 
 export default function AdminPointsOfSale() {
@@ -119,6 +121,24 @@ export default function AdminPointsOfSale() {
           style={styles.input}
         />
 
+        <input
+          value={form.email}
+          onChange={e => updateField('email', e.target.value)}
+          placeholder="Email de connexion"
+          type="email"
+          style={styles.input}
+          required
+        />
+
+        <input
+          value={form.password}
+          onChange={e => updateField('password', e.target.value)}
+          placeholder="Mot de passe"
+          type="password"
+          style={styles.input}
+          required
+        />
+
         <button disabled={saving} style={styles.button}>
           {saving ? t('common.loading') : t('pointsOfSale.create')}
         </button>
@@ -138,6 +158,7 @@ export default function AdminPointsOfSale() {
                   <th style={styles.th}>{t('pointsOfSale.city')}</th>
                   <th style={styles.th}>{t('pointsOfSale.phone')}</th>
                   <th style={styles.th}>{t('pointsOfSale.manager')}</th>
+                  <th style={styles.th}>Email</th>
                   <th style={styles.th}>Stock</th>
                   <th style={styles.th}>Statut</th>
                   <th style={styles.th}></th>
@@ -151,6 +172,7 @@ export default function AdminPointsOfSale() {
                     <td style={styles.td}>{item.city || '-'}</td>
                     <td style={styles.td}>{item.phone || '-'}</td>
                     <td style={styles.td}>{item.manager_name || '-'}</td>
+                    <td style={styles.td}>{item.users?.[0]?.email || '-'}</td>
                     <td style={styles.td}>
                       {(item.point_of_sale_stocks || []).reduce(
                         (sum, stock) => sum + Number(stock.quantity || 0),

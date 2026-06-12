@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -132,6 +133,18 @@ export class AdminService {
     return this.prisma.point_of_sales.findMany({
       orderBy: { id: 'asc' },
       include: {
+        users: {
+          select: {
+            id: true,
+            email: true,
+            first_name: true,
+            last_name: true,
+            phone: true,
+            is_active: true,
+            role: true,
+            last_login_at: true,
+          },
+        },
         point_of_sale_stocks: {
           include: {
             products: true,
@@ -142,20 +155,75 @@ export class AdminService {
   }
 
   async createPointOfSale(body: any) {
-    if (!body.name) {
+    const name = String(body.name || '').trim();
+    const email = String(body.email || '').toLowerCase().trim();
+    const password = String(body.password || '');
+
+    if (!name) {
       throw new BadRequestException('name is required');
     }
 
-    return this.prisma.point_of_sales.create({
-      data: {
-        name: body.name,
-        address: body.address || null,
-        city: body.city || null,
-        phone: body.phone || null,
-        manager_name: body.manager_name || null,
-        is_active:
-          body.is_active !== undefined ? Boolean(body.is_active) : true,
-      },
+    if (!email) {
+      throw new BadRequestException('email is required');
+    }
+
+    if (!password || password.length < 6) {
+      throw new BadRequestException('password must contain at least 6 characters');
+    }
+
+    const existingUser = await this.prisma.users.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('Email already exists');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    return this.prisma.$transaction(async tx => {
+      const pointOfSale = await tx.point_of_sales.create({
+        data: {
+          name,
+          address: body.address || null,
+          city: body.city || null,
+          phone: body.phone || null,
+          manager_name: body.manager_name || null,
+          is_active:
+            body.is_active !== undefined ? Boolean(body.is_active) : true,
+        },
+      });
+
+      const user = await tx.users.create({
+        data: {
+          email,
+          hashed_password: hashedPassword,
+          first_name: body.manager_name || name,
+          last_name: '',
+          phone: body.phone || null,
+          is_active: true,
+          is_admin: false,
+          role: 'point_of_sale',
+          point_of_sale_id: pointOfSale.id,
+        },
+        select: {
+          id: true,
+          email: true,
+          first_name: true,
+          last_name: true,
+          phone: true,
+          is_active: true,
+          role: true,
+          point_of_sale_id: true,
+          created_at: true,
+          updated_at: true,
+        },
+      });
+
+      return {
+        ...pointOfSale,
+        user,
+      };
     });
   }
 
@@ -183,12 +251,27 @@ export class AdminService {
   async deletePointOfSale(id: number) {
     await this.findPointOfSale(id);
 
-    return this.prisma.point_of_sales.update({
-      where: { id },
-      data: {
-        is_active: false,
-        updated_at: new Date(),
-      },
+    return this.prisma.$transaction(async tx => {
+      const pointOfSale = await tx.point_of_sales.update({
+        where: { id },
+        data: {
+          is_active: false,
+          updated_at: new Date(),
+        },
+      });
+
+      await tx.users.updateMany({
+        where: {
+          point_of_sale_id: id,
+          role: 'point_of_sale',
+        },
+        data: {
+          is_active: false,
+          updated_at: new Date(),
+        },
+      });
+
+      return pointOfSale;
     });
   }
 
