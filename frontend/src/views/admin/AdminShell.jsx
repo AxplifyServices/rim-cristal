@@ -5,12 +5,12 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '../../context/AuthContext'
 
 const NAV = [
-  { label: 'Overview',  href: '/admin',          icon: '◈' },
-  { label: 'Orders',    href: '/admin/orders',    icon: '📦' },
-  { label: 'Products',  href: '/admin/products',  icon: '💡' },
-  { label: 'Coupons',   href: '/admin/coupons',   icon: '🏷' },
-  { label: 'Messages',  href: '/admin/messages',  icon: '✉️' },
-  { label: 'Reviews',   href: '/admin/reviews',   icon: '★' },
+  { label: 'Tableau de bord', href: '/admin', icon: '◈' },
+  { label: 'Produits & stock', href: '/admin/products', icon: '💡' },
+  { label: 'Points de vente', href: '/admin/points-of-sale', icon: '🏬' },
+  { label: 'Ventes points de vente', href: '/admin/sales', icon: '🧾' },
+  { label: 'Commandes web', href: '/admin/orders', icon: '📦' },
+  { label: 'Mouvements stock', href: '/admin/stock-movements', icon: '↔' },
 ]
 
 export default function AdminShell({ children }) {
@@ -38,9 +38,9 @@ export default function AdminShell({ children }) {
       }}>
         <div style={{ padding: '24px 20px 16px', borderBottom: '1px solid rgba(255,255,255,.1)' }}>
           <Link href="/" style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: '#b8963e', textDecoration: 'none', letterSpacing: '.03em' }}>
-            Lux <em>Lumina</em>
+            Rim <em>Cristal</em>
           </Link>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,.35)', marginTop: 4, letterSpacing: '.1em', textTransform: 'uppercase' }}>Admin Panel</div>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,.35)', marginTop: 4, letterSpacing: '.1em', textTransform: 'uppercase' }}>Gestion stock & points de vente</div>
         </div>
 
         <nav style={{ flex: 1, padding: '12px 0' }}>

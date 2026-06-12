@@ -142,6 +142,8 @@ export class ProductsService {
         url_image5: body.url_image5 || null,
 
         price: Number(body.price || 0),
+        price_wholesale: Number(body.price_wholesale || 0),
+        wholesale_min_qty: Number(body.wholesale_min_qty || 1),
         sale_price:
           body.sale_price !== undefined && body.sale_price !== null
             ? Number(body.sale_price)
@@ -198,6 +200,12 @@ export class ProductsService {
         ...(body.url_image5 !== undefined && { url_image5: body.url_image5 }),
 
         ...(body.price !== undefined && { price: Number(body.price) }),
+        ...(body.price_wholesale !== undefined && {
+          price_wholesale: Number(body.price_wholesale),
+        }),
+        ...(body.wholesale_min_qty !== undefined && {
+          wholesale_min_qty: Number(body.wholesale_min_qty),
+        }),
         ...(body.sale_price !== undefined && {
           sale_price:
             body.sale_price !== null ? Number(body.sale_price) : null,
