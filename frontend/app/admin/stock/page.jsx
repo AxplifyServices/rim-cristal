@@ -1,7 +1,7 @@
 'use client'
 
-import AdminProducts from '../../../src/admin/views/AdminStock'
+import AdminStock from '../../../src/admin/views/AdminStock'
 
-export default function AdminProductsPage() {
-  return <AdminProducts />
+export default function AdminStockPage() {
+  return <AdminStock />
 }

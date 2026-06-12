@@ -60,6 +60,7 @@ export class AdminService {
       pointsOfSale,
       posStockResult,
       globalStockResult,
+      salesCount,
       recentOrders,
       recentSales,
     ] = await Promise.all([
@@ -94,8 +95,8 @@ export class AdminService {
           stock: true,
         },
       }),
-      this.prisma.orders.findMany({
-        take: 8,
+      this.prisma.point_of_sale_sales.count(),
+      this.prisma.orders.findMany({        take: 8,
         orderBy: { created_at: 'desc' },
         include: {
           point_of_sales: true,
@@ -116,6 +117,7 @@ export class AdminService {
       products,
       active_products: activeProducts,
       orders,
+      sales: salesCount,
       revenue: Number(revenueResult._sum.total || 0),
       unread_messages: unreadMessages,
       points_of_sale: pointsOfSale,
@@ -591,10 +593,18 @@ export class AdminService {
     });
   }
 
-  async listPointOfSaleSales(query: any) {
-    const pointOfSaleId = query.point_of_sale_id
+  async listPointOfSaleSales(query: any, user?: any) {
+    let pointOfSaleId = query.point_of_sale_id
       ? Number(query.point_of_sale_id)
       : undefined;
+
+    if (user?.role === 'point_of_sale') {
+      pointOfSaleId = Number(user.point_of_sale_id);
+
+      if (!pointOfSaleId) {
+        throw new BadRequestException('No point of sale linked to this account');
+      }
+    }
 
     return this.prisma.point_of_sale_sales.findMany({
       where: pointOfSaleId

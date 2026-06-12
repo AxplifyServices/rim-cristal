@@ -7,8 +7,12 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
+import { AuthGuard } from '../../common/auth/auth.guard';
+import { RolesGuard } from '../../common/auth/roles.guard';
+import { Roles } from '../../common/auth/roles.decorator';
 
 @Controller('products')
 export class ProductsController {
@@ -30,16 +34,22 @@ export class ProductsController {
   }
 
   @Post()
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('admin')
   create(@Body() body: any) {
     return this.service.create(body);
   }
 
   @Put(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('admin')
   update(@Param('id') id: string, @Body() body: any) {
     return this.service.update(Number(id), body);
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('admin')
   remove(@Param('id') id: string) {
     return this.service.remove(Number(id));
   }

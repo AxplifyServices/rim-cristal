@@ -1,7 +1,7 @@
 'use client'
 
-import AdminProducts from '../../../src/admin/views/Adminorders'
+import AdminOrders from '../../../src/admin/views/AdminOrders'
 
-export default function AdminProductsPage() {
-  return <AdminProducts />
+export default function AdminOrdersPage() {
+  return <AdminOrders />
 }

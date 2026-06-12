@@ -110,8 +110,9 @@ export class AuthService {
   }
 
   private async signToken(user: any) {
-    const secret = this.config.get<string>('JWT_SECRET');
-    const expiresIn = this.config.get<string>('JWT_EXPIRES_IN') || '7d';
+    const secret = this.config.get<string>('JWT_SECRET') || 'change-me-in-prod';
+
+    const expiresIn = this.config.get('JWT_EXPIRES_IN') || '7d';
 
     return this.jwt.signAsync(
       {
@@ -122,7 +123,7 @@ export class AuthService {
       },
       {
         secret,
-        expiresIn,
+        expiresIn: expiresIn as any,
       },
     );
   }

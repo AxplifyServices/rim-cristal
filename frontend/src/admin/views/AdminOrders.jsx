@@ -2,42 +2,31 @@
 
 import { useEffect, useState } from 'react'
 import AdminShell from '../components/AdminShell'
-import { useAdminI18n } from '../i18n/AdminI18nProvider'
-import { getAdminUser } from '../lib/adminAuth'
 import { adminApi } from '../lib/adminApi'
+import { useAdminI18n } from '../i18n/AdminI18nProvider'
 
-export default function AdminProducts() {
+const statuses = [
+  'pending',
+  'processing',
+  'shipped',
+  'delivered',
+  'cancelled',
+]
+
+export default function AdminOrders() {
   const { t } = useAdminI18n()
-  const [user, setUser] = useState(null)
-  const [products, setProducts] = useState([])
+  const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [savingId, setSavingId] = useState(null)
   const [error, setError] = useState('')
-
-  const isAdmin = user?.role === 'admin'
 
   async function load() {
     setLoading(true)
     setError('')
 
     try {
-      const currentUser = getAdminUser()
-      setUser(currentUser)
-
-      if (currentUser?.role === 'point_of_sale') {
-        const data = await adminApi.get('/point-of-sale/products')
-
-        setProducts(
-          Array.isArray(data)
-            ? data.map(row => ({
-                ...row.products,
-                pos_quantity: row.quantity,
-              }))
-            : [],
-        )
-      } else {
-        const data = await adminApi.get('/products?include_inactive=true&page_size=20')
-        setProducts(Array.isArray(data?.items) ? data.items : [])
-      }
+      const data = await adminApi.get('/orders')
+      setOrders(Array.isArray(data) ? data : [])
     } catch (err) {
       setError(err.message)
     } finally {
@@ -49,60 +38,77 @@ export default function AdminProducts() {
     load()
   }, [])
 
+  async function updateStatus(orderId, status) {
+    setSavingId(orderId)
+    setError('')
+
+    try {
+      await adminApi.patch(`/orders/${orderId}/status`, { status })
+      await load()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSavingId(null)
+    }
+  }
+
   return (
     <AdminShell>
-      <h1 style={styles.title}>{t('products.title')}</h1>
-      <p style={styles.subtitle}>
-        {isAdmin ? t('products.subtitleAdmin') : t('products.subtitlePos')}
-      </p>
+      <h1 style={styles.title}>{t('orders.title')}</h1>
+      <p style={styles.subtitle}>{t('orders.subtitle')}</p>
 
       {error && <div style={styles.error}>{error}</div>}
 
       <div style={styles.card}>
         {loading ? (
           <div style={styles.empty}>{t('common.loading')}</div>
-        ) : products.length === 0 ? (
+        ) : orders.length === 0 ? (
           <div style={styles.empty}>{t('common.empty')}</div>
         ) : (
           <div style={styles.tableWrap}>
             <table style={styles.table}>
               <thead>
                 <tr>
-                  <th style={styles.th}>{t('products.product')}</th>
-                  <th style={styles.th}>{t('products.category')}</th>
-                  <th style={styles.th}>{t('products.retailPrice')}</th>
-                  <th style={styles.th}>{t('products.wholesalePrice')}</th>
-                  <th style={styles.th}>
-                    {isAdmin ? t('products.globalStock') : t('products.posStock')}
-                  </th>
-                  <th style={styles.th}>{t('products.status')}</th>
+                  <th style={styles.th}>Commande</th>
+                  <th style={styles.th}>Client</th>
+                  <th style={styles.th}>Ville</th>
+                  <th style={styles.th}>Total</th>
+                  <th style={styles.th}>Statut</th>
+                  <th style={styles.th}>Date</th>
                 </tr>
               </thead>
 
               <tbody>
-                {products.map(product => (
-                  <tr key={product.id}>
+                {orders.map(order => (
+                  <tr key={order.id}>
+                    <td style={styles.td}>{order.order_number}</td>
                     <td style={styles.td}>
-                      <strong>{product.name}</strong>
+                      {order.shipping_first_name} {order.shipping_last_name}
                       <br />
-                      <span style={styles.muted}>{product.reference}</span>
+                      <span style={styles.muted}>{order.shipping_phone || '-'}</span>
+                    </td>
+                    <td style={styles.td}>{order.shipping_city || '-'}</td>
+                    <td style={styles.td}>
+                      {Number(order.total || 0).toFixed(2)} DH
                     </td>
                     <td style={styles.td}>
-                      {product.categorie || product.rubrique || '-'}
+                      <select
+                        value={order.status}
+                        onChange={e => updateStatus(order.id, e.target.value)}
+                        disabled={savingId === order.id}
+                        style={styles.select}
+                      >
+                        {statuses.map(status => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td style={styles.td}>
-                      {Number(product.price || 0).toFixed(2)} DH
-                    </td>
-                    <td style={styles.td}>
-                      {Number(product.price_wholesale || 0).toFixed(2)} DH
-                    </td>
-                    <td style={styles.td}>
-                      {isAdmin
-                        ? Number(product.stock || 0)
-                        : Number(product.pos_quantity || 0)}
-                    </td>
-                    <td style={styles.td}>
-                      {product.is_active ? t('products.active') : t('products.inactive')}
+                      {order.created_at
+                        ? new Date(order.created_at).toLocaleString()
+                        : '-'}
                     </td>
                   </tr>
                 ))}
@@ -148,7 +154,7 @@ const styles = {
   table: {
     width: '100%',
     borderCollapse: 'collapse',
-    minWidth: 760,
+    minWidth: 860,
   },
   th: {
     textAlign: 'left',
@@ -162,6 +168,13 @@ const styles = {
     borderBottom: '1px solid #f2ece5',
     fontSize: 13,
     verticalAlign: 'top',
+  },
+  select: {
+    height: 36,
+    border: '1px solid #e6ded2',
+    borderRadius: 10,
+    background: '#fff',
+    padding: '0 8px',
   },
   muted: {
     color: '#8a7f72',
