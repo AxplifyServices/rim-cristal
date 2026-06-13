@@ -142,24 +142,22 @@ export class ProductsService {
         url_image5: body.url_image5 || null,
 
         price: Number(body.price || 0),
-        price_wholesale: Number(body.price_wholesale || 0),
-        wholesale_min_qty: Number(body.wholesale_min_qty || 1),
         sale_price:
-          body.sale_price !== undefined && body.sale_price !== null
+          body.sale_price !== undefined && body.sale_price !== null && body.sale_price !== ''
             ? Number(body.sale_price)
             : null,
         discount_percent: Number(body.discount_percent || 0),
 
         colors: body.colors || [],
         sizes: body.sizes || [],
-
         stock: Number(body.stock || 0),
         weight:
-          body.weight !== undefined && body.weight !== null
+          body.weight !== undefined && body.weight !== null && body.weight !== ''
             ? Number(body.weight)
             : null,
 
         badge: body.badge || null,
+
         is_active:
           body.is_active !== undefined ? Boolean(body.is_active) : true,
         is_featured: Boolean(body.is_featured),
@@ -168,6 +166,24 @@ export class ProductsService {
 
         rating: Number(body.rating || 0),
         reviews_count: Number(body.reviews_count || 0),
+
+        category_id: body.category_id ? Number(body.category_id) : null,
+        subcategory_id: body.subcategory_id ? Number(body.subcategory_id) : null,
+
+        room_tags: body.room_tags || [],
+        material_tags: body.material_tags || [],
+        style_tags: body.style_tags || [],
+        dimensions: body.dimensions || {},
+
+        care_instructions: body.care_instructions || null,
+        origin_country: body.origin_country || null,
+        collection_name: body.collection_name || null,
+
+        seo_title: body.seo_title || null,
+        seo_description: body.seo_description || null,
+
+        price_wholesale: Number(body.price_wholesale || 0),
+        wholesale_min_qty: Number(body.wholesale_min_qty || 1),
       },
     });
   }
@@ -182,47 +198,49 @@ export class ProductsService {
         ...(body.slug !== undefined && { slug: body.slug }),
         ...(body.reference !== undefined && { reference: body.reference }),
 
-        ...(body.marque !== undefined && { marque: body.marque }),
-        ...(body.rubrique !== undefined && { rubrique: body.rubrique }),
+        ...(body.marque !== undefined && { marque: body.marque || null }),
+        ...(body.rubrique !== undefined && { rubrique: body.rubrique || null }),
         ...((body.categorie !== undefined || body.category !== undefined) && {
-          categorie: body.categorie || body.category,
+          categorie: body.categorie || body.category || null,
         }),
-        ...(body.famille !== undefined && { famille: body.famille }),
+        ...(body.famille !== undefined && { famille: body.famille || null }),
 
-        ...(body.description !== undefined && { description: body.description }),
-        ...(body.features !== undefined && { features: body.features }),
-        ...(body.specs !== undefined && { specs: body.specs }),
-
-        ...(body.url_image1 !== undefined && { url_image1: body.url_image1 }),
-        ...(body.url_image2 !== undefined && { url_image2: body.url_image2 }),
-        ...(body.url_image3 !== undefined && { url_image3: body.url_image3 }),
-        ...(body.url_image4 !== undefined && { url_image4: body.url_image4 }),
-        ...(body.url_image5 !== undefined && { url_image5: body.url_image5 }),
-
-        ...(body.price !== undefined && { price: Number(body.price) }),
-        ...(body.price_wholesale !== undefined && {
-          price_wholesale: Number(body.price_wholesale),
+        ...(body.description !== undefined && {
+          description: body.description || null,
         }),
-        ...(body.wholesale_min_qty !== undefined && {
-          wholesale_min_qty: Number(body.wholesale_min_qty),
-        }),
+        ...(body.features !== undefined && { features: body.features || [] }),
+        ...(body.specs !== undefined && { specs: body.specs || {} }),
+
+        ...(body.url_image1 !== undefined && { url_image1: body.url_image1 || null }),
+        ...(body.url_image2 !== undefined && { url_image2: body.url_image2 || null }),
+        ...(body.url_image3 !== undefined && { url_image3: body.url_image3 || null }),
+        ...(body.url_image4 !== undefined && { url_image4: body.url_image4 || null }),
+        ...(body.url_image5 !== undefined && { url_image5: body.url_image5 || null }),
+
+        ...(body.price !== undefined && { price: Number(body.price || 0) }),
         ...(body.sale_price !== undefined && {
           sale_price:
-            body.sale_price !== null ? Number(body.sale_price) : null,
+            body.sale_price !== null && body.sale_price !== ''
+              ? Number(body.sale_price)
+              : null,
         }),
         ...(body.discount_percent !== undefined && {
-          discount_percent: Number(body.discount_percent),
+          discount_percent: Number(body.discount_percent || 0),
         }),
 
-        ...(body.colors !== undefined && { colors: body.colors }),
-        ...(body.sizes !== undefined && { sizes: body.sizes }),
+        ...(body.colors !== undefined && { colors: body.colors || [] }),
+        ...(body.sizes !== undefined && { sizes: body.sizes || [] }),
 
-        ...(body.stock !== undefined && { stock: Number(body.stock) }),
+        ...(body.stock !== undefined && { stock: Number(body.stock || 0) }),
         ...(body.weight !== undefined && {
-          weight: body.weight !== null ? Number(body.weight) : null,
+          weight:
+            body.weight !== null && body.weight !== ''
+              ? Number(body.weight)
+              : null,
         }),
 
-        ...(body.badge !== undefined && { badge: body.badge }),
+        ...(body.badge !== undefined && { badge: body.badge || null }),
+
         ...(body.is_active !== undefined && {
           is_active: Boolean(body.is_active),
         }),
@@ -236,9 +254,45 @@ export class ProductsService {
           is_bestseller: Boolean(body.is_bestseller),
         }),
 
-        ...(body.rating !== undefined && { rating: Number(body.rating) }),
+        ...(body.rating !== undefined && { rating: Number(body.rating || 0) }),
         ...(body.reviews_count !== undefined && {
-          reviews_count: Number(body.reviews_count),
+          reviews_count: Number(body.reviews_count || 0),
+        }),
+
+        ...(body.category_id !== undefined && {
+          category_id: body.category_id ? Number(body.category_id) : null,
+        }),
+        ...(body.subcategory_id !== undefined && {
+          subcategory_id: body.subcategory_id ? Number(body.subcategory_id) : null,
+        }),
+
+        ...(body.room_tags !== undefined && { room_tags: body.room_tags || [] }),
+        ...(body.material_tags !== undefined && { material_tags: body.material_tags || [] }),
+        ...(body.style_tags !== undefined && { style_tags: body.style_tags || [] }),
+        ...(body.dimensions !== undefined && { dimensions: body.dimensions || {} }),
+
+        ...(body.care_instructions !== undefined && {
+          care_instructions: body.care_instructions || null,
+        }),
+        ...(body.origin_country !== undefined && {
+          origin_country: body.origin_country || null,
+        }),
+        ...(body.collection_name !== undefined && {
+          collection_name: body.collection_name || null,
+        }),
+
+        ...(body.seo_title !== undefined && {
+          seo_title: body.seo_title || null,
+        }),
+        ...(body.seo_description !== undefined && {
+          seo_description: body.seo_description || null,
+        }),
+
+        ...(body.price_wholesale !== undefined && {
+          price_wholesale: Number(body.price_wholesale || 0),
+        }),
+        ...(body.wholesale_min_qty !== undefined && {
+          wholesale_min_qty: Number(body.wholesale_min_qty || 1),
         }),
 
         updated_at: new Date(),

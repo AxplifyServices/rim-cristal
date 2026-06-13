@@ -79,11 +79,16 @@ export default function AdminDashboard() {
     })
   }
 
-    function openDatePicker(event) {
+  function openDatePicker(event) {
     const input = event.currentTarget
 
-    if (typeof input.showPicker === 'function') {
-      input.showPicker()
+    try {
+      if (typeof input.showPicker === 'function') {
+        input.showPicker()
+      }
+    } catch {
+      // Certains navigateurs bloquent showPicker si l'action n'est pas considérée
+      // comme un geste utilisateur direct. Dans ce cas, le date picker natif reste disponible.
     }
   }
 
@@ -106,7 +111,10 @@ export default function AdminDashboard() {
             style={styles.filterToggle}
             aria-expanded={filtersOpen}
           >
-            <span style={styles.funnelIcon}>⌄</span>
+            <span style={styles.funnelIcon}>
+              <span style={styles.funnelTop} />
+              <span style={styles.funnelStem} />
+            </span>
             <span>{t('dashboard.filters')}</span>
           </button>
 
@@ -124,7 +132,6 @@ export default function AdminDashboard() {
               <input
                 type="date"
                 value={filters.start_date}
-                onFocus={openDatePicker}
                 onClick={openDatePicker}
                 onKeyDown={event => event.preventDefault()}
                 onChange={e => updateFilter('start_date', e.target.value)}
@@ -137,7 +144,6 @@ export default function AdminDashboard() {
               <input
                 type="date"
                 value={filters.end_date}
-                onFocus={openDatePicker}
                 onClick={openDatePicker}
                 onKeyDown={event => event.preventDefault()}
                 onChange={e => updateFilter('end_date', e.target.value)}
@@ -267,16 +273,29 @@ const styles = {
     gap: 8,
   },
   funnelIcon: {
-    width: 22,
-    height: 22,
+    width: 24,
+    height: 24,
     borderRadius: 999,
     background: '#1f1a14',
-    color: '#fff',
-    display: 'inline-grid',
-    placeItems: 'center',
-    fontSize: 16,
-    lineHeight: 1,
-    transform: 'rotate(180deg)',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'column',
+    gap: 1,
+  },
+  funnelTop: {
+    width: 10,
+    height: 7,
+    background: '#fff',
+    clipPath: 'polygon(0 0, 100% 0, 64% 100%, 36% 100%)',
+    display: 'block',
+  },
+  funnelStem: {
+    width: 3,
+    height: 5,
+    borderRadius: 99,
+    background: '#fff',
+    display: 'block',
   },
   resetButton: {
     border: '1px solid #e6ded2',

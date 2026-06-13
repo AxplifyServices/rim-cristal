@@ -7,8 +7,13 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductsService } from './products.service';
 import { AuthGuard } from '../../common/auth/auth.guard';
 import { RolesGuard } from '../../common/auth/roles.guard';
@@ -26,6 +31,37 @@ export class ProductsController {
   @Get('slug/:slug')
   findBySlug(@Param('slug') slug: string) {
     return this.service.findBySlug(slug);
+  }
+
+  @Post('upload-image')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('admin')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/products',
+        filename: (_req, file, callback) => {
+          const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+          callback(null, `product-${unique}${extname(file.originalname)}`);
+        },
+      }),
+      fileFilter: (_req, file, callback) => {
+        if (!file.mimetype.startsWith('image/')) {
+          callback(new Error('Only image files are allowed'), false);
+          return;
+        }
+
+        callback(null, true);
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+      },
+    }),
+  )
+  uploadImage(@UploadedFile() file: Express.Multer.File) {
+    return {
+      url: `/uploads/products/${file.filename}`,
+    };
   }
 
   @Get(':id')

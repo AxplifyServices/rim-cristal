@@ -84,10 +84,45 @@ async function request(method, path, body) {
   return data
 }
 
+async function upload(path, formData) {
+  const token = getAdminToken()
+
+  const headers = {}
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  let res
+  let data
+
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    })
+
+    data = await parseResponse(res)
+  } catch {
+    throw new Error(
+      `Impossible de contacter le serveur API. Vérifie que le backend tourne bien sur ${BASE}.`
+    )
+  }
+
+  if (!res.ok) {
+    const message = extractErrorMessage(data, `Upload failed (${res.status})`)
+    throw new Error(message)
+  }
+
+  return data
+}
+
 export const adminApi = {
   get: path => request('GET', path),
   post: (path, body) => request('POST', path, body),
   put: (path, body) => request('PUT', path, body),
   patch: (path, body) => request('PATCH', path, body),
   del: path => request('DELETE', path),
+  upload,
 }
