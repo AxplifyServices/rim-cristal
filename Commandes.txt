@@ -3,7 +3,7 @@ cd OneDrive\Bureau\Projet Dev\Rim_cristal
 serv :ssh ubuntu@51.75.252.139
 Code serveur : zitanezac
 
-cd /opt/apps
+cd /opt/apps/rim_cristal
 
 ** Pour Git :
 
@@ -21,11 +21,13 @@ git push origin main
 
 ** lancer le back : 
 
+cd OneDrive\Bureau\Projet Dev\Rim_cristal\backend
 npm run start:dev
 
 
 ** Lancer le front :
 
+cd OneDrive\Bureau\Projet Dev\Rim_cristal\frontend
 npm run dev
 
 

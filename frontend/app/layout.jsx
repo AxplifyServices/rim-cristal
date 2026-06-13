@@ -4,6 +4,7 @@ import '../src/styles/components.css'
 import '../src/styles/pages.css'
 import { Providers } from './providers'
 import SiteChrome from '../src/components/SiteChrome'
+import AgentationDev from '../src/components/AgentationDev'
 
 export const metadata = {
   title: 'Lux Lumina — Premium Decorative Lighting',
@@ -26,6 +27,7 @@ export default function RootLayout({ children }) {
           <SiteChrome>
             {children}
           </SiteChrome>
+          <AgentationDev />
         </Providers>
       </body>
     </html>
