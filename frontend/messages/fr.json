@@ -18,14 +18,42 @@
     "pointsOfSale": "Points de vente",
     "sales": "Ventes",
     "stock": "Stock",
-    "orders": "Commandes"
+    "orders": "Commandes",
+    "open": "Ouvrir le menu",
+    "collapse": "Réduire le menu",
+    "expand": "Agrandir le menu"
+  },
+  "navShort": {
+    "dashboard": "TB",
+    "products": "PR",
+    "pointsOfSale": "PV",
+    "sales": "VE",
+    "stock": "ST",
+    "orders": "CO"
+  },
+  "roles": {
+    "admin": "Administrateur",
+    "pointOfSale": "Point de vente"
   },
   "dashboard": {
     "title": "Tableau de bord",
-    "adminSubtitle": "Vue globale du stock, des ventes et des commandes.",
-    "posSubtitle": "Vue de votre point de vente.",
+    "adminSubtitle": "Vue globale des commandes web, du stock et des points de vente.",
+    "posSubtitle": "Vue opérationnelle de votre point de vente.",
+    "filters": "Filtres",
+    "resetFilters": "Réinitialiser",
+    "startDate": "Date début",
+    "endDate": "Date fin",
+    "pointOfSale": "Point de vente",
+    "allPointsOfSale": "Tous les points de vente",
+    "category": "Catégorie produit",
+    "allCategories": "Toutes les catégories",
     "globalStock": "Stock global",
     "posStock": "Stock point de vente",
+    "pointsOfSale": "Points de vente actifs",
+    "webOrders": "Commandes web",
+    "webRevenue": "CA commandes web",
+    "posSales": "Ventes point de vente",
+    "posRevenue": "CA point de vente",
     "orders": "Commandes",
     "sales": "Ventes",
     "revenue": "Chiffre d'affaires"
@@ -84,6 +112,7 @@
     "edit": "Modifier",
     "search": "Rechercher",
     "empty": "Aucune donnée",
-    "language": "Langue"
+        "language": "Langue",
+    "close": "Fermer"
   }
 }

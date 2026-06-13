@@ -22,8 +22,14 @@ export class AdminController {
 
   @Get('stats')
   @Roles('admin', 'point_of_sale')
-  stats(@Req() req: any) {
-    return this.service.stats(req.user);
+  stats(@Req() req: any, @Query() query: any) {
+    return this.service.stats(req.user, query);
+  }
+
+  @Get('dashboard-filters')
+  @Roles('admin', 'point_of_sale')
+  dashboardFilters(@Req() req: any) {
+    return this.service.dashboardFilters(req.user);
   }
 
   @Get('points-of-sale')

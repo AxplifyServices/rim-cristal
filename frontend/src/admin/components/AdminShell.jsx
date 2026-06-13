@@ -11,6 +11,8 @@ export default function AdminShell({ children }) {
   const { t, locale, setLocale } = useAdminI18n()
 
   const [user, setUser] = useState(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     const token = requireAdminSession(router)
@@ -19,7 +21,7 @@ export default function AdminShell({ children }) {
     setUser(getAdminUser())
   }, [router])
 
-    useEffect(() => {
+  useEffect(() => {
     if (!user) return
 
     const adminOnlyPaths = [
@@ -37,12 +39,12 @@ export default function AdminShell({ children }) {
     const role = user?.role
 
     const all = [
-      { href: '/admin', label: t('nav.dashboard'), roles: ['admin', 'point_of_sale'] },
-      { href: '/admin/products', label: t('nav.products'), roles: ['admin', 'point_of_sale'] },
-      { href: '/admin/points-of-sale', label: t('nav.pointsOfSale'), roles: ['admin'] },
-      { href: '/admin/sales', label: t('nav.sales'), roles: ['admin', 'point_of_sale'] },
-      { href: '/admin/stock', label: t('nav.stock'), roles: ['admin'] },
-      { href: '/admin/orders', label: t('nav.orders'), roles: ['admin'] },
+      { href: '/admin', label: t('nav.dashboard'), shortLabel: t('navShort.dashboard'), roles: ['admin', 'point_of_sale'] },
+      { href: '/admin/products', label: t('nav.products'), shortLabel: t('navShort.products'), roles: ['admin', 'point_of_sale'] },
+      { href: '/admin/points-of-sale', label: t('nav.pointsOfSale'), shortLabel: t('navShort.pointsOfSale'), roles: ['admin'] },
+      { href: '/admin/sales', label: t('nav.sales'), shortLabel: t('navShort.sales'), roles: ['admin', 'point_of_sale'] },
+      { href: '/admin/stock', label: t('nav.stock'), shortLabel: t('navShort.stock'), roles: ['admin'] },
+      { href: '/admin/orders', label: t('nav.orders'), shortLabel: t('navShort.orders'), roles: ['admin'] },
     ]
 
     return all.filter(item => item.roles.includes(role))
@@ -53,6 +55,11 @@ export default function AdminShell({ children }) {
     router.replace('/admin/login')
   }
 
+  function goTo(path) {
+    router.push(path)
+    setSidebarOpen(false)
+  }
+
   if (!user) {
     return (
       <main style={styles.loading}>
@@ -61,18 +68,141 @@ export default function AdminShell({ children }) {
     )
   }
 
+  const roleLabel = user.role === 'admin'
+    ? t('roles.admin')
+    : user.point_of_sale?.name || t('roles.pointOfSale')
+
   return (
     <main style={styles.page}>
-      <header style={styles.header}>
-        <div>
-          <div style={styles.brand}>{t('app.name')}</div>
-          <div style={styles.user}>
-            {user.role === 'admin' ? 'Admin' : user.point_of_sale?.name || 'Point de vente'}
+      <style jsx global>{`
+        @media (max-width: 820px) {
+          .admin-sidebar {
+            transform: translateX(-110%);
+            width: 280px !important;
+          }
+
+          .admin-sidebar.is-open {
+            transform: translateX(0);
+          }
+
+          .admin-main {
+            margin-left: 0 !important;
+          }
+
+          .admin-desktop-toggle {
+            display: none !important;
+          }
+
+          .admin-mobile-toggle {
+            display: inline-flex !important;
+          }
+
+          .admin-sidebar-label {
+            display: inline !important;
+          }
+        }
+
+        @media (min-width: 821px) {
+          .admin-sidebar.is-collapsed {
+            width: 84px !important;
+          }
+
+          .admin-sidebar.is-collapsed .admin-brand-text,
+          .admin-sidebar.is-collapsed .admin-sidebar-user,
+          .admin-sidebar.is-collapsed .admin-sidebar-label,
+          .admin-sidebar.is-collapsed .admin-sidebar-footer-text {
+            display: none !important;
+          }
+
+          .admin-sidebar.is-collapsed .admin-sidebar-header {
+            justify-content: center !important;
+          }
+
+          .admin-sidebar.is-collapsed .admin-nav-button {
+            justify-content: center !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+          }
+
+          .admin-sidebar.is-collapsed .admin-lang-select {
+            text-align: center !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+          }
+
+          .admin-main.is-collapsed {
+            margin-left: 84px !important;
+          }
+        }
+      `}</style>
+
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label={t('common.close')}
+          onClick={() => setSidebarOpen(false)}
+          style={styles.overlay}
+        />
+      )}
+
+      <aside
+        className={[
+          'admin-sidebar',
+          sidebarOpen ? 'is-open' : '',
+          sidebarCollapsed ? 'is-collapsed' : '',
+        ].join(' ')}
+        style={styles.sidebar}
+      >
+        <div className="admin-sidebar-header" style={styles.sidebarHeader}>
+          <div className="admin-brand-text">
+            <div style={styles.brand}>{t('app.name')}</div>
+            <div className="admin-sidebar-user" style={styles.user}>
+              {roleLabel}
+            </div>
           </div>
+
+          <button
+            type="button"
+            className="admin-desktop-toggle"
+            onClick={() => setSidebarCollapsed(current => !current)}
+            style={styles.iconButton}
+            aria-label={sidebarCollapsed ? t('nav.expand') : t('nav.collapse')}
+          >
+            {sidebarCollapsed ? '›' : '‹'}
+          </button>
         </div>
 
-        <div style={styles.headerActions}>
+        <nav style={styles.nav}>
+          {nav.map(item => {
+            const active = pathname === item.href
+
+            return (
+              <button
+                key={item.href}
+                type="button"
+                onClick={() => goTo(item.href)}
+                className="admin-nav-button"
+                style={{
+                  ...styles.navButton,
+                  ...(active ? styles.navButtonActive : {}),
+                }}
+                title={item.label}
+              >
+                <span className="admin-sidebar-label">
+                  {sidebarCollapsed ? item.shortLabel : item.label}
+                </span>
+              </button>
+            )
+          })}
+        </nav>
+
+        <div style={styles.sidebarFooter}>
+          <div className="admin-sidebar-footer-text" style={styles.footerText}>
+            {t('common.language')}
+          </div>
+
           <select
+            className="admin-lang-select"
             value={locale}
             onChange={e => setLocale(e.target.value)}
             style={styles.lang}
@@ -82,33 +212,40 @@ export default function AdminShell({ children }) {
           </select>
 
           <button onClick={logout} style={styles.logout}>
-            {t('auth.logout')}
+            <span className="admin-sidebar-label">{t('auth.logout')}</span>
+            <span>{sidebarCollapsed ? '⎋' : ''}</span>
           </button>
         </div>
-      </header>
+      </aside>
 
-      <section style={styles.content}>
-        {children}
+      <section
+        className={[
+          'admin-main',
+          sidebarCollapsed ? 'is-collapsed' : '',
+        ].join(' ')}
+        style={styles.main}
+      >
+        <header style={styles.mobileHeader}>
+          <button
+            type="button"
+            className="admin-mobile-toggle"
+            onClick={() => setSidebarOpen(true)}
+            style={styles.mobileMenuButton}
+            aria-label={t('nav.open')}
+          >
+            ☰
+          </button>
+
+          <div>
+            <div style={styles.mobileTitle}>{t('app.name')}</div>
+            <div style={styles.mobileSubtitle}>{roleLabel}</div>
+          </div>
+        </header>
+
+        <div style={styles.content}>
+          {children}
+        </div>
       </section>
-
-      <nav style={styles.bottomNav}>
-        {nav.map(item => {
-          const active = pathname === item.href
-
-          return (
-            <button
-              key={item.href}
-              onClick={() => router.push(item.href)}
-              style={{
-                ...styles.navButton,
-                ...(active ? styles.navButtonActive : {}),
-              }}
-            >
-              {item.label}
-            </button>
-          )
-        })}
-      </nav>
     </main>
   )
 }
@@ -125,19 +262,36 @@ const styles = {
     minHeight: '100vh',
     background: '#f7f3ed',
     color: '#1f1a14',
-    paddingBottom: 82,
   },
-  header: {
-    position: 'sticky',
+  overlay: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 30,
+    border: 'none',
+    background: 'rgba(31, 26, 20, 0.35)',
+  },
+  sidebar: {
+    position: 'fixed',
     top: 0,
-    zIndex: 10,
-    background: 'rgba(247, 243, 237, 0.94)',
-    backdropFilter: 'blur(14px)',
-    borderBottom: '1px solid #e6ded2',
-    padding: '14px 16px',
+    left: 0,
+    bottom: 0,
+    zIndex: 40,
+    width: 280,
+    background: '#1f1a14',
+    color: '#fff',
+    padding: 16,
+    display: 'flex',
+    flexDirection: 'column',
+    transition: 'width 180ms ease, transform 180ms ease',
+    boxShadow: '18px 0 45px rgba(31, 26, 20, 0.18)',
+  },
+  sidebarHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     gap: 12,
+    alignItems: 'center',
+    marginBottom: 22,
+    minHeight: 42,
   },
   brand: {
     fontSize: 17,
@@ -145,63 +299,122 @@ const styles = {
     letterSpacing: '-0.03em',
   },
   user: {
-    marginTop: 3,
+    marginTop: 5,
     fontSize: 12,
-    color: '#8a7f72',
+    color: '#d8cfc3',
   },
-  headerActions: {
-    display: 'flex',
-    gap: 8,
-    alignItems: 'center',
-  },
-  lang: {
-    height: 36,
-    border: '1px solid #e6ded2',
-    borderRadius: 12,
-    background: '#fff',
-    padding: '0 8px',
-    fontSize: 12,
-  },
-  logout: {
-    height: 36,
-    border: '1px solid #e6ded2',
-    borderRadius: 12,
-    background: '#fff',
-    padding: '0 10px',
-    fontSize: 12,
+  iconButton: {
+    width: 40,
+    height: 40,
+    flex: '0 0 40px',
+    border: '1px solid rgba(255,255,255,0.14)',
+    borderRadius: 14,
+    background: 'rgba(255,255,255,0.08)',
+    color: '#fff',
     cursor: 'pointer',
+    fontSize: 24,
+    lineHeight: 1,
+    display: 'inline-grid',
+    placeItems: 'center',
   },
-  content: {
-    padding: 16,
-    maxWidth: 1180,
-    margin: '0 auto',
-  },
-  bottomNav: {
-    position: 'fixed',
-    left: 12,
-    right: 12,
-    bottom: 12,
-    zIndex: 20,
-    background: '#1f1a14',
-    borderRadius: 24,
-    padding: 8,
+  nav: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: 6,
-    boxShadow: '0 20px 60px rgba(31, 26, 20, 0.25)',
+    gap: 8,
   },
   navButton: {
+    width: '100%',
+    minHeight: 44,
     border: 'none',
     borderRadius: 16,
     background: 'transparent',
     color: '#d8cfc3',
-    padding: '10px 6px',
-    fontSize: 11,
-    fontWeight: 700,
+    padding: '12px 14px',
+    fontSize: 13,
+    fontWeight: 800,
     cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 10,
+    textAlign: 'left',
   },
   navButtonActive: {
     background: '#fff',
     color: '#1f1a14',
+  },
+  sidebarFooter: {
+    marginTop: 'auto',
+    display: 'grid',
+    gap: 8,
+  },
+  footerText: {
+    fontSize: 11,
+    color: '#d8cfc3',
+    paddingLeft: 4,
+  },
+  lang: {
+    height: 42,
+    border: '1px solid rgba(255,255,255,0.14)',
+    borderRadius: 14,
+    background: '#fff',
+    color: '#1f1a14',
+    padding: '0 10px',
+    fontSize: 13,
+    fontWeight: 800,
+  },
+  logout: {
+    minHeight: 42,
+    border: '1px solid rgba(255,255,255,0.14)',
+    borderRadius: 14,
+    background: 'rgba(255,255,255,0.08)',
+    color: '#fff',
+    padding: '0 12px',
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: 'pointer',
+  },
+  main: {
+    minHeight: '100vh',
+    marginLeft: 280,
+    transition: 'margin-left 180ms ease',
+  },
+  mobileHeader: {
+    position: 'sticky',
+    top: 0,
+    zIndex: 20,
+    background: 'rgba(247, 243, 237, 0.94)',
+    backdropFilter: 'blur(14px)',
+    borderBottom: '1px solid #e6ded2',
+    padding: '12px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+  },
+  mobileMenuButton: {
+    display: 'none',
+    width: 42,
+    height: 42,
+    border: '1px solid #e6ded2',
+    borderRadius: 14,
+    background: '#fff',
+    color: '#1f1a14',
+    fontSize: 22,
+    cursor: 'pointer',
+  },
+  mobileTitle: {
+    fontSize: 15,
+    fontWeight: 900,
+    letterSpacing: '-0.03em',
+  },
+  mobileSubtitle: {
+    marginTop: 2,
+    fontSize: 12,
+    color: '#8a7f72',
+  },
+  content: {
+    width: '100%',
+    maxWidth: 1180,
+    margin: '0 auto',
+    padding: 16,
   },
 }

@@ -18,14 +18,42 @@
     "pointsOfSale": "Points of sale",
     "sales": "Sales",
     "stock": "Stock",
-    "orders": "Orders"
+    "orders": "Orders",
+    "open": "Open menu",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu"
+  },
+  "navShort": {
+    "dashboard": "DB",
+    "products": "PR",
+    "pointsOfSale": "POS",
+    "sales": "SA",
+    "stock": "ST",
+    "orders": "OR"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "pointOfSale": "Point of sale"
   },
   "dashboard": {
     "title": "Dashboard",
-    "adminSubtitle": "Global view of stock, sales and orders.",
-    "posSubtitle": "View of your point of sale.",
+    "adminSubtitle": "Global view of web orders, stock and points of sale.",
+    "posSubtitle": "Operational view of your point of sale.",
+    "filters": "Filters",
+    "resetFilters": "Reset",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "pointOfSale": "Point of sale",
+    "allPointsOfSale": "All points of sale",
+    "category": "Product category",
+    "allCategories": "All categories",
     "globalStock": "Global stock",
     "posStock": "Point of sale stock",
+    "pointsOfSale": "Active points of sale",
+    "webOrders": "Web orders",
+    "webRevenue": "Web order revenue",
+    "posSales": "Point of sale sales",
+    "posRevenue": "Point of sale revenue",
     "orders": "Orders",
     "sales": "Sales",
     "revenue": "Revenue"
@@ -84,6 +112,7 @@
     "edit": "Edit",
     "search": "Search",
     "empty": "No data",
-    "language": "Language"
+        "language": "Language",
+    "close": "Close"
   }
 }
