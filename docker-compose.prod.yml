@@ -29,6 +29,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: https://rim-cristal.axplitest.com/api
+        NEXT_PUBLIC_ADMIN_URL: https://rim-cristal-admin.axplitest.com
     container_name: rim-cristal-frontend
     restart: unless-stopped
     depends_on:
