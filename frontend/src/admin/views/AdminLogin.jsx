@@ -33,7 +33,8 @@ export default function AdminLogin() {
       setAdminSession(data)
       router.replace('/admin')
     } catch (err) {
-      setError(err.message || t('auth.invalid'))
+      console.error('[ADMIN_LOGIN_ERROR]', err)
+      setError(err?.message || t('auth.invalid'))
     } finally {
       setLoading(false)
     }
@@ -88,8 +89,8 @@ export default function AdminLogin() {
 
           {error && <div style={styles.error}>{error}</div>}
 
-          <button disabled={loading} style={styles.button}>
-            {loading ? '...' : t('auth.submit')}
+          <button type="submit" disabled={loading} style={styles.button}>
+            {loading ? 'Connexion...' : t('auth.submit')}
           </button>
         </form>
       </section>

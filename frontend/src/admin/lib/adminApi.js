@@ -16,6 +16,18 @@ async function parseResponse(res) {
   return res.text()
 }
 
+function extractErrorMessage(data, fallback) {
+  if (!data) return fallback
+
+  const message =
+    data?.message ||
+    data?.detail ||
+    data?.error ||
+    fallback
+
+  return Array.isArray(message) ? message.join(', ') : message
+}
+
 async function request(method, path, body) {
   const token = getAdminToken()
 
@@ -27,32 +39,46 @@ async function request(method, path, body) {
     headers.Authorization = `Bearer ${token}`
   }
 
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
+  let res
+  let data
 
-  const data = await parseResponse(res)
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    })
+
+    data = await parseResponse(res)
+  } catch (err) {
+    throw new Error(
+      `Impossible de contacter le serveur API. Vérifie que le backend tourne bien sur ${BASE}.`
+    )
+  }
 
   if (res.status === 401) {
     clearAdminSession()
 
-    if (typeof window !== 'undefined') {
+    const message = extractErrorMessage(
+      data,
+      path === '/auth/login'
+        ? 'Email ou mot de passe incorrect.'
+        : 'Session expirée. Merci de te reconnecter.'
+    )
+
+    // Important :
+    // On ne redirige PAS si on est déjà sur la route de login.
+    // Sinon l’erreur disparaît car la page se recharge.
+    if (path !== '/auth/login' && typeof window !== 'undefined') {
       window.location.href = '/admin/login'
     }
 
-    throw new Error('Unauthorized')
+    throw new Error(message)
   }
 
   if (!res.ok) {
-    const message =
-      data?.message ||
-      data?.detail ||
-      data?.error ||
-      `Request failed (${res.status})`
-
-    throw new Error(Array.isArray(message) ? message.join(', ') : message)
+    const message = extractErrorMessage(data, `Request failed (${res.status})`)
+    throw new Error(message)
   }
 
   return data
