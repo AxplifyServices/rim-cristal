@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import AdminShell from '../components/AdminShell'
 import { adminApi } from '../lib/adminApi'
 import { useAdminI18n } from '../i18n/AdminI18nProvider'
@@ -18,10 +18,26 @@ const emptyForm = {
 export default function AdminPointsOfSale() {
   const { t } = useAdminI18n()
   const [items, setItems] = useState([])
+  const [selectedPointOfSale, setSelectedPointOfSale] = useState(null)
+  const [selectedStock, setSelectedStock] = useState([])
+  const [selectedSales, setSelectedSales] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [loading, setLoading] = useState(true)
+  const [detailsLoading, setDetailsLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  const selectedStockTotal = useMemo(() => {
+    return selectedStock.reduce((sum, stock) => {
+      return sum + Number(stock.quantity || 0)
+    }, 0)
+  }, [selectedStock])
+
+  const selectedRevenueTotal = useMemo(() => {
+    return selectedSales.reduce((sum, sale) => {
+      return sum + Number(sale.total || 0)
+    }, 0)
+  }, [selectedSales])
 
   async function load() {
     setLoading(true)
@@ -64,16 +80,46 @@ export default function AdminPointsOfSale() {
     }
   }
 
+  async function openDetails(pointOfSale) {
+    setSelectedPointOfSale(pointOfSale)
+    setDetailsLoading(true)
+    setError('')
+
+    try {
+      const [stockData, salesData] = await Promise.all([
+        adminApi.get(`/admin/points-of-sale/${pointOfSale.id}/stock`),
+        adminApi.get(`/admin/sales?point_of_sale_id=${pointOfSale.id}`),
+      ])
+
+      setSelectedStock(Array.isArray(stockData) ? stockData : [])
+      setSelectedSales(Array.isArray(salesData) ? salesData : [])
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setDetailsLoading(false)
+    }
+  }
+
+  function closeDetails() {
+    setSelectedPointOfSale(null)
+    setSelectedStock([])
+    setSelectedSales([])
+  }
+
   async function disablePointOfSale(id) {
     if (!confirm('Désactiver ce point de vente ?')) return
 
+    setSaving(true)
     setError('')
 
     try {
       await adminApi.del(`/admin/points-of-sale/${id}`)
+      closeDetails()
       await load()
     } catch (err) {
       setError(err.message)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -144,6 +190,154 @@ export default function AdminPointsOfSale() {
         </button>
       </form>
 
+      {selectedPointOfSale && (
+        <section style={styles.detailsCard}>
+          <div style={styles.detailsHeader}>
+            <div>
+              <h2 style={styles.detailsTitle}>{selectedPointOfSale.name}</h2>
+              <p style={styles.detailsSubtitle}>
+                {selectedPointOfSale.city || '-'} ·{' '}
+                {selectedPointOfSale.manager_name || '-'}
+              </p>
+            </div>
+
+            <div style={styles.detailsActions}>
+              <button
+                type="button"
+                onClick={() => disablePointOfSale(selectedPointOfSale.id)}
+                disabled={saving}
+                style={styles.dangerButton}
+              >
+                Désactiver
+              </button>
+
+              <button
+                type="button"
+                onClick={closeDetails}
+                style={styles.smallButton}
+              >
+                {t('common.close')}
+              </button>
+            </div>
+          </div>
+
+          <div style={styles.kpiGrid}>
+            <div style={styles.kpiCard}>
+              <span style={styles.kpiLabel}>Stock total</span>
+              <strong style={styles.kpiValue}>{selectedStockTotal}</strong>
+            </div>
+
+            <div style={styles.kpiCard}>
+              <span style={styles.kpiLabel}>Ventes</span>
+              <strong style={styles.kpiValue}>{selectedSales.length}</strong>
+            </div>
+
+            <div style={styles.kpiCard}>
+              <span style={styles.kpiLabel}>Chiffre d'affaires</span>
+              <strong style={styles.kpiValue}>
+                {selectedRevenueTotal.toFixed(2)} DH
+              </strong>
+            </div>
+          </div>
+
+          {detailsLoading ? (
+            <div style={styles.empty}>{t('common.loading')}</div>
+          ) : (
+            <div style={styles.detailsGrid}>
+              <div style={styles.subCard}>
+                <h3 style={styles.sectionTitle}>Stock du point de vente</h3>
+
+                {selectedStock.length === 0 ? (
+                  <div style={styles.empty}>{t('common.empty')}</div>
+                ) : (
+                  <div style={styles.tableWrap}>
+                    <table style={styles.table}>
+                      <thead>
+                        <tr>
+                          <th style={styles.th}>Produit</th>
+                          <th style={styles.th}>Référence</th>
+                          <th style={styles.th}>Quantité</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {selectedStock.map(stock => (
+                          <tr key={stock.id}>
+                            <td style={styles.td}>
+                              {stock.products?.name || '-'}
+                            </td>
+                            <td style={styles.td}>
+                              {stock.products?.reference || '-'}
+                            </td>
+                            <td style={styles.td}>
+                              {Number(stock.quantity || 0)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              <div style={styles.subCard}>
+                <h3 style={styles.sectionTitle}>Ventes du point de vente</h3>
+
+                {selectedSales.length === 0 ? (
+                  <div style={styles.empty}>{t('common.empty')}</div>
+                ) : (
+                  <div style={styles.tableWrap}>
+                    <table style={styles.table}>
+                      <thead>
+                        <tr>
+                          <th style={styles.th}>Date</th>
+                          <th style={styles.th}>Client</th>
+                          <th style={styles.th}>Articles</th>
+                          <th style={styles.th}>Total</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {selectedSales.map(sale => (
+                          <tr key={sale.id}>
+                            <td style={styles.td}>
+                              {sale.created_at
+                                ? new Date(sale.created_at).toLocaleString()
+                                : '-'}
+                            </td>
+                            <td style={styles.td}>
+                              {sale.customer_name || '-'}
+                              {sale.customer_phone ? (
+                                <>
+                                  <br />
+                                  <span style={styles.muted}>
+                                    {sale.customer_phone}
+                                  </span>
+                                </>
+                              ) : null}
+                            </td>
+                            <td style={styles.td}>
+                              {(sale.point_of_sale_sale_items || []).map(item => (
+                                <div key={item.id} style={styles.saleItem}>
+                                  {item.product_name} × {item.quantity}
+                                </div>
+                              ))}
+                            </td>
+                            <td style={styles.td}>
+                              {Number(sale.total || 0).toFixed(2)} DH
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       <div style={styles.card}>
         {loading ? (
           <div style={styles.empty}>{t('common.loading')}</div>
@@ -161,14 +355,26 @@ export default function AdminPointsOfSale() {
                   <th style={styles.th}>Email</th>
                   <th style={styles.th}>Stock</th>
                   <th style={styles.th}>Statut</th>
-                  <th style={styles.th}></th>
                 </tr>
               </thead>
 
               <tbody>
                 {items.map(item => (
-                  <tr key={item.id}>
-                    <td style={styles.td}>{item.name}</td>
+                  <tr
+                    key={item.id}
+                    onClick={() => openDetails(item)}
+                    style={{
+                      ...styles.clickableRow,
+                      ...(selectedPointOfSale?.id === item.id
+                        ? styles.selectedRow
+                        : {}),
+                    }}
+                  >
+                    <td style={styles.td}>
+                      <strong>{item.name}</strong>
+                      <br />
+                      <span style={styles.rowHint}>Voir détail</span>
+                    </td>
                     <td style={styles.td}>{item.city || '-'}</td>
                     <td style={styles.td}>{item.phone || '-'}</td>
                     <td style={styles.td}>{item.manager_name || '-'}</td>
@@ -181,15 +387,6 @@ export default function AdminPointsOfSale() {
                     </td>
                     <td style={styles.td}>
                       {item.is_active ? 'Actif' : 'Inactif'}
-                    </td>
-                    <td style={styles.td}>
-                      <button
-                        type="button"
-                        onClick={() => disablePointOfSale(item.id)}
-                        style={styles.smallButton}
-                      >
-                        Désactiver
-                      </button>
                     </td>
                   </tr>
                 ))}
@@ -239,6 +436,8 @@ const styles = {
     borderRadius: 13,
     padding: '0 12px',
     fontSize: 14,
+    boxSizing: 'border-box',
+    width: '100%',
   },
   button: {
     height: 42,
@@ -254,6 +453,74 @@ const styles = {
     border: '1px solid #e6ded2',
     borderRadius: 22,
     padding: 14,
+  },
+  detailsCard: {
+    background: '#fff',
+    border: '1px solid #e6ded2',
+    borderRadius: 22,
+    padding: 14,
+    marginBottom: 14,
+    display: 'grid',
+    gap: 14,
+  },
+  detailsHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+  detailsTitle: {
+    margin: 0,
+    fontSize: 22,
+    letterSpacing: '-0.03em',
+  },
+  detailsSubtitle: {
+    margin: '6px 0 0',
+    color: '#8a7f72',
+    fontSize: 13,
+  },
+  detailsActions: {
+    display: 'flex',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  kpiGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+    gap: 10,
+  },
+  kpiCard: {
+    background: '#f7f3ed',
+    border: '1px solid #e6ded2',
+    borderRadius: 18,
+    padding: 12,
+    display: 'grid',
+    gap: 6,
+  },
+  kpiLabel: {
+    color: '#8a7f72',
+    fontSize: 12,
+    fontWeight: 800,
+  },
+  kpiValue: {
+    color: '#1f1a14',
+    fontSize: 20,
+  },
+  detailsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: 12,
+  },
+  subCard: {
+    border: '1px solid #eee6dc',
+    borderRadius: 18,
+    padding: 12,
+    minWidth: 0,
+  },
+  sectionTitle: {
+    margin: '0 0 10px',
+    fontSize: 16,
   },
   tableWrap: {
     overflowX: 'auto',
@@ -276,12 +543,41 @@ const styles = {
     fontSize: 13,
     verticalAlign: 'top',
   },
+  clickableRow: {
+    cursor: 'pointer',
+  },
+  selectedRow: {
+    background: '#f7f3ed',
+  },
+  rowHint: {
+    color: '#8a7f72',
+    fontSize: 11,
+    fontWeight: 800,
+  },
+  muted: {
+    color: '#8a7f72',
+    fontSize: 12,
+  },
+  saleItem: {
+    marginBottom: 4,
+  },
   smallButton: {
     border: '1px solid #e6ded2',
     borderRadius: 10,
     background: '#fff',
     padding: '8px 10px',
     fontSize: 12,
+    fontWeight: 800,
+    cursor: 'pointer',
+  },
+  dangerButton: {
+    border: '1px solid #ffd0d0',
+    borderRadius: 10,
+    background: '#fff0f0',
+    color: '#c0392b',
+    padding: '8px 10px',
+    fontSize: 12,
+    fontWeight: 800,
     cursor: 'pointer',
   },
   empty: {
