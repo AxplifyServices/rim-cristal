@@ -109,9 +109,7 @@ export function mapProduct(p) {
   if (!p) return null
 
   const price = toNumber(p.price)
-  const salePrice = p.sale_price === null || p.sale_price === undefined
-    ? price
-    : toNumber(p.sale_price, price)
+const salePrice = null
 
   const colors = Array.isArray(p.colors) ? p.colors : []
   const sizes = Array.isArray(p.sizes) ? p.sizes : []
@@ -159,7 +157,7 @@ export function mapProduct(p) {
 
     originalPrice: price,
     salePrice,
-    discount: toNumber(p.discount_percent),
+    discount: 0,
 
     images,
 

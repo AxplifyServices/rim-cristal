@@ -5,6 +5,46 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private slugify(value: string) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+private async generateUniqueSlug(name: string, ignoredId?: number) {
+  const base = this.slugify(name) || 'produit';
+  let slug = base;
+  let index = 2;
+
+  while (true) {
+    const existing = await this.prisma.products.findUnique({
+      where: { slug },
+    });
+
+    if (!existing || existing.id === ignoredId) {
+      return slug;
+    }
+
+    slug = `${base}-${index}`;
+    index += 1;
+  }
+}
+
+private async generateReference() {
+  const lastProduct = await this.prisma.products.findFirst({
+    orderBy: { id: 'desc' },
+    select: { id: true },
+  });
+
+  const nextId = Number(lastProduct?.id || 0) + 1;
+
+  return `RC-P${String(nextId).padStart(6, '0')}`;
+}
+
   async findAll(query: any) {
     const page = Math.max(Number(query.page || 1), 1);
     const pageSize = Math.min(
@@ -39,13 +79,14 @@ export class ProductsService {
 
     if (query.is_new !== undefined || query.new !== undefined) {
       where.is_new = String(query.is_new || query.new) === 'true';
-    }
+    }  
 
-    if (query.sale !== undefined) {
-      where.discount_percent = {
-        gt: 0,
-      };
-    }    
+    if (
+      String(query.include_unavailable_on_site || '').toLowerCase() !== 'true' &&
+      String(query.include_inactive || '').toLowerCase() !== 'true'
+    ) {
+      where.is_available_on_site = true;
+    }
 
     const search = query.search || query.q;
 
@@ -115,88 +156,86 @@ export class ProductsService {
     return product;
   }
 
-  async create(body: any) {
-    if (!body.name || !body.slug || !body.reference) {
-      throw new BadRequestException('name, slug and reference are required');
-    }
-
-    return this.prisma.products.create({
-      data: {
-        name: body.name,
-        slug: body.slug,
-        reference: body.reference,
-
-        marque: body.marque || null,
-        rubrique: body.rubrique || null,
-        categorie: body.categorie || body.category || null,
-        famille: body.famille || null,
-
-        description: body.description || null,
-        features: body.features || [],
-        specs: body.specs || {},
-
-        url_image1: body.url_image1 || null,
-        url_image2: body.url_image2 || null,
-        url_image3: body.url_image3 || null,
-        url_image4: body.url_image4 || null,
-        url_image5: body.url_image5 || null,
-
-        price: Number(body.price || 0),
-        sale_price:
-          body.sale_price !== undefined && body.sale_price !== null && body.sale_price !== ''
-            ? Number(body.sale_price)
-            : null,
-        discount_percent: Number(body.discount_percent || 0),
-
-        colors: body.colors || [],
-        sizes: body.sizes || [],
-        stock: Number(body.stock || 0),
-        weight:
-          body.weight !== undefined && body.weight !== null && body.weight !== ''
-            ? Number(body.weight)
-            : null,
-
-        badge: body.badge || null,
-
-        is_active:
-          body.is_active !== undefined ? Boolean(body.is_active) : true,
-        is_featured: Boolean(body.is_featured),
-        is_new: Boolean(body.is_new),
-        is_bestseller: Boolean(body.is_bestseller),
-
-        rating: Number(body.rating || 0),
-        reviews_count: Number(body.reviews_count || 0),
-
-        category_id: body.category_id ? Number(body.category_id) : null,
-        subcategory_id: body.subcategory_id ? Number(body.subcategory_id) : null,
-
-        room_tags: body.room_tags || [],
-        material_tags: body.material_tags || [],
-        style_tags: body.style_tags || [],
-        dimensions: body.dimensions || {},
-
-        care_instructions: body.care_instructions || null,
-        origin_country: body.origin_country || null,
-        collection_name: body.collection_name || null,
-
-        seo_title: body.seo_title || null,
-        seo_description: body.seo_description || null,
-
-        price_wholesale: Number(body.price_wholesale || 0),
-        wholesale_min_qty: Number(body.wholesale_min_qty || 1),
-      },
-    });
+async create(body: any) {
+  if (!body.name) {
+    throw new BadRequestException('name is required');
   }
+
+  const slug = await this.generateUniqueSlug(body.name);
+  const reference = await this.generateReference();
+
+  return this.prisma.products.create({
+    data: {
+      name: body.name,
+      slug,
+      reference,
+
+      marque: body.marque || null,
+      rubrique: body.rubrique || null,
+      categorie: body.categorie || body.category || null,
+      famille: body.famille || null,
+
+      description: body.description || null,
+
+      url_image1: body.url_image1 || null,
+      url_image2: body.url_image2 || null,
+      url_image3: body.url_image3 || null,
+      url_image4: body.url_image4 || null,
+      url_image5: body.url_image5 || null,
+
+      price: Number(body.price || 0),
+
+      colors: body.colors || [],
+      sizes: body.sizes || [],
+
+      stock: Number(body.stock || 0),
+      weight:
+        body.weight !== undefined && body.weight !== null && body.weight !== ''
+          ? Number(body.weight)
+          : null,
+
+      badge: body.badge || null,
+
+      is_active:
+        body.is_active !== undefined ? Boolean(body.is_active) : true,
+      is_available_on_site:
+        body.is_available_on_site !== undefined
+          ? Boolean(body.is_available_on_site)
+          : true,
+      is_featured: Boolean(body.is_featured),
+      is_new: Boolean(body.is_new),
+      is_bestseller: Boolean(body.is_bestseller),
+
+      rating: Number(body.rating || 0),
+      reviews_count: Number(body.reviews_count || 0),
+
+      category_id: body.category_id ? Number(body.category_id) : null,
+      subcategory_id: body.subcategory_id ? Number(body.subcategory_id) : null,
+
+      care_instructions: body.care_instructions || null,
+      origin_country: body.origin_country || null,
+      collection_name: body.collection_name || null,
+
+      seo_title: body.seo_title || null,
+      seo_description: body.seo_description || null,
+
+      price_wholesale: Number(body.price_wholesale || 0),
+      wholesale_min_qty: Number(body.wholesale_min_qty || 1),
+    },
+  });
+}
 
   async update(id: number, body: any) {
     await this.findById(id);
+
+const nextSlug =
+  body.name !== undefined ? await this.generateUniqueSlug(body.name, id) : undefined;
 
     return this.prisma.products.update({
       where: { id },
       data: {
         ...(body.name !== undefined && { name: body.name }),
-        ...(body.slug !== undefined && { slug: body.slug }),
-        ...(body.reference !== undefined && { reference: body.reference }),
+        ...(nextSlug !== undefined && { slug: nextSlug }),
 
         ...(body.marque !== undefined && { marque: body.marque || null }),
         ...(body.rubrique !== undefined && { rubrique: body.rubrique || null }),
@@ -208,8 +247,6 @@ export class ProductsService {
         ...(body.description !== undefined && {
           description: body.description || null,
         }),
-        ...(body.features !== undefined && { features: body.features || [] }),
-        ...(body.specs !== undefined && { specs: body.specs || {} }),
 
         ...(body.url_image1 !== undefined && { url_image1: body.url_image1 || null }),
         ...(body.url_image2 !== undefined && { url_image2: body.url_image2 || null }),
@@ -218,15 +255,6 @@ export class ProductsService {
         ...(body.url_image5 !== undefined && { url_image5: body.url_image5 || null }),
 
         ...(body.price !== undefined && { price: Number(body.price || 0) }),
-        ...(body.sale_price !== undefined && {
-          sale_price:
-            body.sale_price !== null && body.sale_price !== ''
-              ? Number(body.sale_price)
-              : null,
-        }),
-        ...(body.discount_percent !== undefined && {
-          discount_percent: Number(body.discount_percent || 0),
-        }),
 
         ...(body.colors !== undefined && { colors: body.colors || [] }),
         ...(body.sizes !== undefined && { sizes: body.sizes || [] }),
@@ -254,6 +282,10 @@ export class ProductsService {
           is_bestseller: Boolean(body.is_bestseller),
         }),
 
+        ...(body.is_available_on_site !== undefined && {
+          is_available_on_site: Boolean(body.is_available_on_site),
+        }),
+
         ...(body.rating !== undefined && { rating: Number(body.rating || 0) }),
         ...(body.reviews_count !== undefined && {
           reviews_count: Number(body.reviews_count || 0),
@@ -265,11 +297,6 @@ export class ProductsService {
         ...(body.subcategory_id !== undefined && {
           subcategory_id: body.subcategory_id ? Number(body.subcategory_id) : null,
         }),
-
-        ...(body.room_tags !== undefined && { room_tags: body.room_tags || [] }),
-        ...(body.material_tags !== undefined && { material_tags: body.material_tags || [] }),
-        ...(body.style_tags !== undefined && { style_tags: body.style_tags || [] }),
-        ...(body.dimensions !== undefined && { dimensions: body.dimensions || {} }),
 
         ...(body.care_instructions !== undefined && {
           care_instructions: body.care_instructions || null,

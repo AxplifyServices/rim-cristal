@@ -122,16 +122,12 @@ model products {
   categorie                                                      String?                    @db.VarChar(120)
   famille                                                        String?                    @db.VarChar(120)
   description                                                    String?
-  features                                                       Json                       @default("[]")
-  specs                                                          Json                       @default("{}")
   url_image1                                                     String?
   url_image2                                                     String?
   url_image3                                                     String?
   url_image4                                                     String?
   url_image5                                                     String?
   price                                                          Decimal                    @db.Decimal(12, 2)
-  sale_price                                                     Decimal?                   @db.Decimal(12, 2)
-  discount_percent                                               Int                        @default(0)
   colors                                                         Json                       @default("[]")
   sizes                                                          Json                       @default("[]")
   stock                                                          Int                        @default(0)
@@ -147,10 +143,6 @@ model products {
   updated_at                                                     DateTime                   @default(now()) @db.Timestamp(6)
   category_id                                                    Int?
   subcategory_id                                                 Int?
-  room_tags                                                      Json                       @default("[]")
-  material_tags                                                  Json                       @default("[]")
-  style_tags                                                     Json                       @default("[]")
-  dimensions                                                     Json                       @default("{}")
   care_instructions                                              String?
   origin_country                                                 String?                    @db.VarChar(120)
   collection_name                                                String?                    @db.VarChar(160)
@@ -158,6 +150,7 @@ model products {
   seo_description                                                String?
   price_wholesale                                                Decimal                    @default(0) @db.Decimal(12, 2)
   wholesale_min_qty                                              Int                        @default(1)
+  is_available_on_site                                           Boolean                    @default(true)
   order_items                                                    order_items[]
   point_of_sale_sale_items                                       point_of_sale_sale_items[]
   point_of_sale_stocks                                           point_of_sale_stocks[]
@@ -172,10 +165,8 @@ model products {
   @@index([is_featured], map: "idx_products_featured")
   @@index([slug], map: "idx_products_slug")
   @@index([category_id], map: "idx_products_category_id")
-  @@index([material_tags], map: "idx_products_material_tags", type: Gin)
-  @@index([room_tags], map: "idx_products_room_tags", type: Gin)
-  @@index([style_tags], map: "idx_products_style_tags", type: Gin)
   @@index([subcategory_id], map: "idx_products_subcategory_id")
+  @@index([is_available_on_site], map: "idx_products_available_on_site")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
