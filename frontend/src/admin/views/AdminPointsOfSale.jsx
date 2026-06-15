@@ -27,12 +27,6 @@ export default function AdminPointsOfSale() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const selectedStockTotal = useMemo(() => {
-    return selectedStock.reduce((sum, stock) => {
-      return sum + Number(stock.quantity || 0)
-    }, 0)
-  }, [selectedStock])
-
   const selectedRevenueTotal = useMemo(() => {
     return selectedSales.reduce((sum, sale) => {
       return sum + Number(sale.total || 0)
@@ -221,24 +215,19 @@ export default function AdminPointsOfSale() {
             </div>
           </div>
 
-          <div style={styles.kpiGrid}>
-            <div style={styles.kpiCard}>
-              <span style={styles.kpiLabel}>Stock total</span>
-              <strong style={styles.kpiValue}>{selectedStockTotal}</strong>
-            </div>
+<div style={styles.kpiGrid}>
+  <div style={styles.kpiCard}>
+    <span style={styles.kpiLabel}>Ventes</span>
+    <strong style={styles.kpiValue}>{selectedSales.length}</strong>
+  </div>
 
-            <div style={styles.kpiCard}>
-              <span style={styles.kpiLabel}>Ventes</span>
-              <strong style={styles.kpiValue}>{selectedSales.length}</strong>
-            </div>
-
-            <div style={styles.kpiCard}>
-              <span style={styles.kpiLabel}>Chiffre d'affaires</span>
-              <strong style={styles.kpiValue}>
-                {selectedRevenueTotal.toFixed(2)} DH
-              </strong>
-            </div>
-          </div>
+  <div style={styles.kpiCard}>
+    <span style={styles.kpiLabel}>Chiffre d'affaires</span>
+    <strong style={styles.kpiValue}>
+      {selectedRevenueTotal.toFixed(2)} DH
+    </strong>
+  </div>
+</div>
 
           {detailsLoading ? (
             <div style={styles.empty}>{t('common.loading')}</div>
@@ -346,50 +335,54 @@ export default function AdminPointsOfSale() {
         ) : (
           <div style={styles.tableWrap}>
             <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>{t('pointsOfSale.name')}</th>
-                  <th style={styles.th}>{t('pointsOfSale.city')}</th>
-                  <th style={styles.th}>{t('pointsOfSale.phone')}</th>
-                  <th style={styles.th}>{t('pointsOfSale.manager')}</th>
-                  <th style={styles.th}>Email</th>
-                  <th style={styles.th}>Stock</th>
-                  <th style={styles.th}>Statut</th>
-                </tr>
-              </thead>
+<thead>
+  <tr>
+    <th style={styles.th}>{t('pointsOfSale.name')}</th>
+    <th style={styles.th}>{t('pointsOfSale.city')}</th>
+    <th style={styles.th}>{t('pointsOfSale.phone')}</th>
+    <th style={styles.th}>{t('pointsOfSale.manager')}</th>
+    <th style={styles.th}>Email</th>
+    <th style={styles.th}>Statut</th>
+    <th style={styles.actionTh}></th>
+  </tr>
+</thead>
 
               <tbody>
-                {items.map(item => (
-                  <tr
-                    key={item.id}
-                    onClick={() => openDetails(item)}
-                    style={{
-                      ...styles.clickableRow,
-                      ...(selectedPointOfSale?.id === item.id
-                        ? styles.selectedRow
-                        : {}),
-                    }}
-                  >
-                    <td style={styles.td}>
-                      <strong>{item.name}</strong>
-                      <br />
-                      <span style={styles.rowHint}>Voir détail</span>
-                    </td>
-                    <td style={styles.td}>{item.city || '-'}</td>
-                    <td style={styles.td}>{item.phone || '-'}</td>
-                    <td style={styles.td}>{item.manager_name || '-'}</td>
-                    <td style={styles.td}>{item.users?.[0]?.email || '-'}</td>
-                    <td style={styles.td}>
-                      {(item.point_of_sale_stocks || []).reduce(
-                        (sum, stock) => sum + Number(stock.quantity || 0),
-                        0,
-                      )}
-                    </td>
-                    <td style={styles.td}>
-                      {item.is_active ? 'Actif' : 'Inactif'}
-                    </td>
-                  </tr>
-                ))}
+{items.map(item => (
+  <tr
+    key={item.id}
+    style={{
+      ...(selectedPointOfSale?.id === item.id
+        ? styles.selectedRow
+        : {}),
+    }}
+  >
+    <td style={styles.td}>
+      <strong>{item.name}</strong>
+    </td>
+
+    <td style={styles.td}>{item.city || '-'}</td>
+    <td style={styles.td}>{item.phone || '-'}</td>
+    <td style={styles.td}>{item.manager_name || '-'}</td>
+    <td style={styles.td}>{item.users?.[0]?.email || '-'}</td>
+
+    <td style={styles.td}>
+      {item.is_active ? 'Actif' : 'Inactif'}
+    </td>
+
+    <td style={styles.actionTd}>
+      <button
+        type="button"
+        onClick={() => openDetails(item)}
+        style={styles.iconButton}
+        aria-label={`Voir le détail de ${item.name}`}
+        title="Voir le détail"
+      >
+        ...
+      </button>
+    </td>
+  </tr>
+))}
               </tbody>
             </table>
           </div>
@@ -543,17 +536,11 @@ const styles = {
     fontSize: 13,
     verticalAlign: 'top',
   },
-  clickableRow: {
-    cursor: 'pointer',
-  },
+
   selectedRow: {
     background: '#f7f3ed',
   },
-  rowHint: {
-    color: '#8a7f72',
-    fontSize: 11,
-    fontWeight: 800,
-  },
+
   muted: {
     color: '#8a7f72',
     fontSize: 12,
@@ -585,4 +572,30 @@ const styles = {
     fontSize: 14,
     padding: 10,
   },
+  actionTh: {
+  width: 52,
+  padding: '10px 8px',
+  borderBottom: '1px solid #eee6dc',
+},
+
+actionTd: {
+  width: 52,
+  padding: '10px 8px',
+  borderBottom: '1px solid #f2ece5',
+  textAlign: 'right',
+  verticalAlign: 'top',
+},
+
+iconButton: {
+  width: 34,
+  height: 34,
+  border: '1px solid #e6ded2',
+  borderRadius: 999,
+  background: '#fff',
+  color: '#1f1a14',
+  fontSize: 18,
+  fontWeight: 900,
+  lineHeight: '18px',
+  cursor: 'pointer',
+},
 }
