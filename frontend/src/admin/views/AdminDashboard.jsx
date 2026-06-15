@@ -10,17 +10,29 @@ export default function AdminDashboard() {
   const { t } = useAdminI18n()
 
   const [stats, setStats] = useState(null)
+  const [stockDashboard, setStockDashboard] = useState(null)
   const [user, setUser] = useState(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [topProductsMode, setTopProductsMode] = useState('revenue')
+  const [topPointsOfSaleMode, setTopPointsOfSaleMode] = useState('revenue')
+
   const [filters, setFilters] = useState({
     start_date: '',
     end_date: '',
     point_of_sale_id: '',
     category: '',
   })
+
+  const [stockFilters, setStockFilters] = useState({
+    location_type: 'global',
+    point_of_sale_id: '',
+    product_id: '',
+  })
+
   const [filterOptions, setFilterOptions] = useState({
     points_of_sale: [],
     categories: [],
+    products: [],
   })
 
   const isAdmin = user?.role === 'admin'
@@ -30,11 +42,18 @@ export default function AdminDashboard() {
     setUser(currentUser)
 
     adminApi.get('/admin/dashboard-filters')
-      .then(setFilterOptions)
+      .then(data => {
+        setFilterOptions({
+          points_of_sale: Array.isArray(data?.points_of_sale) ? data.points_of_sale : [],
+          categories: Array.isArray(data?.categories) ? data.categories : [],
+          products: Array.isArray(data?.products) ? data.products : [],
+        })
+      })
       .catch(() => {
         setFilterOptions({
           points_of_sale: [],
           categories: [],
+          products: [],
         })
       })
   }, [])
@@ -55,6 +74,26 @@ export default function AdminDashboard() {
     return query ? `/admin/stats?${query}` : '/admin/stats'
   }, [filters, isAdmin])
 
+  const stockDashboardPath = useMemo(() => {
+    const params = new URLSearchParams()
+
+    if (filters.start_date) params.set('start_date', filters.start_date)
+    if (filters.end_date) params.set('end_date', filters.end_date)
+    if (stockFilters.location_type) {
+      params.set('location_type', stockFilters.location_type)
+    }
+    if (stockFilters.product_id) {
+      params.set('product_id', stockFilters.product_id)
+    }
+    if (isAdmin && stockFilters.location_type === 'pos' && stockFilters.point_of_sale_id) {
+      params.set('point_of_sale_id', stockFilters.point_of_sale_id)
+    }
+
+    const query = params.toString()
+
+    return query ? `/admin/dashboard-stock?${query}` : '/admin/dashboard-stock'
+  }, [filters.start_date, filters.end_date, stockFilters, isAdmin])
+
   useEffect(() => {
     if (!user) return
 
@@ -63,10 +102,31 @@ export default function AdminDashboard() {
       .catch(() => setStats(null))
   }, [user, statsPath])
 
+  useEffect(() => {
+    if (!user || !stockFilters.product_id) {
+      setStockDashboard(null)
+      return
+    }
+
+    adminApi.get(stockDashboardPath)
+      .then(setStockDashboard)
+      .catch(() => setStockDashboard(null))
+  }, [user, stockDashboardPath, stockFilters.product_id])
+
   function updateFilter(name, value) {
     setFilters(current => ({
       ...current,
       [name]: value,
+    }))
+  }
+
+  function updateStockFilter(name, value) {
+    setStockFilters(current => ({
+      ...current,
+      [name]: value,
+      ...(name === 'location_type' && value === 'global'
+        ? { point_of_sale_id: '' }
+        : {}),
     }))
   }
 
@@ -87,8 +147,7 @@ export default function AdminDashboard() {
         input.showPicker()
       }
     } catch {
-      // Certains navigateurs bloquent showPicker si l'action n'est pas considérée
-      // comme un geste utilisateur direct. Dans ce cas, le date picker natif reste disponible.
+      // fallback navigateur
     }
   }
 
@@ -188,32 +247,279 @@ export default function AdminDashboard() {
         )}
       </section>
 
-      {isAdmin ? (
-        <AdminStats stats={stats} t={t} />
-      ) : (
-        <PointOfSaleStats stats={stats} t={t} />
-      )}
+      <DashboardStats stats={stats} isAdmin={isAdmin} />
+
+      <section style={styles.twoColumns}>
+        <TopListCard
+          title="Top 5 produits vendus"
+          mode={topProductsMode}
+          onModeChange={setTopProductsMode}
+          firstModeLabel="Par CA"
+          secondModeLabel="Par quantité"
+          firstModeValue="revenue"
+          secondModeValue="quantity"
+          items={
+            topProductsMode === 'revenue'
+              ? stats?.top_products_by_revenue || []
+              : stats?.top_products_by_quantity || []
+          }
+          renderItem={item => (
+            <>
+              <strong>{item.product_name}</strong>
+              <span style={styles.muted}>{item.product_reference || '-'}</span>
+              <span>
+                {Number(item.revenue || 0).toFixed(2)} DH · {Number(item.quantity || 0)} vendu(s)
+              </span>
+            </>
+          )}
+        />
+
+        {isAdmin && (
+          <TopListCard
+            title="Top 5 points de vente"
+            mode={topPointsOfSaleMode}
+            onModeChange={setTopPointsOfSaleMode}
+            firstModeLabel="Par CA"
+            secondModeLabel="Par ventes"
+            firstModeValue="revenue"
+            secondModeValue="sales"
+            items={
+              topPointsOfSaleMode === 'revenue'
+                ? stats?.top_points_of_sale_by_revenue || []
+                : stats?.top_points_of_sale_by_sales || []
+            }
+            renderItem={item => (
+              <>
+                <strong>{item.point_of_sale_name}</strong>
+                <span>
+                  {Number(item.revenue || 0).toFixed(2)} DH · {Number(item.sales || 0)} vente(s)
+                </span>
+              </>
+            )}
+          />
+        )}
+      </section>
+
+      <section style={styles.stockDashboard}>
+        <div style={styles.sectionHeader}>
+          <div>
+            <h2 style={styles.sectionTitle}>Suivi de stock, ventes et CA</h2>
+            <p style={styles.sectionSubtitle}>
+              Sélectionne un produit et un emplacement pour suivre l’évolution.
+            </p>
+          </div>
+        </div>
+
+        <div style={styles.filterGrid}>
+          {isAdmin && (
+            <label style={styles.field}>
+              <span style={styles.label}>Emplacement</span>
+              <select
+                value={stockFilters.location_type}
+                onChange={e => updateStockFilter('location_type', e.target.value)}
+                style={styles.input}
+              >
+                <option value="global">Stock principal</option>
+                <option value="pos">Point de vente</option>
+              </select>
+            </label>
+          )}
+
+          {isAdmin && stockFilters.location_type === 'pos' && (
+            <label style={styles.field}>
+              <span style={styles.label}>Point de vente</span>
+              <select
+                value={stockFilters.point_of_sale_id}
+                onChange={e => updateStockFilter('point_of_sale_id', e.target.value)}
+                style={styles.input}
+              >
+                <option value="">Choisir un point de vente</option>
+                {filterOptions.points_of_sale.map(pointOfSale => (
+                  <option key={pointOfSale.id} value={pointOfSale.id}>
+                    {pointOfSale.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          <label style={styles.field}>
+            <span style={styles.label}>Produit</span>
+            <select
+              value={stockFilters.product_id}
+              onChange={e => updateStockFilter('product_id', e.target.value)}
+              style={styles.input}
+            >
+              <option value="">Choisir un produit</option>
+              {filterOptions.products.map(product => (
+                <option key={product.id} value={product.id}>
+                  {product.name} {product.reference ? `- ${product.reference}` : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {!stockFilters.product_id ? (
+          <div style={styles.empty}>Choisis un produit pour afficher les courbes.</div>
+        ) : (
+          <div style={styles.chartGrid}>
+            <ChartCard
+              title="Évolution du stock"
+              suffix=" unités"
+              data={stockDashboard?.stock_series || []}
+            />
+            <ChartCard
+              title="Ventes"
+              suffix=" unités"
+              data={stockDashboard?.sales_series || []}
+            />
+            <ChartCard
+              title="Chiffre d'affaires"
+              suffix=" DH"
+              data={stockDashboard?.revenue_series || []}
+            />
+          </div>
+        )}
+      </section>
     </AdminShell>
   )
 }
 
-function AdminStats({ stats, t }) {
+function DashboardStats({ stats, isAdmin }) {
   return (
     <div style={styles.grid}>
-      <Card label={t('dashboard.globalStock')} value={stats?.global_stock_units || 0} />
-      <Card label={t('dashboard.pointsOfSale')} value={stats?.points_of_sale || 0} />
-      <Card label={t('dashboard.webOrders')} value={stats?.orders || 0} />
-      <Card label={t('dashboard.webRevenue')} value={`${Number(stats?.revenue || 0).toFixed(2)} DH`} />
+      <Card label="CA global" value={`${Number(stats?.revenue || 0).toFixed(2)} DH`} />
+      <Card label="Nombre de ventes" value={stats?.sales || 0} />
+      {isAdmin && <Card label="Commandes web" value={stats?.orders || 0} />}
+      {isAdmin && <Card label="Points de vente" value={stats?.points_of_sale || 0} />}
     </div>
   )
 }
 
-function PointOfSaleStats({ stats, t }) {
+function TopListCard({
+  title,
+  mode,
+  onModeChange,
+  firstModeLabel,
+  secondModeLabel,
+  firstModeValue,
+  secondModeValue,
+  items,
+  renderItem,
+}) {
   return (
-    <div style={styles.grid}>
-      <Card label={t('dashboard.posStock')} value={stats?.point_of_sale_stock_units || 0} />
-      <Card label={t('dashboard.posSales')} value={stats?.sales || 0} />
-      <Card label={t('dashboard.posRevenue')} value={`${Number(stats?.revenue || 0).toFixed(2)} DH`} />
+    <section style={styles.panel}>
+      <div style={styles.panelHeader}>
+        <h2 style={styles.panelTitle}>{title}</h2>
+
+        <div style={styles.segmented}>
+          <button
+            type="button"
+            onClick={() => onModeChange(firstModeValue)}
+            style={{
+              ...styles.segmentButton,
+              ...(mode === firstModeValue ? styles.segmentButtonActive : {}),
+            }}
+          >
+            {firstModeLabel}
+          </button>
+          <button
+            type="button"
+            onClick={() => onModeChange(secondModeValue)}
+            style={{
+              ...styles.segmentButton,
+              ...(mode === secondModeValue ? styles.segmentButtonActive : {}),
+            }}
+          >
+            {secondModeLabel}
+          </button>
+        </div>
+      </div>
+
+      {items.length === 0 ? (
+        <div style={styles.empty}>Aucune donnée</div>
+      ) : (
+        <div style={styles.list}>
+          {items.map((item, index) => (
+            <div key={`${title}-${index}`} style={styles.listItem}>
+              <span style={styles.rank}>{index + 1}</span>
+              <div style={styles.listContent}>{renderItem(item)}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function ChartCard({ title, data, suffix }) {
+  return (
+    <section style={styles.panel}>
+      <h2 style={styles.panelTitle}>{title}</h2>
+      <MiniLineChart data={data} suffix={suffix} />
+    </section>
+  )
+}
+
+function MiniLineChart({ data, suffix }) {
+  const width = 520
+  const height = 220
+  const padding = 28
+
+  const cleanData = Array.isArray(data)
+    ? data.filter(point => point && point.date && !Number.isNaN(Number(point.value)))
+    : []
+
+  if (cleanData.length === 0) {
+    return <div style={styles.empty}>Aucune donnée</div>
+  }
+
+  const values = cleanData.map(point => Number(point.value || 0))
+  const max = Math.max(...values, 1)
+  const min = Math.min(...values, 0)
+  const range = Math.max(max - min, 1)
+
+  const points = cleanData.map((point, index) => {
+    const x =
+      cleanData.length === 1
+        ? width / 2
+        : padding + (index * (width - padding * 2)) / (cleanData.length - 1)
+
+    const y = height - padding - ((Number(point.value || 0) - min) / range) * (height - padding * 2)
+
+    return {
+      x,
+      y,
+      value: Number(point.value || 0),
+      date: point.date,
+    }
+  })
+
+  const path = points
+    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+    .join(' ')
+
+  const lastPoint = points[points.length - 1]
+
+  return (
+    <div style={styles.chartWrap}>
+      <svg viewBox={`0 0 ${width} ${height}`} style={styles.chart}>
+        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#e6ded2" />
+        <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#e6ded2" />
+        <path d={path} fill="none" stroke="#1f1a14" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        {points.map((point, index) => (
+          <circle key={index} cx={point.x} cy={point.y} r="4" fill="#1f1a14" />
+        ))}
+      </svg>
+
+      <div style={styles.chartFooter}>
+        <span>{cleanData[0]?.date}</span>
+        <strong>
+          Dernier : {lastPoint.value.toFixed(2)}{suffix}
+        </strong>
+        <span>{cleanData[cleanData.length - 1]?.date}</span>
+      </div>
     </div>
   )
 }
@@ -234,6 +540,7 @@ const styles = {
     gap: 14,
     alignItems: 'flex-start',
     marginBottom: 14,
+    flexWrap: 'wrap',
   },
   title: {
     fontSize: 28,
@@ -258,6 +565,7 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 12,
+    flexWrap: 'wrap',
   },
   filterToggle: {
     border: '1px solid #e6ded2',
@@ -333,11 +641,19 @@ const styles = {
     fontSize: 14,
     outline: 'none',
     cursor: 'pointer',
+    boxSizing: 'border-box',
   },
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
     gap: 12,
+    marginBottom: 14,
+  },
+  twoColumns: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: 12,
+    marginBottom: 14,
   },
   card: {
     background: '#fff',
@@ -354,5 +670,132 @@ const styles = {
   cardValue: {
     fontSize: 28,
     fontWeight: 900,
+  },
+  panel: {
+    background: '#fff',
+    border: '1px solid #e6ded2',
+    borderRadius: 22,
+    padding: 14,
+    minWidth: 0,
+  },
+  panelHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: 10,
+    alignItems: 'center',
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
+  panelTitle: {
+    margin: 0,
+    fontSize: 18,
+    letterSpacing: '-0.03em',
+  },
+  segmented: {
+    display: 'inline-flex',
+    background: '#f7f3ed',
+    border: '1px solid #e6ded2',
+    borderRadius: 999,
+    padding: 3,
+    gap: 3,
+  },
+  segmentButton: {
+    border: 'none',
+    borderRadius: 999,
+    background: 'transparent',
+    padding: '7px 10px',
+    fontSize: 12,
+    fontWeight: 900,
+    cursor: 'pointer',
+    color: '#8a7f72',
+  },
+  segmentButtonActive: {
+    background: '#1f1a14',
+    color: '#fff',
+  },
+  list: {
+    display: 'grid',
+    gap: 8,
+  },
+  listItem: {
+    display: 'grid',
+    gridTemplateColumns: '34px 1fr',
+    gap: 10,
+    alignItems: 'center',
+    padding: 10,
+    border: '1px solid #f2ece5',
+    borderRadius: 16,
+  },
+  rank: {
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    background: '#f7f3ed',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 12,
+    fontWeight: 900,
+  },
+  listContent: {
+    display: 'grid',
+    gap: 3,
+    fontSize: 13,
+  },
+  muted: {
+    color: '#8a7f72',
+    fontSize: 12,
+  },
+  stockDashboard: {
+    background: '#fff',
+    border: '1px solid #e6ded2',
+    borderRadius: 24,
+    padding: 14,
+  },
+  sectionHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: 12,
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+  },
+  sectionTitle: {
+    margin: 0,
+    fontSize: 20,
+    letterSpacing: '-0.03em',
+  },
+  sectionSubtitle: {
+    margin: '6px 0 0',
+    color: '#8a7f72',
+    fontSize: 13,
+  },
+  chartGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: 12,
+    marginTop: 14,
+  },
+  chartWrap: {
+    display: 'grid',
+    gap: 8,
+  },
+  chart: {
+    width: '100%',
+    height: 220,
+    display: 'block',
+  },
+  chartFooter: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: 8,
+    color: '#8a7f72',
+    fontSize: 11,
+    flexWrap: 'wrap',
+  },
+  empty: {
+    padding: 18,
+    color: '#8a7f72',
+    textAlign: 'center',
+    fontSize: 13,
   },
 }

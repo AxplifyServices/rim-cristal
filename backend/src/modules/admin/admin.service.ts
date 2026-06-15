@@ -10,147 +10,132 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async stats(user?: any, query: any = {}) {
-    const startDate = query.start_date
-      ? new Date(`${query.start_date}T00:00:00.000Z`)
-      : undefined;
+  private getDateFilter(query: any) {
+  const startDate = query.start_date
+    ? new Date(`${query.start_date}T00:00:00.000Z`)
+    : undefined;
 
-    const endDate = query.end_date
-      ? new Date(`${query.end_date}T23:59:59.999Z`)
-      : undefined;
+  const endDate = query.end_date
+    ? new Date(`${query.end_date}T23:59:59.999Z`)
+    : undefined;
 
-    const createdAtFilter =
-      startDate || endDate
-        ? {
-            ...(startDate && { gte: startDate }),
-            ...(endDate && { lte: endDate }),
-          }
-        : undefined;
-
-    const category = query.category ? String(query.category) : undefined;
-
-    if (user?.role === 'point_of_sale') {
-      const pointOfSaleId = Number(user.point_of_sale_id);
-
-      if (!pointOfSaleId) {
-        return {
-          point_of_sale_stock_units: 0,
-          sales: 0,
-          revenue: 0,
-        };
+  return startDate || endDate
+    ? {
+        ...(startDate && { gte: startDate }),
+        ...(endDate && { lte: endDate }),
       }
+    : undefined;
+}
 
-      const stockWhere: any = {
-        point_of_sale_id: pointOfSaleId,
-        ...(category && {
+async stats(user?: any, query: any = {}) {
+  const createdAtFilter = this.getDateFilter(query);
+  const category = query.category ? String(query.category) : undefined;
+
+  const requestedPointOfSaleId = query.point_of_sale_id
+    ? Number(query.point_of_sale_id)
+    : undefined;
+
+  const pointOfSaleId =
+    user?.role === 'point_of_sale'
+      ? Number(user.point_of_sale_id)
+      : requestedPointOfSaleId;
+
+  if (user?.role === 'point_of_sale' && !pointOfSaleId) {
+    return {
+      sales: 0,
+      revenue: 0,
+      orders: 0,
+      points_of_sale: 0,
+      top_products_by_revenue: [],
+      top_products_by_quantity: [],
+      top_points_of_sale_by_revenue: [],
+      top_points_of_sale_by_sales: [],
+    };
+  }
+
+  const saleWhere: any = {
+    ...(pointOfSaleId && { point_of_sale_id: pointOfSaleId }),
+    ...(createdAtFilter && { created_at: createdAtFilter }),
+    ...(category && {
+      point_of_sale_sale_items: {
+        some: {
           products: {
             categorie: category,
           },
-        }),
-      };
-
-      const saleWhere: any = {
-        point_of_sale_id: pointOfSaleId,
-        ...(createdAtFilter && { created_at: createdAtFilter }),
-        ...(category && {
-          point_of_sale_sale_items: {
-            some: {
-              products: {
-                categorie: category,
-              },
-            },
-          },
-        }),
-      };
-
-      const saleItemsWhere: any = {
-        point_of_sale_sales: saleWhere,
-        ...(category && {
-          products: {
-            categorie: category,
-          },
-        }),
-      };
-
-      const [stockResult, salesCount, revenueResult] = await Promise.all([
-        this.prisma.point_of_sale_stocks.aggregate({
-          where: stockWhere,
-          _sum: {
-            quantity: true,
-          },
-        }),
-        this.prisma.point_of_sale_sales.count({
-          where: saleWhere,
-        }),
-        category
-          ? this.prisma.point_of_sale_sale_items.aggregate({
-              where: saleItemsWhere,
-              _sum: {
-                line_total: true,
-              },
-            })
-          : this.prisma.point_of_sale_sales.aggregate({
-              where: saleWhere,
-              _sum: {
-                total: true,
-              },
-            }),
-      ]);
-
-      const revenue = category
-        ? Number((revenueResult._sum as { line_total: any }).line_total || 0)
-        : Number((revenueResult._sum as { total: any }).total || 0);
-
-      return {
-        point_of_sale_stock_units: Number(stockResult._sum.quantity || 0),
-        sales: salesCount,
-        revenue,
-      };
-    }
-
-    const pointOfSaleId = query.point_of_sale_id
-      ? Number(query.point_of_sale_id)
-      : undefined;
-
-    const orderWhere: any = {
-      ...(createdAtFilter && { created_at: createdAtFilter }),
-      ...(pointOfSaleId && { point_of_sale_id: pointOfSaleId }),
-      ...(category && {
-        order_items: {
-          some: {
-            products: {
-              categorie: category,
-            },
-          },
         },
-      }),
-    };
+      },
+    }),
+  };
 
-    const orderItemsWhere: any = {
-      orders: orderWhere,
-      ...(category && {
-        products: {
-          categorie: category,
-        },
-      }),
-    };
-
-    const stockWhere: any = {
-      ...(category && {
+  const saleItemsWhere: any = {
+    point_of_sale_sales: saleWhere,
+    ...(category && {
+      products: {
         categorie: category,
-      }),
-    };
+      },
+    }),
+  };
 
-    const [
-      orders,
-      revenueResult,
-      pointsOfSale,
-      globalStockResult,
-    ] = await Promise.all([
-      this.prisma.orders.count({
-        where: orderWhere,
-      }),
-      category
+  const orderWhere: any = {
+    ...(createdAtFilter && { created_at: createdAtFilter }),
+    ...(pointOfSaleId && { point_of_sale_id: pointOfSaleId }),
+    ...(category && {
+      order_items: {
+        some: {
+          products: {
+            categorie: category,
+          },
+        },
+      },
+    }),
+  };
+
+  const orderItemsWhere: any = {
+    orders: orderWhere,
+    ...(category && {
+      products: {
+        categorie: category,
+      },
+    }),
+  };
+
+  const [
+    posSalesCount,
+    posRevenueResult,
+    webOrdersCount,
+    webRevenueResult,
+    pointsOfSale,
+    topProductRevenueRows,
+    topProductQuantityRows,
+    topPointOfSaleRevenueRows,
+    topPointOfSaleSalesRows,
+  ] = await Promise.all([
+    this.prisma.point_of_sale_sales.count({
+      where: saleWhere,
+    }),
+
+    category
+      ? this.prisma.point_of_sale_sale_items.aggregate({
+          where: saleItemsWhere,
+          _sum: {
+            line_total: true,
+          },
+        })
+      : this.prisma.point_of_sale_sales.aggregate({
+          where: saleWhere,
+          _sum: {
+            total: true,
+          },
+        }),
+
+    user?.role === 'admin'
+      ? this.prisma.orders.count({
+          where: orderWhere,
+        })
+      : Promise.resolve(0),
+
+    user?.role === 'admin'
+      ? category
         ? this.prisma.order_items.aggregate({
             where: orderItemsWhere,
             _sum: {
@@ -158,38 +143,154 @@ export class AdminService {
             },
           })
         : this.prisma.orders.aggregate({
-            where: {
-              ...orderWhere,
-              status: {
-                in: ['processing', 'shipped', 'delivered'],
-              },
-            },
+            where: orderWhere,
             _sum: {
               total: true,
             },
-          }),
-      this.prisma.point_of_sales.count({
-        where: { is_active: true },
-      }),
-      this.prisma.products.aggregate({
-        where: stockWhere,
+          })
+      : Promise.resolve({ _sum: { total: 0, line_total: 0 } } as any),
+
+    user?.role === 'admin'
+      ? this.prisma.point_of_sales.count({
+          where: { is_active: true },
+        })
+      : Promise.resolve(0),
+
+    this.prisma.point_of_sale_sale_items.groupBy({
+      by: ['product_id', 'product_name', 'product_reference'],
+      where: saleItemsWhere,
+      _sum: {
+        line_total: true,
+        quantity: true,
+      },
+      orderBy: {
         _sum: {
-          stock: true,
+          line_total: 'desc',
         },
-      }),
-    ]);
+      },
+      take: 5,
+    }),
 
-    const revenue = category
-      ? Number((revenueResult._sum as { line_total: any }).line_total || 0)
-      : Number((revenueResult._sum as { total: any }).total || 0);
+    this.prisma.point_of_sale_sale_items.groupBy({
+      by: ['product_id', 'product_name', 'product_reference'],
+      where: saleItemsWhere,
+      _sum: {
+        line_total: true,
+        quantity: true,
+      },
+      orderBy: {
+        _sum: {
+          quantity: 'desc',
+        },
+      },
+      take: 5,
+    }),
 
+    user?.role === 'admin'
+      ? this.prisma.point_of_sale_sales.groupBy({
+          by: ['point_of_sale_id'],
+          where: saleWhere,
+          _sum: {
+            total: true,
+          },
+          _count: {
+            id: true,
+          },
+          orderBy: {
+            _sum: {
+              total: 'desc',
+            },
+          },
+          take: 5,
+        })
+      : Promise.resolve([]),
+
+    user?.role === 'admin'
+      ? this.prisma.point_of_sale_sales.groupBy({
+          by: ['point_of_sale_id'],
+          where: saleWhere,
+          _sum: {
+            total: true,
+          },
+          _count: {
+            id: true,
+          },
+          orderBy: {
+            _count: {
+              id: 'desc',
+            },
+          },
+          take: 5,
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const posRevenue = category
+    ? Number((posRevenueResult._sum as { line_total: any }).line_total || 0)
+    : Number((posRevenueResult._sum as { total: any }).total || 0);
+
+  const webRevenue = category
+    ? Number((webRevenueResult._sum as { line_total: any }).line_total || 0)
+    : Number((webRevenueResult._sum as { total: any }).total || 0);
+
+  const pointOfSaleIds = [
+    ...topPointOfSaleRevenueRows.map(row => row.point_of_sale_id),
+    ...topPointOfSaleSalesRows.map(row => row.point_of_sale_id),
+  ].filter(Boolean);
+
+  const pointOfSaleNames = pointOfSaleIds.length
+    ? await this.prisma.point_of_sales.findMany({
+        where: {
+          id: {
+            in: pointOfSaleIds,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      })
+    : [];
+
+  const pointOfSaleNameById = new Map(
+    pointOfSaleNames.map(pointOfSale => [pointOfSale.id, pointOfSale.name]),
+  );
+
+  function normalizeTopProduct(row: any) {
     return {
-      orders,
-      revenue,
-      points_of_sale: pointsOfSale,
-      global_stock_units: Number(globalStockResult._sum.stock || 0),
+      product_id: row.product_id,
+      product_name: row.product_name || 'Produit supprimé',
+      product_reference: row.product_reference || null,
+      revenue: Number(row._sum.line_total || 0),
+      quantity: Number(row._sum.quantity || 0),
     };
   }
+
+  function normalizeTopPointOfSale(row: any) {
+    return {
+      point_of_sale_id: row.point_of_sale_id,
+      point_of_sale_name:
+        pointOfSaleNameById.get(row.point_of_sale_id) || 'Point de vente',
+      revenue: Number(row._sum.total || 0),
+      sales: Number(row._count.id || 0),
+    };
+  }
+
+  return {
+    sales: posSalesCount,
+    orders: webOrdersCount,
+    revenue: posRevenue + webRevenue,
+    pos_revenue: posRevenue,
+    web_revenue: webRevenue,
+    points_of_sale: pointsOfSale,
+    top_products_by_revenue: topProductRevenueRows.map(normalizeTopProduct),
+    top_products_by_quantity: topProductQuantityRows.map(normalizeTopProduct),
+    top_points_of_sale_by_revenue:
+      topPointOfSaleRevenueRows.map(normalizeTopPointOfSale),
+    top_points_of_sale_by_sales:
+      topPointOfSaleSalesRows.map(normalizeTopPointOfSale),
+  };
+}
 
   async dashboardFilters(user?: any) {
     const categoriesResult = await this.prisma.products.findMany({
@@ -213,30 +314,218 @@ export class AdminService {
       .filter(Boolean);
 
     if (user?.role === 'point_of_sale') {
-      return {
-        points_of_sale: [],
-        categories,
-      };
+const products = await this.prisma.products.findMany({
+  where: {
+    is_active: true,
+    point_of_sale_stocks: {
+      some: {
+        point_of_sale_id: Number(user.point_of_sale_id),
+      },
+    },
+  },
+  select: {
+    id: true,
+    name: true,
+    reference: true,
+  },
+  orderBy: {
+    name: 'asc',
+  },
+});
+
+return {
+  points_of_sale: [],
+  categories,
+  products,
+};
     }
 
-    const pointsOfSale = await this.prisma.point_of_sales.findMany({
-      where: {
-        is_active: true,
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-      orderBy: {
-        name: 'asc',
-      },
-    });
+const pointsOfSale = await this.prisma.point_of_sales.findMany({
+  where: {
+    is_active: true,
+  },
+  select: {
+    id: true,
+    name: true,
+  },
+  orderBy: {
+    name: 'asc',
+  },
+});
 
+const products = await this.prisma.products.findMany({
+  where: {
+    is_active: true,
+  },
+  select: {
+    id: true,
+    name: true,
+    reference: true,
+  },
+  orderBy: {
+    name: 'asc',
+  },
+});
+
+return {
+  points_of_sale: pointsOfSale,
+  categories,
+  products,
+};
+}
+
+async dashboardStock(user?: any, query: any = {}) {
+  const productId = query.product_id ? Number(query.product_id) : undefined;
+  const locationType = query.location_type || 'global';
+
+  let pointOfSaleId = query.point_of_sale_id
+    ? Number(query.point_of_sale_id)
+    : undefined;
+
+  if (user?.role === 'point_of_sale') {
+    pointOfSaleId = Number(user.point_of_sale_id);
+  }
+
+  if (!productId) {
     return {
-      points_of_sale: pointsOfSale,
-      categories,
+      stock_series: [],
+      sales_series: [],
+      revenue_series: [],
     };
   }
+
+  const createdAtFilter = this.getDateFilter(query);
+
+  const stockMovementWhere: any = {
+    product_id: productId,
+    ...(createdAtFilter && { created_at: createdAtFilter }),
+  };
+
+  if (locationType === 'global') {
+    stockMovementWhere.stock_global_after = {
+      not: null,
+    };
+  } else if (pointOfSaleId) {
+    stockMovementWhere.point_of_sale_id = pointOfSaleId;
+    stockMovementWhere.stock_pos_after = {
+      not: null,
+    };
+  } else {
+    return {
+      stock_series: [],
+      sales_series: [],
+      revenue_series: [],
+    };
+  }
+
+  const movements = await this.prisma.stock_movements.findMany({
+    where: stockMovementWhere,
+    orderBy: {
+      created_at: 'asc',
+    },
+    select: {
+      id: true,
+      created_at: true,
+      movement_type: true,
+      stock_global_before: true,
+      stock_global_after: true,
+      stock_pos_before: true,
+      stock_pos_after: true,
+    },
+  });
+
+  const stockSeries: Array<{ date: string; value: number }> = [];
+
+  for (const movement of movements) {
+    const date = movement.created_at.toISOString().slice(0, 16).replace('T', ' ');
+
+    const before =
+      locationType === 'global'
+        ? movement.stock_global_before
+        : movement.stock_pos_before;
+
+    const after =
+      locationType === 'global'
+        ? movement.stock_global_after
+        : movement.stock_pos_after;
+
+    if (stockSeries.length === 0 && before !== null && before !== undefined) {
+      stockSeries.push({
+        date: `${date} avant`,
+        value: Number(before),
+      });
+    }
+
+    if (after !== null && after !== undefined) {
+      stockSeries.push({
+        date: `${date} après`,
+        value: Number(after),
+      });
+    }
+  }
+
+  const saleItemsWhere: any = {
+    product_id: productId,
+    point_of_sale_sales: {
+      ...(createdAtFilter && { created_at: createdAtFilter }),
+      ...(locationType === 'pos' && pointOfSaleId
+        ? { point_of_sale_id: pointOfSaleId }
+        : {}),
+    },
+  };
+
+  const saleItems = await this.prisma.point_of_sale_sale_items.findMany({
+    where: saleItemsWhere,
+    select: {
+      quantity: true,
+      line_total: true,
+      point_of_sale_sales: {
+        select: {
+          created_at: true,
+        },
+      },
+    },
+    orderBy: {
+      point_of_sale_sales: {
+        created_at: 'asc',
+      },
+    },
+  });
+
+  const salesByDate = new Map<string, { sales: number; revenue: number }>();
+
+  for (const item of saleItems) {
+    const date = item.point_of_sale_sales.created_at
+      .toISOString()
+      .slice(0, 10);
+
+    const current = salesByDate.get(date) || {
+      sales: 0,
+      revenue: 0,
+    };
+
+    current.sales += Number(item.quantity || 0);
+    current.revenue += Number(item.line_total || 0);
+
+    salesByDate.set(date, current);
+  }
+
+  const salesSeries = [...salesByDate.entries()].map(([date, value]) => ({
+    date,
+    value: value.sales,
+  }));
+
+  const revenueSeries = [...salesByDate.entries()].map(([date, value]) => ({
+    date,
+    value: value.revenue,
+  }));
+
+  return {
+    stock_series: stockSeries,
+    sales_series: salesSeries,
+    revenue_series: revenueSeries,
+  };
+}
 
   async listPointsOfSale() {
     return this.prisma.point_of_sales.findMany({

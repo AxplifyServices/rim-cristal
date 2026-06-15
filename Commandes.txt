@@ -33,10 +33,8 @@ npm run dev
 
 ** Profil admin :
 
-Email : admin@rim-cristal.local
-ou
-Email : admin@rim-cristal.axplitest.com
-Mot de passe : Admin1234!
+Email : admin@rim-cristal.com
+Mot de passe : admin123
 
 ** Profil PDV :
 

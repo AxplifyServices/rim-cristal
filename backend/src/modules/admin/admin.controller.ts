@@ -32,6 +32,12 @@ export class AdminController {
     return this.service.dashboardFilters(req.user);
   }
 
+  @Get('dashboard-stock')
+  @Roles('admin', 'point_of_sale')
+  dashboardStock(@Req() req: any, @Query() query: any) {
+    return this.service.dashboardStock(req.user, query);
+  }
+
   @Get('points-of-sale')
   @Roles('admin')
   listPointsOfSale() {
