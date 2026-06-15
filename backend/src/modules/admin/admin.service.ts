@@ -376,18 +376,46 @@ return {
 
 async dashboardStock(user?: any, query: any = {}) {
   const productId = query.product_id ? Number(query.product_id) : undefined;
-  const locationType = query.location_type || 'global';
+
+  let locationType = query.location_type || 'global';
 
   let pointOfSaleId = query.point_of_sale_id
     ? Number(query.point_of_sale_id)
     : undefined;
 
   if (user?.role === 'point_of_sale') {
-    pointOfSaleId = Number(user.point_of_sale_id);
+    locationType = 'pos';
+
+    pointOfSaleId = Number(user.point_of_sale_id || 0);
+
+    if (!pointOfSaleId && user.sub) {
+      const fullUser = await this.prisma.users.findUnique({
+        where: {
+          id: Number(user.sub),
+        },
+        select: {
+          point_of_sale_id: true,
+        },
+      });
+
+      pointOfSaleId = Number(fullUser?.point_of_sale_id || 0);
+    }
   }
 
   if (!productId) {
     return {
+      location_type: locationType,
+      point_of_sale_id: pointOfSaleId || null,
+      stock_series: [],
+      sales_series: [],
+      revenue_series: [],
+    };
+  }
+
+  if (locationType === 'pos' && !pointOfSaleId) {
+    return {
+      location_type: locationType,
+      point_of_sale_id: null,
       stock_series: [],
       sales_series: [],
       revenue_series: [],
@@ -405,16 +433,10 @@ async dashboardStock(user?: any, query: any = {}) {
     stockMovementWhere.stock_global_after = {
       not: null,
     };
-  } else if (pointOfSaleId) {
+  } else {
     stockMovementWhere.point_of_sale_id = pointOfSaleId;
     stockMovementWhere.stock_pos_after = {
       not: null,
-    };
-  } else {
-    return {
-      stock_series: [],
-      sales_series: [],
-      revenue_series: [],
     };
   }
 
@@ -426,7 +448,6 @@ async dashboardStock(user?: any, query: any = {}) {
     select: {
       id: true,
       created_at: true,
-      movement_type: true,
       stock_global_before: true,
       stock_global_after: true,
       stock_pos_before: true,
@@ -468,7 +489,7 @@ async dashboardStock(user?: any, query: any = {}) {
     product_id: productId,
     point_of_sale_sales: {
       ...(createdAtFilter && { created_at: createdAtFilter }),
-      ...(locationType === 'pos' && pointOfSaleId
+      ...(locationType === 'pos'
         ? { point_of_sale_id: pointOfSaleId }
         : {}),
     },
@@ -521,6 +542,8 @@ async dashboardStock(user?: any, query: any = {}) {
   }));
 
   return {
+    location_type: locationType,
+    point_of_sale_id: pointOfSaleId || null,
     stock_series: stockSeries,
     sales_series: salesSeries,
     revenue_series: revenueSeries,

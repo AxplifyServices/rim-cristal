@@ -37,11 +37,19 @@ export default function AdminDashboard() {
 
   const isAdmin = user?.role === 'admin'
 
-  useEffect(() => {
-    const currentUser = getAdminUser()
-    setUser(currentUser)
+useEffect(() => {
+  const currentUser = getAdminUser()
+  setUser(currentUser)
 
-    adminApi.get('/admin/dashboard-filters')
+  if (currentUser?.role === 'point_of_sale') {
+    setStockFilters(current => ({
+      ...current,
+      location_type: 'pos',
+      point_of_sale_id: String(currentUser.point_of_sale_id || ''),
+    }))
+  }
+
+  adminApi.get('/admin/dashboard-filters')
       .then(data => {
         setFilterOptions({
           points_of_sale: Array.isArray(data?.points_of_sale) ? data.points_of_sale : [],
@@ -82,12 +90,11 @@ export default function AdminDashboard() {
     if (stockFilters.location_type) {
       params.set('location_type', stockFilters.location_type)
     }
-    if (stockFilters.product_id) {
-      params.set('product_id', stockFilters.product_id)
-    }
-    if (isAdmin && stockFilters.location_type === 'pos' && stockFilters.point_of_sale_id) {
-      params.set('point_of_sale_id', stockFilters.point_of_sale_id)
-    }
+ params.set('location_type', isAdmin ? stockFilters.location_type : 'pos')
+
+if (isAdmin && stockFilters.location_type === 'pos' && stockFilters.point_of_sale_id) {
+  params.set('point_of_sale_id', stockFilters.point_of_sale_id)
+}
 
     const query = params.toString()
 
@@ -227,6 +234,12 @@ export default function AdminDashboard() {
                 </select>
               </label>
             )}
+
+            {!isAdmin && (
+            <div style={styles.infoBox}>
+              Stock de votre point de vente
+            </div>
+          )}
 
             <label style={styles.field}>
               <span style={styles.label}>{t('dashboard.category')}</span>
@@ -798,4 +811,17 @@ const styles = {
     textAlign: 'center',
     fontSize: 13,
   },
+  infoBox: {
+  border: '1px solid #e6ded2',
+  borderRadius: 14,
+  background: '#f7f3ed',
+  color: '#8a7f72',
+  padding: '12px',
+  fontSize: 13,
+  fontWeight: 900,
+  display: 'flex',
+  alignItems: 'center',
+  minHeight: 44,
+  boxSizing: 'border-box',
+},
 }
