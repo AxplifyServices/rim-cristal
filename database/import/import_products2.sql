@@ -57,56 +57,7 @@ CREATE TEMP TABLE product_import_staging (
     is_available_on_site      TEXT
 ) ON COMMIT DROP;
 
-\copy product_import_staging (
-    csv_id,
-    name,
-    slug,
-    reference,
-    marque,
-    rubrique,
-    categorie,
-    famille,
-    description,
-    url_image1,
-    url_image2,
-    url_image3,
-    url_image4,
-    url_image5,
-    price,
-    colors,
-    sizes,
-    stock,
-    weight,
-    badge,
-    is_active,
-    is_featured,
-    is_new,
-    is_bestseller,
-    rating,
-    reviews_count,
-    created_at,
-    updated_at,
-    category_id,
-    subcategory_id,
-    care_instructions,
-    origin_country,
-    collection_name,
-    seo_title,
-    seo_description,
-    price_wholesale,
-    wholesale_min_qty,
-    is_available_on_site
-)
-FROM :'csv_path'
-WITH (
-    FORMAT CSV,
-    HEADER TRUE,
-    ENCODING 'UTF8',
-    DELIMITER ',',
-    QUOTE '"',
-    ESCAPE '"'
-);
-
+\copy product_import_staging (csv_id, name, slug, reference, marque, rubrique, categorie, famille, description, url_image1, url_image2, url_image3, url_image4, url_image5, price, colors, sizes, stock, weight, badge, is_active, is_featured, is_new, is_bestseller, rating, reviews_count, created_at, updated_at, category_id, subcategory_id, care_instructions, origin_country, collection_name, seo_title, seo_description, price_wholesale, wholesale_min_qty, is_available_on_site) FROM 'C:/Users/zzaka/OneDrive/Bureau/Projet Dev/Rim_cristal/Traitement des images/output/produits.csv' WITH (FORMAT CSV, HEADER TRUE, ENCODING 'UTF8', DELIMITER ',', QUOTE '"', ESCAPE '"');
 /*
 Validation avant insertion.
 Toute anomalie annule l'import grâce à ON_ERROR_STOP et à la transaction.
