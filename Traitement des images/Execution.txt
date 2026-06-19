@@ -1,5 +1,0 @@
-python scripts/process_product_images.py "C:\Users\zzaka\OneDrive\Bureau\Projet Dev\Luminaire\photos"
-
-cd "C:\Users\zzaka\OneDrive\Bureau\Projet Dev\Luminaire"
-
-venv\activate

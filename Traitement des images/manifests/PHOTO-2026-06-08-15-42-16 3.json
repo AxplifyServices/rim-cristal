@@ -1,0 +1,86 @@
+{
+  "images": [
+    {
+      "source_file": "PHOTO-2026-06-08-15-42-16 3.jpg",
+      "cleaned_file": "7301.jpg",
+      "detected_product_type": "Lustre",
+      "rubrique": "Éclairage",
+      "categorie": "Luminaires suspendus",
+      "famille": "Lustres",
+      "description": "Lustre suspendu doré à structure ramifiée avec pampilles allongées multicolores en verre ou cristal.",
+      "colors": [
+        "Doré",
+        "Transparent",
+        "Cristal",
+        "Bleu",
+        "Turquoise",
+        "Jaune",
+        "Orange",
+        "Rose",
+        "Violet",
+        "Multicolore"
+      ],
+      "price_box_regions": [
+        {
+          "x_min": 0.0,
+          "y_min": 0.0,
+          "x_max": 0.292,
+          "y_max": 0.31,
+          "confidence": 0.99
+        }
+      ],
+      "logo_regions": [
+        {
+          "x_min": 0.875,
+          "y_min": 0.0,
+          "x_max": 1.0,
+          "y_max": 0.195,
+          "confidence": 0.95
+        }
+      ],
+      "products": [
+        {
+          "reference": "7301/40",
+          "name": "Lustre 7301/40",
+          "size": "40",
+          "price": 750.0,
+          "confidence_reference": 0.98,
+          "confidence_price": 0.99
+        },
+        {
+          "reference": "7301/60",
+          "name": "Lustre 7301/60",
+          "size": "60",
+          "price": 1100.0,
+          "confidence_reference": 0.99,
+          "confidence_price": 0.99
+        },
+        {
+          "reference": "7301/80",
+          "name": "Lustre 7301/80",
+          "size": "80",
+          "price": 1700.0,
+          "confidence_reference": 0.98,
+          "confidence_price": 0.99
+        },
+        {
+          "reference": "7301/100",
+          "name": "Lustre 7301/100",
+          "size": "100",
+          "price": 2300.0,
+          "confidence_reference": 0.99,
+          "confidence_price": 0.99
+        },
+        {
+          "reference": "7301/120L",
+          "name": "Lustre 7301/120L",
+          "size": "120L",
+          "price": 1700.0,
+          "confidence_reference": 0.98,
+          "confidence_price": 0.99
+        }
+      ],
+      "warnings": []
+    }
+  ]
+}

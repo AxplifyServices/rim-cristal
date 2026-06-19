@@ -1,0 +1,47 @@
+{
+  "images": [
+    {
+      "source_file": "PHOTO-2026-06-08-15-42-15 2.jpg",
+      "cleaned_file": "3029-90-35.jpg",
+      "detected_product_type": "Lustre",
+      "rubrique": "Éclairage",
+      "categorie": "Luminaires suspendus",
+      "famille": "Lustres",
+      "description": "Lustre rectangulaire suspendu avec structure argentée et pampilles en cristal.",
+      "colors": [
+        "Argenté",
+        "Cristal",
+        "Transparent"
+      ],
+      "price_box_regions": [
+        {
+          "x_min": 0.02,
+          "y_min": 0.85,
+          "x_max": 0.26,
+          "y_max": 0.995,
+          "confidence": 0.98
+        }
+      ],
+      "logo_regions": [
+        {
+          "x_min": 0.895,
+          "y_min": 0.85,
+          "x_max": 0.972,
+          "y_max": 0.955,
+          "confidence": 0.93
+        }
+      ],
+      "products": [
+        {
+          "reference": "3029/90×35",
+          "name": "Lustre 3029/90×35",
+          "size": "90×35",
+          "price": 1700.0,
+          "confidence_reference": 0.97,
+          "confidence_price": 0.99
+        }
+      ],
+      "warnings": []
+    }
+  ]
+}

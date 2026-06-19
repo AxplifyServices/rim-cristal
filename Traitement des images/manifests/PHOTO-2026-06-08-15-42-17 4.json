@@ -1,0 +1,86 @@
+{
+  "images": [
+    {
+      "source_file": "PHOTO-2026-06-08-15-42-17 4.jpg",
+      "cleaned_file": "7302.jpg",
+      "detected_product_type": "Lustre",
+      "rubrique": "Éclairage",
+      "categorie": "Luminaires suspendus",
+      "famille": "Lustres",
+      "description": "Lustre suspendu en métal doré avec pampilles multicolores en cristal/verre.",
+      "colors": [
+        "Doré",
+        "Cristal",
+        "Noir",
+        "Rouge",
+        "Bleu",
+        "Turquoise",
+        "Jaune",
+        "Orange",
+        "Marron",
+        "Multicolore"
+      ],
+      "price_box_regions": [
+        {
+          "x_min": 0.0,
+          "y_min": 0.79,
+          "x_max": 0.26,
+          "y_max": 1.0,
+          "confidence": 0.99
+        }
+      ],
+      "logo_regions": [
+        {
+          "x_min": 0.89,
+          "y_min": 0.0,
+          "x_max": 1.0,
+          "y_max": 0.145,
+          "confidence": 0.95
+        }
+      ],
+      "products": [
+        {
+          "reference": "7302/40",
+          "name": "Lustre 7302/40",
+          "size": "40",
+          "price": 750.0,
+          "confidence_reference": 0.98,
+          "confidence_price": 0.99
+        },
+        {
+          "reference": "7302/60",
+          "name": "Lustre 7302/60",
+          "size": "60",
+          "price": 1100.0,
+          "confidence_reference": 0.98,
+          "confidence_price": 0.99
+        },
+        {
+          "reference": "7302/80",
+          "name": "Lustre 7302/80",
+          "size": "80",
+          "price": 1700.0,
+          "confidence_reference": 0.98,
+          "confidence_price": 0.99
+        },
+        {
+          "reference": "7302/100",
+          "name": "Lustre 7302/100",
+          "size": "100",
+          "price": 2300.0,
+          "confidence_reference": 0.98,
+          "confidence_price": 0.99
+        },
+        {
+          "reference": "7302/120L",
+          "name": "Lustre 7302/120L",
+          "size": "120L",
+          "price": 1700.0,
+          "confidence_reference": 0.97,
+          "confidence_price": 0.99
+        }
+      ],
+      "warnings": []
+    }
+  ]
+}

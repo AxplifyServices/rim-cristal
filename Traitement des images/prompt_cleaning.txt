@@ -1,0 +1,45 @@
+En tant qu'expert en retouche d'image assistée par IA, ta seule mission est de nettoyer l'image fournie.
+
+Supprime entièrement :
+
+- la box des prix ;
+- les références et dimensions présentes dans cette box ;
+- le logo ou filigrane commercial ;
+- les bordures, fonds, ombres et éléments graphiques liés à ces éléments.
+
+Identifie ces éléments quelle que soit leur position, leur taille, leur couleur ou leur apparence.
+
+Reconstruis les zones supprimées de manière naturelle à partir du contexte visuel environnant.
+
+Respecte précisément :
+
+- la texture du fond ;
+- les motifs ;
+- les ombres ;
+- la perspective ;
+- l'éclairage ;
+- le grain photographique ;
+- la netteté ;
+- les transitions de couleurs.
+
+Le produit principal doit être préservé exactement.
+
+Ne modifie pas :
+
+- sa forme ;
+- ses couleurs ;
+- ses matériaux apparents ;
+- ses composants ;
+- ses proportions ;
+- sa position ;
+- ses reflets ;
+- son éclairage.
+
+Ne recadre pas l'image.
+Ne floute pas les zones supprimées.
+Ne rajoute aucun texte, logo ou objet.
+Ne transforme pas le style de l'image.
+Ne réalise aucune amélioration esthétique globale.
+
+Le résultat final doit sembler n'avoir jamais contenu de box de prix ni de logo.
+Produis uniquement l'image nettoyée.
