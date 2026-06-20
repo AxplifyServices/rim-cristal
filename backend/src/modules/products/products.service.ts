@@ -86,11 +86,33 @@ private async generateReference() {
       20,
     );
 
-    const where: any = {};
+const where: any = {};
 
-    if (String(query.include_inactive || '').toLowerCase() !== 'true') {
-      where.is_active = true;
-    }
+const includeInactive =
+  String(
+    query.include_inactive || '',
+  ).toLowerCase() === 'true';
+
+const includeUnavailableOnSite =
+  String(
+    query.include_unavailable_on_site ||
+      '',
+  ).toLowerCase() === 'true';
+
+const isPublicCatalog =
+  !includeInactive &&
+  !includeUnavailableOnSite;
+
+if (!includeInactive) {
+  where.is_active = true;
+}
+
+if (isPublicCatalog) {
+  where.is_available_on_site = true;
+  where.stock = {
+    gt: 0,
+  };
+}
 
     const categorie = query.categorie || query.category;
     const rubrique = query.rubrique;
@@ -115,13 +137,6 @@ if (rubrique) {
     if (query.is_new !== undefined || query.new !== undefined) {
       where.is_new = String(query.is_new || query.new) === 'true';
     }  
-
-    if (
-      String(query.include_unavailable_on_site || '').toLowerCase() !== 'true' &&
-      String(query.include_inactive || '').toLowerCase() !== 'true'
-    ) {
-      where.is_available_on_site = true;
-    }
 
     const search = query.search || query.q;
 
@@ -186,6 +201,9 @@ async findBySlug(slug: string) {
         slug,
         is_active: true,
         is_available_on_site: true,
+        stock: {
+          gt: 0,
+        },
       },
     });
 

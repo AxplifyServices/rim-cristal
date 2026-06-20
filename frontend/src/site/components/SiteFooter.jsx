@@ -80,10 +80,11 @@ export default function SiteFooter() {
         </div>
       </div>
 
-      <div className="container footer-bottom">
-        © {new Date().getFullYear()} Lux Lumina.{' '}
-        {t('footer.rights')}
-      </div>
+<div className="container footer-bottom">
+  © {new Date().getFullYear()}{' '}
+  {t('brand')}.{' '}
+  {t('footer.rights')}
+</div>
     </footer>
   )
 }

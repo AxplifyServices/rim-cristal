@@ -1,6 +1,8 @@
 const PUBLIC_API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:3001/api'
+  (
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:3000/api'
+  ).replace(/\/$/, '')
 
 function getApiOrigin() {
   if (process.env.NEXT_PUBLIC_ASSETS_URL) {
@@ -58,6 +60,51 @@ function toBoolean(value, defaultValue = false) {
   )
 }
 
+function normalizeStringArray(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map(item => String(item).trim())
+      .filter(Boolean)
+  }
+
+  if (
+    value === undefined ||
+    value === null ||
+    value === ''
+  ) {
+    return []
+  }
+
+  if (typeof value === 'string') {
+    const trimmedValue = value.trim()
+
+    if (!trimmedValue) {
+      return []
+    }
+
+    try {
+      const parsedValue =
+        JSON.parse(trimmedValue)
+
+      if (Array.isArray(parsedValue)) {
+        return parsedValue
+          .map(item =>
+            String(item).trim()
+          )
+          .filter(Boolean)
+      }
+    } catch {
+      return trimmedValue
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean)
+    }
+  }
+
+  return [String(value).trim()]
+    .filter(Boolean)
+}
+
 export function mapProduct(product) {
   const images = [
     product.url_image1,
@@ -84,8 +131,18 @@ marque: product.marque || '',
 rubrique: product.rubrique || '',
 famille: product.famille || '',
 categorie: categoryName,
-    description: product.description || '',
-    price: Number(product.price || 0),
+description: product.description || '',
+price: Number(product.price || 0),
+stock: Math.max(
+  Number(product.stock || 0),
+  0
+),
+sizes: normalizeStringArray(
+  product.sizes
+),
+colors: normalizeStringArray(
+  product.colors
+),
 
     images:
       images.length > 0
@@ -113,15 +170,16 @@ categorie: categoryName,
       false
     ),
 
-    available:
-      toBoolean(
-        product.is_available_on_site,
-        true
-      ) &&
-      toBoolean(
-        product.is_active,
-        true
-      ),
+available:
+  toBoolean(
+    product.is_available_on_site,
+    true
+  ) &&
+  toBoolean(
+    product.is_active,
+    true
+  ) &&
+  Number(product.stock || 0) > 0,
   }
 }
 

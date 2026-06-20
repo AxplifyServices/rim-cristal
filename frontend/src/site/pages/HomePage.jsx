@@ -98,10 +98,10 @@ export default function HomePage() {
                 heroProduct?.image ||
                 '/images/product-placeholder.svg'
               }
-              alt={
-                heroProduct?.name ||
-                'Lux Lumina'
-              }
+alt={
+  heroProduct?.name ||
+  t('brand')
+}
             />
 
             {heroProduct && (

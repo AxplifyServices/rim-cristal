@@ -249,6 +249,18 @@ export default function ProductPage({
                     </dd>
                   </div>
                 )}
+
+{product.sizes.length > 0 && (
+  <div>
+    <dt>
+      {t('product.sizes')}
+    </dt>
+
+    <dd>
+      {product.sizes.join(' · ')}
+    </dd>
+  </div>
+)}                
               </dl>
 
               <div className="buy-row">
@@ -274,34 +286,43 @@ export default function ProductPage({
                       −
                     </button>
 
-                    <input
-                      type="number"
-                      min="1"
-                      value={quantity}
-                      onChange={event => {
-                        setQuantity(
-                          Math.max(
-                            1,
-                            Number(
-                              event.target
-                                .value
-                            ) || 1
-                          )
-                        )
-                      }}
+<input
+  type="number"
+  min="1"
+  max={product.stock}
+  value={quantity}
+onChange={event => {
+  const requestedQuantity =
+    Number(event.target.value) || 1
+
+  setQuantity(
+    Math.min(
+      Math.max(
+        1,
+        requestedQuantity
+      ),
+      product.stock
+    )
+  )
+}}
                     />
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuantity(
-                          current =>
-                            current + 1
-                        )
-                      }}
-                    >
-                      +
-                    </button>
+<button
+  type="button"
+  disabled={
+    quantity >= product.stock
+  }
+  onClick={() => {
+    setQuantity(current =>
+      Math.min(
+        current + 1,
+        product.stock
+      )
+    )
+  }}
+>
+  +
+</button>
                   </div>
                 </label>
 

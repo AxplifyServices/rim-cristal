@@ -1,25 +1,30 @@
 {
   "brand": "Lux Lumina",
-"nav": {
-  "home": "Accueil",
-  "cart": "Panier",
-  "openMenu": "Ouvrir le menu",
-  "closeMenu": "Fermer le menu",
-  "mainNavigation": "Navigation principale"
-},
-"sections": {
-  "furniture": "Mobilier",
-  "lighting": "Luminaires",
-  "decoration": "Décoration",
-  "wallArt": "Art mural",
-  "flowersAndArrangements": "Fleurs & Arrangements",
-  "tableware": "Arts de la table"
-},
+  "nav": {
+    "home": "Accueil",
+    "shop": "Boutique",
+    "contact": "Contact",
+    "cart": "Panier",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "mainNavigation": "Navigation principale"
+  },
+  "sections": {
+    "furniture": "Mobilier",
+    "lighting": "Luminaires",
+    "decoration": "Décoration",
+    "wallArt": "Art mural",
+    "flowersAndArrangements": "Fleurs & Arrangements",
+    "tableware": "Arts de la table"
+  },
   "common": {
     "viewAll": "Voir tous les produits",
     "addToCart": "Ajouter au panier",
+    "discover": "Découvrir",
     "loading": "Chargement…",
-    "currency": "MAD"
+    "currency": "MAD",
+    "error": "Une erreur est survenue.",
+    "retry": "Réessayer"
   },
   "home": {
     "eyebrow": "Maison & décoration",
@@ -29,7 +34,7 @@
     "categoriesTitle": "Acheter par catégorie",
     "categoriesSubtitle": "Trouvez rapidement les pièces adaptées à votre intérieur.",
     "featuredTitle": "Nos sélections",
-    "featuredSubtitle": "Les produits appréciés et les nouveautés Lux Lumina.",
+    "featuredSubtitle": "Découvrez les nouveautés et les produits sélectionnés par Rim Cristal.",
     "benefit1Title": "Sélection soignée",
     "benefit1Text": "Des collections choisies pour leur style, leur qualité et leur facilité d’intégration.",
     "benefit2Title": "Conseil humain",
@@ -39,35 +44,55 @@
   },
   "shop": {
     "title": "La boutique",
-    "subtitle": "Explorez toutes nos collections.",
-    "search": "Rechercher un produit",
-    "all": "Tous",
-    "empty": "Aucun produit ne correspond à votre recherche."
+    "subtitle": "Explorez toutes les collections Rim Cristal.",
+    "sectionSubtitle": "Découvrez les produits de la rubrique {section}.",
+    "search": "Rechercher un produit, une référence ou une marque",
+    "all": "Tous les produits",
+    "empty": "Aucun produit ne correspond à votre recherche.",
+    "results": "produits",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "page": "Page",
+    "of": "sur"
   },
   "product": {
     "reference": "Référence",
     "brand": "Marque",
     "family": "Famille",
     "category": "Catégorie",
+    "sizes": "Tailles",
     "description": "Description",
+    "quantity": "Quantité",
     "notFound": "Produit introuvable",
+    "notFoundText": "Ce produit n’existe pas ou n’est plus disponible.",
     "back": "Retour à la boutique"
   },
   "cart": {
     "title": "Votre panier",
     "empty": "Votre panier est vide.",
+    "emptyText": "Découvrez nos produits et ajoutez vos articles préférés.",
     "continue": "Continuer mes achats",
     "subtotal": "Sous-total",
     "checkout": "Commander",
     "remove": "Retirer",
+    "clear": "Vider le panier",
     "notice": "Les frais et modalités de livraison seront confirmés lors de la commande."
   },
   "contact": {
+    "eyebrow": "Contactez-nous",
     "title": "Besoin d’un conseil ?",
-    "subtitle": "Écrivez-nous avec le produit ou la pièce qui vous intéresse. Notre équipe vous répondra rapidement.",
-    "name": "Nom",
+    "subtitle": "Indiquez-nous le produit ou le type d’aménagement qui vous intéresse. Notre équipe vous répondra rapidement.",
+    "name": "Nom complet",
+    "email": "Adresse e-mail",
     "phone": "Téléphone",
     "message": "Votre message",
-    "send": "Envoyer la demande"
+    "send": "Envoyer la demande",
+    "success": "Votre demande a bien été préparée."
+  },
+  "footer": {
+    "description": "Mobilier, luminaires et décoration pour des intérieurs uniques.",
+    "navigation": "Navigation",
+    "language": "Langue",
+    "rights": "Tous droits réservés."
   }
 }

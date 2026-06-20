@@ -5,7 +5,9 @@
   "cart": "Cart",
   "openMenu": "Open menu",
   "closeMenu": "Close menu",
-  "mainNavigation": "Main navigation"
+  "mainNavigation": "Main navigation",
+  "shop": "Shop",
+"contact": "Contact"
 },
 "sections": {
   "furniture": "Furniture",
@@ -32,7 +34,7 @@
     "categoriesTitle": "Shop by category",
     "categoriesSubtitle": "Quickly find products that suit your interior.",
     "featuredTitle": "Our selections",
-    "featuredSubtitle": "Discover new arrivals and products selected by Lux Lumina.",
+"featuredSubtitle": "Discover new arrivals and products selected by Rim Cristal.",
     "benefit1Title": "Carefully selected",
     "benefit1Text": "Products selected for their style, quality and ease of integration.",
     "benefit2Title": "Personal advice",
@@ -40,16 +42,22 @@
     "benefit3Title": "Simple shopping",
     "benefit3Text": "A clear and fast experience designed primarily for mobile devices."
   },
-  "shop": {
-    "title": "The shop",
-    "subtitle": "Explore all Lux Lumina collections.",
-    "search": "Search for a product, reference or brand",
-    "all": "All products",
-    "empty": "No product matches your search.",
-    "results": "products"
-  },
+"shop": {
+  "title": "The shop",
+  "subtitle": "Explore all Rim Cristal collections.",
+  "sectionSubtitle": "Discover products from the {section} section.",
+  "search": "Search for a product, reference or brand",
+  "all": "All products",
+  "empty": "No product matches your search.",
+  "results": "products",
+  "previous": "Previous",
+  "next": "Next",
+  "page": "Page",
+  "of": "of"
+},
   "product": {
     "reference": "Reference",
+    "sizes": "Sizes",
     "brand": "Brand",
     "family": "Family",
     "category": "Category",
