@@ -24,6 +24,12 @@ services:
       - traefik.http.routers.rim-cristal-api.tls.certresolver=letsencrypt
       - traefik.http.routers.rim-cristal-api.priority=100
       - traefik.http.services.rim-cristal-api.loadbalancer.server.port=3000
+      - traefik.http.routers.rim-cristal-uploads.rule=Host(`rim-cristal.axplitest.com`) && PathPrefix(`/uploads`)
+      - traefik.http.routers.rim-cristal-uploads.entrypoints=websecure
+      - traefik.http.routers.rim-cristal-uploads.tls=true
+      - traefik.http.routers.rim-cristal-uploads.tls.certresolver=letsencrypt
+      - traefik.http.routers.rim-cristal-uploads.priority=200
+      - traefik.http.routers.rim-cristal-uploads.service=rim-cristal-api
 
   rim-cristal-frontend:
     build:
