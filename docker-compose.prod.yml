@@ -9,6 +9,8 @@ services:
       - .env.prod
     environment:
       PORT: 3000
+    volumes:
+      - /opt/apps/rim_cristal/backend/uploads:/app/uploads
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
