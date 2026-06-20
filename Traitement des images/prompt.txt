@@ -27,6 +27,8 @@ SR 4013/80 — 2850 dh
 
 Résultat : deux produits distincts associés à la même image source.
 
+Attention, certains produit contiennent des référence du genre 5683/60-78, dans ce cas, la référence est 5683, 60-78 sont des tailles qu'on va ignorer. Dans les produits avec plusieurs tailles on considère la taille comme l'élément de distinction. 
+
 EXTRACTION DES PRIX
 
 * Tous les prix extraits sont des prix particuliers.
