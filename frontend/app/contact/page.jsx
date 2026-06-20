@@ -1,3 +1,9 @@
-'use client'
-import Contact from '../../src/views/Contact'
-export default function ContactPage() { return <Contact /> }
+import ContactPage from '../../src/site/pages/ContactPage'
+
+export const metadata = {
+  title: 'Contact',
+}
+
+export default function Page() {
+  return <ContactPage />
+}

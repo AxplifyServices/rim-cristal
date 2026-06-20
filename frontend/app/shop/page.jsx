@@ -1,11 +1,14 @@
-'use client'
 import { Suspense } from 'react'
-import Shop from '../../src/views/Shop'
+import ShopPage from '../../src/site/pages/ShopPage'
 
-export default function ShopPage() {
+export const metadata = {
+  title: 'Boutique',
+}
+
+export default function Page() {
   return (
-    <Suspense fallback={<div className="page-wrap" style={{ padding: '80px 20px', textAlign: 'center' }}>Loading…</div>}>
-      <Shop />
+    <Suspense fallback={<div style={{ padding: 32 }}>Chargement…</div>}>
+      <ShopPage />
     </Suspense>
   )
 }

@@ -1,3 +1,7 @@
-'use client'
-import ProductDetail from '../../../src/views/ProductDetail'
-export default function ProductDetailPage() { return <ProductDetail /> }
+import ProductPage from '../../../src/site/pages/ProductPage'
+
+export default async function Page({ params }) {
+  const { slug } = await params
+
+  return <ProductPage slug={slug} />
+}

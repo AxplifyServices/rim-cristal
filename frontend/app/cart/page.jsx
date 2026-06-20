@@ -1,3 +1,9 @@
-'use client'
-import Cart from '../../src/views/Cart'
-export default function CartPage() { return <Cart /> }
+import CartPage from '../../src/site/pages/CartPage'
+
+export const metadata = {
+  title: 'Panier',
+}
+
+export default function Page() {
+  return <CartPage />
+}

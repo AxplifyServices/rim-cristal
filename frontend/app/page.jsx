@@ -1,3 +1,5 @@
-'use client'
-import Home from '../src/views/Home'
-export default function HomePage() { return <Home /> }
+import HomePage from '../src/site/pages/HomePage'
+
+export default function Page() {
+  return <HomePage />
+}

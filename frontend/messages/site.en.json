@@ -1,0 +1,81 @@
+{
+  "brand": "Lux Lumina",
+  "nav": {
+    "home": "Home",
+    "shop": "Shop",
+    "contact": "Contact",
+    "cart": "Cart"
+  },
+  "common": {
+    "viewAll": "View all products",
+    "addToCart": "Add to cart",
+    "discover": "Discover",
+    "loading": "Loading…",
+    "currency": "MAD",
+    "error": "An error occurred.",
+    "retry": "Try again"
+  },
+  "home": {
+    "eyebrow": "Home, lighting and decoration",
+    "title": "Pieces that give character to your interior.",
+    "subtitle": "Discover a selection of lighting, decorative objects and accessories designed to enhance every space.",
+    "heroCta": "Explore the shop",
+    "categoriesTitle": "Shop by category",
+    "categoriesSubtitle": "Quickly find products that suit your interior.",
+    "featuredTitle": "Our selections",
+    "featuredSubtitle": "Discover new arrivals and products selected by Lux Lumina.",
+    "benefit1Title": "Carefully selected",
+    "benefit1Text": "Products selected for their style, quality and ease of integration.",
+    "benefit2Title": "Personal advice",
+    "benefit2Text": "Our team helps you choose the right product for your needs.",
+    "benefit3Title": "Simple shopping",
+    "benefit3Text": "A clear and fast experience designed primarily for mobile devices."
+  },
+  "shop": {
+    "title": "The shop",
+    "subtitle": "Explore all Lux Lumina collections.",
+    "search": "Search for a product, reference or brand",
+    "all": "All products",
+    "empty": "No product matches your search.",
+    "results": "products"
+  },
+  "product": {
+    "reference": "Reference",
+    "brand": "Brand",
+    "family": "Family",
+    "category": "Category",
+    "description": "Description",
+    "quantity": "Quantity",
+    "notFound": "Product not found",
+    "notFoundText": "This product does not exist or is no longer available.",
+    "back": "Back to shop"
+  },
+  "cart": {
+    "title": "Your cart",
+    "empty": "Your cart is empty.",
+    "emptyText": "Discover our products and add your favourites.",
+    "continue": "Continue shopping",
+    "subtotal": "Subtotal",
+    "checkout": "Order",
+    "remove": "Remove",
+    "clear": "Clear cart",
+    "notice": "Delivery costs and conditions will be confirmed when ordering."
+  },
+  "contact": {
+    "eyebrow": "Contact us",
+    "title": "Need advice?",
+    "subtitle": "Tell us which product or type of interior design you are interested in. Our team will reply shortly.",
+    "name": "Full name",
+    "email": "Email address",
+    "phone": "Phone",
+    "message": "Your message",
+    "send": "Send request",
+    "success": "Your request has been prepared."
+  },
+  "footer": {
+    "description": "Lighting, decoration and accessories for unique interiors.",
+    "navigation": "Navigation",
+    "language": "Language",
+    "rights": "All rights reserved."
+  }
+}

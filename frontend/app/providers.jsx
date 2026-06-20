@@ -1,11 +1,12 @@
 'use client'
-import { CartProvider } from '../src/context/CartContext'
-import { AuthProvider } from '../src/context/AuthContext'
 
-export function Providers({ children }) {
+import { CartProvider } from '../src/site/context/CartContext'
+import { SiteI18nProvider } from '../src/site/i18n/SiteI18nProvider'
+
+export function SiteProviders({ children }) {
   return (
-    <AuthProvider>
+    <SiteI18nProvider>
       <CartProvider>{children}</CartProvider>
-    </AuthProvider>
+    </SiteI18nProvider>
   )
 }

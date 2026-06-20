@@ -1,0 +1,64 @@
+{
+  "brand": "Lux Lumina",
+  "nav": {
+    "home": "Accueil",
+    "shop": "Boutique",
+    "contact": "Contact",
+    "cart": "Panier"
+  },
+  "common": {
+    "viewAll": "Voir tous les produits",
+    "addToCart": "Ajouter au panier",
+    "loading": "Chargement…",
+    "currency": "MAD"
+  },
+  "home": {
+    "eyebrow": "Maison & décoration",
+    "title": "Des pièces qui donnent du caractère à votre intérieur.",
+    "subtitle": "Luminaires, décoration et accessoires sélectionnés pour créer un espace élégant, chaleureux et personnel.",
+    "heroCta": "Explorer la boutique",
+    "categoriesTitle": "Acheter par catégorie",
+    "categoriesSubtitle": "Trouvez rapidement les pièces adaptées à votre intérieur.",
+    "featuredTitle": "Nos sélections",
+    "featuredSubtitle": "Les produits appréciés et les nouveautés Lux Lumina.",
+    "benefit1Title": "Sélection soignée",
+    "benefit1Text": "Des collections choisies pour leur style, leur qualité et leur facilité d’intégration.",
+    "benefit2Title": "Conseil humain",
+    "benefit2Text": "Notre équipe vous accompagne pour choisir le bon produit.",
+    "benefit3Title": "Achat simplifié",
+    "benefit3Text": "Une navigation claire, pensée d’abord pour le mobile."
+  },
+  "shop": {
+    "title": "La boutique",
+    "subtitle": "Explorez toutes nos collections.",
+    "search": "Rechercher un produit",
+    "all": "Tous",
+    "empty": "Aucun produit ne correspond à votre recherche."
+  },
+  "product": {
+    "reference": "Référence",
+    "brand": "Marque",
+    "family": "Famille",
+    "category": "Catégorie",
+    "description": "Description",
+    "notFound": "Produit introuvable",
+    "back": "Retour à la boutique"
+  },
+  "cart": {
+    "title": "Votre panier",
+    "empty": "Votre panier est vide.",
+    "continue": "Continuer mes achats",
+    "subtotal": "Sous-total",
+    "checkout": "Commander",
+    "remove": "Retirer",
+    "notice": "Les frais et modalités de livraison seront confirmés lors de la commande."
+  },
+  "contact": {
+    "title": "Besoin d’un conseil ?",
+    "subtitle": "Écrivez-nous avec le produit ou la pièce qui vous intéresse. Notre équipe vous répondra rapidement.",
+    "name": "Nom",
+    "phone": "Téléphone",
+    "message": "Votre message",
+    "send": "Envoyer la demande"
+  }
+}
