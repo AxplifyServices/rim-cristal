@@ -5,103 +5,253 @@ import {
   useMemo,
   useState,
 } from 'react'
-import { useSearchParams } from 'next/navigation'
+import {
+  useRouter,
+  useSearchParams,
+} from 'next/navigation'
 import ProductCard from '../components/ProductCard'
 import SiteLayout from '../components/SiteLayout'
 import { useSiteI18n } from '../i18n/SiteI18nProvider'
-import { getProducts } from '../lib/products'
+import { getProductsPage } from '../lib/products'
+import {
+  PRODUCT_SECTIONS,
+  PRODUCT_SECTION_VALUES,
+} from '../constants/productSections'
+
+const PRODUCTS_PER_PAGE = 10
 
 export default function ShopPage() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const { t } = useSiteI18n()
 
-  const initialCategory =
-    searchParams.get('category') || ''
+  const requestedSection =
+    searchParams.get('rubrique') || ''
+
+  const selectedSection =
+    PRODUCT_SECTION_VALUES.includes(
+      requestedSection
+    )
+      ? requestedSection
+      : ''
+
+  const requestedPage = Number(
+    searchParams.get('page') || 1
+  )
+
+  const currentPage =
+    Number.isInteger(requestedPage) &&
+    requestedPage > 0
+      ? requestedPage
+      : 1
+
+  const urlSearch =
+    searchParams.get('search') || ''
 
   const [products, setProducts] = useState([])
-  const [search, setSearch] = useState('')
-  const [category, setCategory] =
-    useState(initialCategory)
+  const [total, setTotal] = useState(0)
+  const [pages, setPages] = useState(1)
+  const [search, setSearch] =
+    useState(urlSearch)
+  const [debouncedSearch, setDebouncedSearch] =
+    useState(urlSearch)
 
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [loading, setLoading] =
+    useState(true)
+  const [error, setError] =
+    useState('')
 
-  async function loadProducts() {
-    setLoading(true)
-    setError('')
+  const selectedSectionConfig =
+    PRODUCT_SECTIONS.find(section => {
+      return section.value === selectedSection
+    })
 
-    try {
-      const result = await getProducts()
-      setProducts(result)
-    } catch (loadError) {
-      console.error(loadError)
-      setError(t('common.error'))
-    } finally {
-      setLoading(false)
-    }
-  }
+  const selectedSectionLabel =
+    selectedSectionConfig
+      ? t(
+          selectedSectionConfig.translationKey
+        )
+      : ''
 
   useEffect(() => {
-    loadProducts()
-  }, [])
+    setSearch(urlSearch)
+  }, [urlSearch])
 
-  const categories = useMemo(() => {
-    const values = products.flatMap(product => {
-      return [
-        product.categorie,
-        product.famille,
-      ].filter(Boolean)
-    })
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setDebouncedSearch(search.trim())
+    }, 400)
 
-    return [...new Set(values)].sort()
-  }, [products])
+    return () => {
+      window.clearTimeout(timeout)
+    }
+  }, [search])
 
-  const filteredProducts = useMemo(() => {
-    const normalizedSearch = search
-      .trim()
-      .toLowerCase()
-
-    return products.filter(product => {
-      const matchesCategory =
-        !category ||
-        product.categorie === category ||
-        product.famille === category
-
-      const searchableText = [
-        product.name,
-        product.reference,
-        product.marque,
-        product.famille,
-        product.categorie,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-
-      const matchesSearch =
-        !normalizedSearch ||
-        searchableText.includes(
-          normalizedSearch
-        )
-
-      return (
-        matchesCategory &&
-        matchesSearch
+  useEffect(() => {
+    const nextParams =
+      new URLSearchParams(
+        searchParams.toString()
       )
+
+    const currentUrlSearch =
+      nextParams.get('search') || ''
+
+    if (
+      currentUrlSearch === debouncedSearch
+    ) {
+      return
+    }
+
+    if (debouncedSearch) {
+      nextParams.set(
+        'search',
+        debouncedSearch
+      )
+    } else {
+      nextParams.delete('search')
+    }
+
+    nextParams.set('page', '1')
+
+    router.replace(
+      `/shop?${nextParams.toString()}`,
+      {
+        scroll: false,
+      }
+    )
+  }, [debouncedSearch])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadProducts() {
+      setLoading(true)
+      setError('')
+
+      try {
+        const result =
+          await getProductsPage({
+            page: currentPage,
+            pageSize:
+              PRODUCTS_PER_PAGE,
+            rubrique: selectedSection,
+            search: urlSearch,
+          })
+
+        if (!active) {
+          return
+        }
+
+        setProducts(result.items)
+        setTotal(result.total)
+        setPages(result.pages)
+
+        if (
+          result.pages > 0 &&
+          currentPage > result.pages
+        ) {
+          changePage(result.pages)
+        }
+      } catch (loadError) {
+        console.error(loadError)
+
+        if (active) {
+          setError(t('common.error'))
+        }
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadProducts()
+
+    return () => {
+      active = false
+    }
+  }, [
+    currentPage,
+    selectedSection,
+    urlSearch,
+  ])
+
+  const visiblePages = useMemo(() => {
+    const start = Math.max(
+      currentPage - 2,
+      1
+    )
+
+    const end = Math.min(
+      start + 4,
+      pages
+    )
+
+    const adjustedStart = Math.max(
+      end - 4,
+      1
+    )
+
+    return Array.from(
+      {
+        length:
+          end - adjustedStart + 1,
+      },
+      (_, index) =>
+        adjustedStart + index
+    )
+  }, [currentPage, pages])
+
+  function changePage(nextPage) {
+    const safePage = Math.min(
+      Math.max(nextPage, 1),
+      pages
+    )
+
+    const nextParams =
+      new URLSearchParams(
+        searchParams.toString()
+      )
+
+    nextParams.set(
+      'page',
+      String(safePage)
+    )
+
+    router.push(
+      `/shop?${nextParams.toString()}`
+    )
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
     })
-  }, [products, search, category])
+  }
 
   return (
     <SiteLayout>
       <section className="page-hero">
         <div className="container">
           <p className="section-eyebrow">
-            Lux Lumina
+            Rim Cristal
           </p>
 
-          <h1>{t('shop.title')}</h1>
+          <h1>
+            {selectedSectionLabel ||
+              t('shop.title')}
+          </h1>
 
-          <p>{t('shop.subtitle')}</p>
+          <p>
+            {selectedSectionLabel
+              ? t(
+                  'shop.sectionSubtitle',
+                  {
+                    section:
+                      selectedSectionLabel,
+                  }
+                )
+              : t('shop.subtitle')}
+          </p>
         </div>
       </section>
 
@@ -126,34 +276,11 @@ export default function ShopPage() {
                 )}
               />
             </label>
-
-            <select
-              value={category}
-              onChange={event => {
-                setCategory(
-                  event.target.value
-                )
-              }}
-              aria-label="Catégorie"
-            >
-              <option value="">
-                {t('shop.all')}
-              </option>
-
-              {categories.map(item => (
-                <option
-                  key={item}
-                  value={item}
-                >
-                  {item}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div className="shop-results-heading">
             <strong>
-              {filteredProducts.length}{' '}
+              {total}{' '}
               {t('shop.results')}
             </strong>
           </div>
@@ -170,7 +297,9 @@ export default function ShopPage() {
 
               <button
                 type="button"
-                onClick={loadProducts}
+                onClick={() => {
+                  router.refresh()
+                }}
               >
                 {t('common.retry')}
               </button>
@@ -179,22 +308,96 @@ export default function ShopPage() {
 
           {!loading &&
             !error &&
-            filteredProducts.length > 0 && (
-              <div className="product-grid">
-                {filteredProducts.map(
-                  product => (
+            products.length > 0 && (
+              <>
+                <div className="product-grid">
+                  {products.map(product => (
                     <ProductCard
                       key={product.id}
                       product={product}
                     />
-                  )
+                  ))}
+                </div>
+
+                {pages > 1 && (
+                  <nav
+                    className="pagination"
+                    aria-label="Pagination"
+                  >
+                    <button
+                      type="button"
+                      className="pagination-direction"
+                      disabled={
+                        currentPage === 1
+                      }
+                      onClick={() => {
+                        changePage(
+                          currentPage - 1
+                        )
+                      }}
+                    >
+                      {t('shop.previous')}
+                    </button>
+
+                    <div className="pagination-pages">
+                      {visiblePages.map(
+                        pageNumber => (
+                          <button
+                            key={pageNumber}
+                            type="button"
+                            className={
+                              pageNumber ===
+                              currentPage
+                                ? 'pagination-page is-active'
+                                : 'pagination-page'
+                            }
+                            aria-current={
+                              pageNumber ===
+                              currentPage
+                                ? 'page'
+                                : undefined
+                            }
+                            onClick={() => {
+                              changePage(
+                                pageNumber
+                              )
+                            }}
+                          >
+                            {pageNumber}
+                          </button>
+                        )
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="pagination-direction"
+                      disabled={
+                        currentPage ===
+                        pages
+                      }
+                      onClick={() => {
+                        changePage(
+                          currentPage + 1
+                        )
+                      }}
+                    >
+                      {t('shop.next')}
+                    </button>
+                  </nav>
                 )}
-              </div>
+
+                <p className="pagination-summary">
+                  {t('shop.page')}{' '}
+                  {currentPage}{' '}
+                  {t('shop.of')} {pages}
+                </p>
+              </>
             )}
 
           {!loading &&
             !error &&
-            filteredProducts.length === 0 && (
+            products.length === 0 && (
               <div className="empty-block">
                 {t('shop.empty')}
               </div>

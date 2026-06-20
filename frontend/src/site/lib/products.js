@@ -80,9 +80,10 @@ export function mapProduct(product) {
     slug: product.slug || String(product.id),
     name: product.name || 'Produit',
     reference: product.reference || '',
-    marque: product.marque || '',
-    famille: product.famille || '',
-    categorie: categoryName,
+marque: product.marque || '',
+rubrique: product.rubrique || '',
+famille: product.famille || '',
+categorie: categoryName,
     description: product.description || '',
     price: Number(product.price || 0),
 
@@ -144,9 +145,70 @@ function unwrapProducts(payload) {
   return []
 }
 
-export async function getProducts() {
+function buildProductsQuery({
+  page = 1,
+  pageSize = 10,
+  rubrique = '',
+  categorie = '',
+  search = '',
+  featured,
+  bestseller,
+  isNew,
+} = {}) {
+  const params = new URLSearchParams()
+
+  params.set(
+    'page',
+    String(Math.max(Number(page) || 1, 1))
+  )
+
+  params.set(
+    'page_size',
+    String(
+      Math.min(
+        Math.max(Number(pageSize) || 10, 1),
+        20
+      )
+    )
+  )
+
+  if (rubrique) {
+    params.set('rubrique', rubrique)
+  }
+
+  if (categorie) {
+    params.set('categorie', categorie)
+  }
+
+  if (search.trim()) {
+    params.set('search', search.trim())
+  }
+
+  if (featured !== undefined) {
+    params.set('featured', String(featured))
+  }
+
+  if (bestseller !== undefined) {
+    params.set(
+      'bestseller',
+      String(bestseller)
+    )
+  }
+
+  if (isNew !== undefined) {
+    params.set('is_new', String(isNew))
+  }
+
+  return params.toString()
+}
+
+export async function getProductsPage(
+  options = {}
+) {
+  const query = buildProductsQuery(options)
+
   const response = await fetch(
-    `${PUBLIC_API_BASE}/products`,
+    `${PUBLIC_API_BASE}/products?${query}`,
     {
       method: 'GET',
       headers: {
@@ -164,22 +226,67 @@ export async function getProducts() {
 
   const payload = await response.json()
 
-  return unwrapProducts(payload)
+  const items = unwrapProducts(payload)
     .map(mapProduct)
     .filter(product => product.available)
+
+  return {
+    items,
+    total: Number(payload?.total || items.length),
+    page: Number(payload?.page || 1),
+    pageSize: Number(
+      payload?.page_size || options.pageSize || 10
+    ),
+    pages: Math.max(
+      Number(payload?.pages || 1),
+      1
+    ),
+  }
+}
+
+export async function getProducts(
+  options = {}
+) {
+  const result = await getProductsPage({
+    page: 1,
+    pageSize: 10,
+    ...options,
+  })
+
+  return result.items
 }
 
 export async function getProductBySlug(slug) {
-  const products = await getProducts()
-
-  return (
-    products.find(product => {
-      return (
-        product.slug === String(slug) ||
-        String(product.id) === String(slug)
-      )
-    }) || null
+  const response = await fetch(
+    `${PUBLIC_API_BASE}/products/slug/${encodeURIComponent(
+      String(slug)
+    )}`,
+    {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+    }
   )
+
+  if (response.status === 404) {
+    return null
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Impossible de charger le produit : ${response.status}`
+    )
+  }
+
+  const product = mapProduct(
+    await response.json()
+  )
+
+  return product.available
+    ? product
+    : null
 }
 
 export function formatPrice(price, locale = 'fr') {

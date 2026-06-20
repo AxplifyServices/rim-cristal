@@ -66,19 +66,32 @@ export function SiteI18nProvider({
           safeLocale
       },
 
-      t(key) {
-        return (
-          getNestedValue(
-            dictionaries[locale],
-            key
-          ) ||
-          getNestedValue(
-            dictionaries.fr,
-            key
-          ) ||
-          key
-        )
-      },
+t(key, variables = {}) {
+  const translation =
+    getNestedValue(
+      dictionaries[locale],
+      key
+    ) ||
+    getNestedValue(
+      dictionaries.fr,
+      key
+    ) ||
+    key
+
+  if (typeof translation !== 'string') {
+    return translation
+  }
+
+  return Object.entries(variables).reduce(
+    (result, [variableName, variableValue]) => {
+      return result.replaceAll(
+        `{${variableName}}`,
+        String(variableValue)
+      )
+    },
+    translation
+  )
+},
     }
   }, [locale])
 

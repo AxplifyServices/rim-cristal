@@ -64,6 +64,7 @@
     "subtitlePos": "View only products available in your point of sale.",
     "create": "Create product",
     "newProduct": "New product",
+    "selectSection": "Select a section",
     "editProduct": "Edit product",
     "confirmDelete": "Do you really want to delete this product?",
     "invalidJson": "A JSON field contains an invalid value.",

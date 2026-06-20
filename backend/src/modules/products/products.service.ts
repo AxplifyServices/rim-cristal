@@ -1,9 +1,43 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  isProductRubrique,
+  PRODUCT_RUBRIQUES,
+} from './product-rubriques';
 
 @Injectable()
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
+
+private normalizeRubrique(
+  value: unknown,
+  required = false,
+) {
+  if (
+    value === undefined ||
+    value === null ||
+    String(value).trim() === ''
+  ) {
+    if (required) {
+      throw new BadRequestException(
+        'rubrique is required',
+      );
+    }
+
+    return null;
+  }
+
+  const rubrique = String(value).trim();
+
+  if (!isProductRubrique(rubrique)) {
+    throw new BadRequestException({
+      message: 'Invalid rubrique',
+      allowed_values: PRODUCT_RUBRIQUES,
+    });
+  }
+
+  return rubrique;
+}
 
   private slugify(value: string) {
   return String(value || '')
@@ -65,9 +99,10 @@ private async generateReference() {
       where.categorie = String(categorie);
     }
 
-    if (rubrique) {
-      where.rubrique = String(rubrique);
-    }
+if (rubrique) {
+  where.rubrique =
+    this.normalizeRubrique(rubrique);
+}
 
     if (query.featured !== undefined) {
       where.is_featured = String(query.featured) === 'true';
@@ -144,17 +179,24 @@ private async generateReference() {
     return product;
   }
 
-  async findBySlug(slug: string) {
-    const product = await this.prisma.products.findUnique({
-      where: { slug },
+async findBySlug(slug: string) {
+  const product =
+    await this.prisma.products.findFirst({
+      where: {
+        slug,
+        is_active: true,
+        is_available_on_site: true,
+      },
     });
 
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
-
-    return product;
+  if (!product) {
+    throw new NotFoundException(
+      'Product not found',
+    );
   }
+
+  return product;
+}
 
 async create(body: any) {
   if (!body.name) {
@@ -171,7 +213,11 @@ async create(body: any) {
       reference,
 
       marque: body.marque || null,
-      rubrique: body.rubrique || null,
+rubrique:
+  this.normalizeRubrique(
+    body.rubrique,
+    true,
+  ),
       categorie: body.categorie || body.category || null,
       famille: body.famille || null,
 
@@ -238,7 +284,12 @@ const nextSlug =
         ...(nextSlug !== undefined && { slug: nextSlug }),
 
         ...(body.marque !== undefined && { marque: body.marque || null }),
-        ...(body.rubrique !== undefined && { rubrique: body.rubrique || null }),
+...(body.rubrique !== undefined && {
+  rubrique: this.normalizeRubrique(
+    body.rubrique,
+    true,
+  ),
+}),
         ...((body.categorie !== undefined || body.category !== undefined) && {
           categorie: body.categorie || body.category || null,
         }),

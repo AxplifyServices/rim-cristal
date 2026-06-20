@@ -6,6 +6,33 @@ import { useAdminI18n } from '../i18n/AdminI18nProvider'
 import { getAdminUser } from '../lib/adminAuth'
 import { adminApi } from '../lib/adminApi'
 
+const PRODUCT_RUBRIQUE_OPTIONS = [
+  {
+    value: 'Mobilier',
+    label: 'Mobilier',
+  },
+  {
+    value: 'Luminaires',
+    label: 'Luminaires',
+  },
+  {
+    value: 'Décoration',
+    label: 'Décoration',
+  },
+  {
+    value: 'Art mural',
+    label: 'Art mural',
+  },
+  {
+    value: 'Fleurs & Arrangements',
+    label: 'Fleurs & Arrangements',
+  },
+  {
+    value: 'Arts de la table',
+    label: 'Arts de la table',
+  },
+]
+
 const emptyForm = {
   name: '',
   marque: '',
@@ -358,12 +385,16 @@ sizes: [form.height, form.width, form.depth]
               onChange={value => updateForm('marque', value)}
             />
 
-            <SelectOrText
-              label={t('products.section')}
-              value={form.rubrique}
-              options={options.rubriques}
-              onChange={value => updateForm('rubrique', value)}
-            />
+<SelectField
+  label={t('products.section')}
+  value={form.rubrique}
+  options={PRODUCT_RUBRIQUE_OPTIONS}
+  placeholder={t('products.selectSection')}
+  onChange={value =>
+    updateForm('rubrique', value)
+  }
+  required
+/>
 
             <SelectOrText
               label={t('products.category')}
@@ -627,7 +658,14 @@ sizes: [form.height, form.width, form.depth]
   )
 }
 
-function SelectField({ label, value, options, onChange, placeholder }) {
+function SelectField({
+  label,
+  value,
+  options,
+  onChange,
+  placeholder,
+  required = false,
+}) {
   return (
     <label style={styles.field}>
       <span style={styles.label}>{label}</span>
@@ -636,6 +674,7 @@ function SelectField({ label, value, options, onChange, placeholder }) {
         value={value}
         onChange={event => onChange(event.target.value)}
         style={styles.input}
+        required={required}
       >
         <option value="">{placeholder}</option>
 

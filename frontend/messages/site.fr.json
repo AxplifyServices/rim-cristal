@@ -1,11 +1,20 @@
 {
   "brand": "Lux Lumina",
-  "nav": {
-    "home": "Accueil",
-    "shop": "Boutique",
-    "contact": "Contact",
-    "cart": "Panier"
-  },
+"nav": {
+  "home": "Accueil",
+  "cart": "Panier",
+  "openMenu": "Ouvrir le menu",
+  "closeMenu": "Fermer le menu",
+  "mainNavigation": "Navigation principale"
+},
+"sections": {
+  "furniture": "Mobilier",
+  "lighting": "Luminaires",
+  "decoration": "Décoration",
+  "wallArt": "Art mural",
+  "flowersAndArrangements": "Fleurs & Arrangements",
+  "tableware": "Arts de la table"
+},
   "common": {
     "viewAll": "Voir tous les produits",
     "addToCart": "Ajouter au panier",

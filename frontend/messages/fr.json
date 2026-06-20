@@ -72,6 +72,7 @@
     "name": "Nom",
     "slug": "Slug",
     "reference": "Référence",
+    "selectSection": "Sélectionner une rubrique",
     "brand": "Marque",
     "section": "Rubrique",
     "height": "Hauteur en cm",

@@ -58,8 +58,8 @@ Utiliser une taxonomie française courte, stable et réutilisable.
 
 Exemples :
 
-Éclairage > Luminaires suspendus > Lustres
-Éclairage > Luminaires muraux > Appliques murales
+Luminaires > Luminaires suspendus > Lustres
+Luminaires > Luminaires muraux > Appliques murales
 Mobilier > Tables > Tables basses
 Mobilier > Assises > Chaises
 Décoration > Objets décoratifs > Vases
