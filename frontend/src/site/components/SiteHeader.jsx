@@ -109,7 +109,7 @@ export default function SiteHeader() {
           className="brand"
           onClick={closeMenu}
         >
-          Rim Cristal
+          Lux Lumina
         </Link>
 
         <nav
