@@ -167,6 +167,11 @@ model products {
   @@index([category_id], map: "idx_products_category_id")
   @@index([subcategory_id], map: "idx_products_subcategory_id")
   @@index([is_available_on_site], map: "idx_products_available_on_site")
+  @@index([famille], map: "idx_products_famille")
+  @@index([price], map: "idx_products_price")
+  @@index([rubrique], map: "idx_products_rubrique")
+  @@index([rubrique, categorie, famille], map: "idx_products_shop_hierarchy")
+  @@index([is_active, is_available_on_site, stock], map: "idx_products_shop_visibility")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.

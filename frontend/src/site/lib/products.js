@@ -203,50 +203,122 @@ function unwrapProducts(payload) {
   return []
 }
 
+function appendListParams(
+  params,
+  key,
+  values
+) {
+  const normalizedValues =
+    Array.isArray(values)
+      ? values
+      : values
+        ? [values]
+        : []
+
+  normalizedValues
+    .map(value => String(value).trim())
+    .filter(Boolean)
+    .forEach(value => {
+      params.append(key, value)
+    })
+}
+
 function buildProductsQuery({
   page = 1,
   pageSize = 10,
-  rubrique = '',
-  categorie = '',
+  rubrique = [],
+  categorie = [],
+  famille = [],
+  minPrice,
+  maxPrice,
   search = '',
   featured,
   bestseller,
   isNew,
 } = {}) {
-  const params = new URLSearchParams()
+  const params =
+    new URLSearchParams()
 
   params.set(
     'page',
-    String(Math.max(Number(page) || 1, 1))
+    String(
+      Math.max(
+        Number(page) || 1,
+        1
+      )
+    )
   )
 
   params.set(
     'page_size',
     String(
       Math.min(
-        Math.max(Number(pageSize) || 10, 1),
+        Math.max(
+          Number(pageSize) || 10,
+          1
+        ),
         20
       )
     )
   )
 
-  if (rubrique) {
-    params.set('rubrique', rubrique)
+  appendListParams(
+    params,
+    'rubrique',
+    rubrique
+  )
+
+  appendListParams(
+    params,
+    'categorie',
+    categorie
+  )
+
+  appendListParams(
+    params,
+    'famille',
+    famille
+  )
+
+  if (
+    minPrice !== undefined &&
+    minPrice !== null &&
+    minPrice !== ''
+  ) {
+    params.set(
+      'prix_min',
+      String(minPrice)
+    )
   }
 
-  if (categorie) {
-    params.set('categorie', categorie)
+  if (
+    maxPrice !== undefined &&
+    maxPrice !== null &&
+    maxPrice !== ''
+  ) {
+    params.set(
+      'prix_max',
+      String(maxPrice)
+    )
   }
 
   if (search.trim()) {
-    params.set('search', search.trim())
+    params.set(
+      'search',
+      search.trim()
+    )
   }
 
   if (featured !== undefined) {
-    params.set('featured', String(featured))
+    params.set(
+      'featured',
+      String(featured)
+    )
   }
 
-  if (bestseller !== undefined) {
+  if (
+    bestseller !== undefined
+  ) {
     params.set(
       'bestseller',
       String(bestseller)
@@ -254,7 +326,10 @@ function buildProductsQuery({
   }
 
   if (isNew !== undefined) {
-    params.set('is_new', String(isNew))
+    params.set(
+      'is_new',
+      String(isNew)
+    )
   }
 
   return params.toString()
@@ -299,6 +374,84 @@ export async function getProductsPage(
       Number(payload?.pages || 1),
       1
     ),
+  }
+}
+
+export async function getProductFilters({
+  rubrique = [],
+  categorie = [],
+} = {}) {
+  const params =
+    new URLSearchParams()
+
+  appendListParams(
+    params,
+    'rubrique',
+    rubrique
+  )
+
+  appendListParams(
+    params,
+    'categorie',
+    categorie
+  )
+
+  const query =
+    params.toString()
+
+  const response = await fetch(
+    `${PUBLIC_API_BASE}/products/filters${
+      query ? `?${query}` : ''
+    }`,
+    {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error(
+      `Impossible de charger les filtres : ${response.status}`
+    )
+  }
+
+  const payload =
+    await response.json()
+
+  return {
+    rubriques:
+      Array.isArray(
+        payload?.rubriques
+      )
+        ? payload.rubriques
+        : [],
+
+    categories:
+      Array.isArray(
+        payload?.categories
+      )
+        ? payload.categories
+        : [],
+
+    families:
+      Array.isArray(
+        payload?.families
+      )
+        ? payload.families
+        : [],
+
+    price: {
+      min: Number(
+        payload?.price?.min || 0
+      ),
+
+      max: Number(
+        payload?.price?.max || 0
+      ),
+    },
   }
 }
 

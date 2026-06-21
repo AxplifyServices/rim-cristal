@@ -53,7 +53,23 @@
   "previous": "Previous",
   "next": "Next",
   "page": "Page",
-  "of": "of"
+  "of": "of",
+  "filters": {
+  "title": "Filter products",
+  "button": "Filters",
+  "close": "Close filters",
+  "sections": "Sections",
+  "categories": "Categories",
+  "families": "Families",
+  "price": "Price",
+  "minPrice": "Minimum price",
+  "maxPrice": "Maximum price",
+  "reset": "Reset",
+  "showResults": "Show results",
+  "noOptions": "No option available.",
+  "selectSection": "Select a section to display categories.",
+  "selectCategory": "Select a category to display families."
+}
 },
   "product": {
     "reference": "Reference",

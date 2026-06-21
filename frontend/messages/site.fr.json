@@ -53,7 +53,23 @@
     "previous": "Précédent",
     "next": "Suivant",
     "page": "Page",
-    "of": "sur"
+    "of": "sur",
+    "filters": {
+  "title": "Filtrer les produits",
+  "button": "Filtres",
+  "close": "Fermer les filtres",
+  "sections": "Rubriques",
+  "categories": "Catégories",
+  "families": "Familles",
+  "price": "Prix",
+  "minPrice": "Prix minimum",
+  "maxPrice": "Prix maximum",
+  "reset": "Réinitialiser",
+  "showResults": "Afficher les résultats",
+  "noOptions": "Aucune option disponible.",
+  "selectSection": "Sélectionnez une rubrique pour afficher les catégories.",
+  "selectCategory": "Sélectionnez une catégorie pour afficher les familles."
+}
   },
   "product": {
     "reference": "Référence",

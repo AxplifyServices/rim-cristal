@@ -79,6 +79,220 @@ private async generateReference() {
   return `RC-P${String(nextId).padStart(6, '0')}`;
 }
 
+  private parseList(value: unknown): string[] {
+    const values = Array.isArray(value)
+      ? value
+      : [value];
+
+    return [
+      ...new Set(
+        values
+          .flatMap(item => {
+            return String(item ?? '').split(',');
+          })
+          .map(item => item.trim())
+          .filter(Boolean),
+      ),
+    ];
+  }
+
+  private parseOptionalNumber(
+    value: unknown,
+  ): number | undefined {
+    if (
+      value === undefined ||
+      value === null ||
+      String(value).trim() === ''
+    ) {
+      return undefined;
+    }
+
+    const parsed = Number(value);
+
+    if (!Number.isFinite(parsed)) {
+      throw new BadRequestException(
+        'Invalid numeric filter',
+      );
+    }
+
+    return parsed;
+  }
+
+  private getPublicCatalogWhere() {
+    return {
+      is_active: true,
+      is_available_on_site: true,
+      stock: {
+        gt: 0,
+      },
+    };
+  }
+
+  async getFilters(query: any) {
+    const selectedRubriques =
+      this.parseList(query.rubrique);
+
+    const selectedCategories =
+      this.parseList(
+        query.categorie ||
+          query.category,
+      );
+
+    selectedRubriques.forEach(
+      rubrique => {
+        this.normalizeRubrique(
+          rubrique,
+          true,
+        );
+      },
+    );
+
+    const publicWhere: any =
+      this.getPublicCatalogWhere();
+
+    const categoryWhere: any = {
+      ...publicWhere,
+      categorie: {
+        not: null,
+      },
+    };
+
+    if (
+      selectedRubriques.length > 0
+    ) {
+      categoryWhere.rubrique = {
+        in: selectedRubriques,
+      };
+    }
+
+    const familyWhere: any = {
+      ...publicWhere,
+      famille: {
+        not: null,
+      },
+    };
+
+    if (
+      selectedRubriques.length > 0
+    ) {
+      familyWhere.rubrique = {
+        in: selectedRubriques,
+      };
+    }
+
+    if (
+      selectedCategories.length > 0
+    ) {
+      familyWhere.categorie = {
+        in: selectedCategories,
+      };
+    }
+
+    const priceWhere: any = {
+      ...publicWhere,
+    };
+
+    if (
+      selectedRubriques.length > 0
+    ) {
+      priceWhere.rubrique = {
+        in: selectedRubriques,
+      };
+    }
+
+    if (
+      selectedCategories.length > 0
+    ) {
+      priceWhere.categorie = {
+        in: selectedCategories,
+      };
+    }
+
+    const [
+      rubriqueRows,
+      categoryRows,
+      familyRows,
+      priceRange,
+    ] =
+      await this.prisma.$transaction([
+        this.prisma.products.findMany({
+          where: {
+            ...publicWhere,
+            rubrique: {
+              not: null,
+            },
+          },
+          distinct: ['rubrique'],
+          select: {
+            rubrique: true,
+          },
+          orderBy: {
+            rubrique: 'asc',
+          },
+        }),
+
+        this.prisma.products.findMany({
+          where: categoryWhere,
+          distinct: ['categorie'],
+          select: {
+            categorie: true,
+          },
+          orderBy: {
+            categorie: 'asc',
+          },
+        }),
+
+        this.prisma.products.findMany({
+          where: familyWhere,
+          distinct: ['famille'],
+          select: {
+            famille: true,
+          },
+          orderBy: {
+            famille: 'asc',
+          },
+        }),
+
+        this.prisma.products.aggregate({
+          where: priceWhere,
+          _min: {
+            price: true,
+          },
+          _max: {
+            price: true,
+          },
+        }),
+      ]);
+
+    return {
+      rubriques: rubriqueRows
+        .map(row => row.rubrique)
+        .filter(Boolean),
+
+      categories: categoryRows
+        .map(row => row.categorie)
+        .filter(Boolean),
+
+      families: familyRows
+        .map(row => row.famille)
+        .filter(Boolean),
+
+      price: {
+        min: Math.floor(
+          Number(
+            priceRange._min.price || 0,
+          ),
+        ),
+
+        max: Math.ceil(
+          Number(
+            priceRange._max.price || 0,
+          ),
+        ),
+      },
+    };
+  }
+
   async findAll(query: any) {
     const page = Math.max(Number(query.page || 1), 1);
     const pageSize = Math.min(
@@ -114,17 +328,86 @@ if (isPublicCatalog) {
   };
 }
 
-    const categorie = query.categorie || query.category;
-    const rubrique = query.rubrique;
+    const categories =
+      this.parseList(
+        query.categorie ||
+          query.category,
+      );
 
-    if (categorie) {
-      where.categorie = String(categorie);
+    const rubriques =
+      this.parseList(
+        query.rubrique,
+      );
+
+    const families =
+      this.parseList(
+        query.famille ||
+          query.family,
+      );
+
+    rubriques.forEach(
+      rubrique => {
+        this.normalizeRubrique(
+          rubrique,
+          true,
+        );
+      },
+    );
+
+    if (categories.length > 0) {
+      where.categorie = {
+        in: categories,
+      };
     }
 
-if (rubrique) {
-  where.rubrique =
-    this.normalizeRubrique(rubrique);
-}
+    if (rubriques.length > 0) {
+      where.rubrique = {
+        in: rubriques,
+      };
+    }
+
+    if (families.length > 0) {
+      where.famille = {
+        in: families,
+      };
+    }
+
+    const minPrice =
+      this.parseOptionalNumber(
+        query.prix_min ??
+          query.min_price,
+      );
+
+    const maxPrice =
+      this.parseOptionalNumber(
+        query.prix_max ??
+          query.max_price,
+      );
+
+    if (
+      minPrice !== undefined ||
+      maxPrice !== undefined
+    ) {
+      if (
+        minPrice !== undefined &&
+        maxPrice !== undefined &&
+        minPrice > maxPrice
+      ) {
+        throw new BadRequestException(
+          'prix_min cannot be greater than prix_max',
+        );
+      }
+
+      where.price = {
+        ...(minPrice !== undefined && {
+          gte: minPrice,
+        }),
+
+        ...(maxPrice !== undefined && {
+          lte: maxPrice,
+        }),
+      };
+    }
 
     if (query.featured !== undefined) {
       where.is_featured = String(query.featured) === 'true';

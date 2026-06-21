@@ -28,6 +28,11 @@ export class ProductsController {
     return this.service.findAll(query);
   }
 
+  @Get('filters')
+  getFilters(@Query() query: any) {
+    return this.service.getFilters(query);
+  }
+
   @Get('slug/:slug')
   findBySlug(@Param('slug') slug: string) {
     return this.service.findBySlug(slug);
