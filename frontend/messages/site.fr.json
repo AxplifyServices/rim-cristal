@@ -86,7 +86,11 @@
   "quantity": "Quantité",
   "notFound": "Produit introuvable",
   "notFoundText": "Ce produit n’existe pas ou n’est plus disponible.",
-  "back": "Retour à la boutique"
+  "back": "Retour à la boutique",
+  "previousImage": "Image précédente",
+"nextImage": "Image suivante",
+"imageGallery": "Galerie d’images du produit",
+"showImage": "Afficher l’image"
 },
   "cart": {
     "title": "Votre panier",

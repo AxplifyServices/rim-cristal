@@ -169,15 +169,18 @@ function nullableNumber(value) {
 export function mapProduct(
   product
 ) {
-  const images = [
-    product.url_image1,
-    product.url_image2,
-    product.url_image3,
-    product.url_image4,
-    product.url_image5,
-  ]
-    .filter(Boolean)
-    .map(resolveImageUrl)
+const images = [
+  product.url_image1,
+  product.url_image2,
+  product.url_image3,
+  product.url_image4,
+  product.url_image5,
+]
+  .filter(Boolean)
+  .map(resolveImageUrl)
+  .filter((image, index, list) => {
+    return list.indexOf(image) === index
+  })
 
   const categoryName =
     product.categorie ||

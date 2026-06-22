@@ -86,7 +86,11 @@
   "quantity": "Quantity",
   "notFound": "Product not found",
   "notFoundText": "This product does not exist or is no longer available.",
-  "back": "Back to shop"
+  "back": "Back to shop",
+  "previousImage": "Previous image",
+"nextImage": "Next image",
+"imageGallery": "Product image gallery",
+"showImage": "Show image"
 },
   "cart": {
     "title": "Your cart",

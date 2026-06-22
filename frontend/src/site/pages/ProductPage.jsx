@@ -39,10 +39,15 @@ export default function ProductPage({
   const [product, setProduct] =
     useState(null)
 
-  const [
-    selectedImage,
-    setSelectedImage,
-  ] = useState('')
+const [
+  selectedImageIndex,
+  setSelectedImageIndex,
+] = useState(0)
+
+const [
+  touchStartX,
+  setTouchStartX,
+] = useState(null)
 
   const [
     selectedColor,
@@ -77,11 +82,7 @@ export default function ProductPage({
 
         setProduct(result)
 
-        if (result) {
-          setSelectedImage(
-            result.images[0] ||
-              result.image
-          )
+setSelectedImageIndex(0)
 
           setSelectedColor(
             result.hasColorVariants &&
@@ -145,6 +146,95 @@ export default function ProductPage({
           )} cm`
         : ''
     }, [product])
+
+const productImages =
+  useMemo(() => {
+    if (!product) {
+      return []
+    }
+
+    const images =
+      product.images?.length > 0
+        ? product.images
+        : [product.image]
+
+    return images
+      .filter(Boolean)
+      .filter((image, index, list) => {
+        return list.indexOf(image) === index
+      })
+  }, [product])
+
+const selectedImage =
+  productImages[selectedImageIndex] ||
+  product?.image ||
+  ''
+
+const hasMultipleImages =
+  productImages.length > 1
+
+function showPreviousImage() {
+  if (!hasMultipleImages) {
+    return
+  }
+
+  setSelectedImageIndex(currentIndex => {
+    return currentIndex === 0
+      ? productImages.length - 1
+      : currentIndex - 1
+  })
+}
+
+function showNextImage() {
+  if (!hasMultipleImages) {
+    return
+  }
+
+  setSelectedImageIndex(currentIndex => {
+    return currentIndex ===
+      productImages.length - 1
+      ? 0
+      : currentIndex + 1
+  })
+}
+
+function handleTouchStart(event) {
+  setTouchStartX(
+    event.touches[0]?.clientX ?? null
+  )
+}
+
+function handleTouchEnd(event) {
+  if (touchStartX === null) {
+    return
+  }
+
+  const touchEndX =
+    event.changedTouches[0]?.clientX
+
+  if (touchEndX === undefined) {
+    setTouchStartX(null)
+    return
+  }
+
+  const distance =
+    touchStartX - touchEndX
+
+  const minimumSwipeDistance = 45
+
+  if (
+    Math.abs(distance) >=
+    minimumSwipeDistance
+  ) {
+    if (distance > 0) {
+      showNextImage()
+    } else {
+      showPreviousImage()
+    }
+  }
+
+  setTouchStartX(null)
+}    
 
   if (loading) {
     return (
@@ -221,49 +311,92 @@ export default function ProductPage({
           </Link>
 
           <div className="product-detail">
-            <div className="product-gallery">
-              <div className="product-main-image">
-                <img
-                  src={
-                    selectedImage ||
-                    product.image
-                  }
-                  alt={product.name}
-                />
-              </div>
+<div className="product-gallery">
+  <div
+    className="product-carousel"
+    onTouchStart={handleTouchStart}
+    onTouchEnd={handleTouchEnd}
+  >
+    <div className="product-main-image">
+      <img
+        src={selectedImage}
+        alt={`${product.name} - ${
+          selectedImageIndex + 1
+        }`}
+      />
+    </div>
 
-              {product.images.length >
-                1 && (
-                <div className="product-thumbnails">
-                  {product.images.map(
-                    image => (
-                      <button
-                        key={image}
-                        type="button"
-                        className={
-                          selectedImage ===
-                          image
-                            ? 'is-active'
-                            : ''
-                        }
-                        onClick={() =>
-                          setSelectedImage(
-                            image
-                          )
-                        }
-                      >
-                        <img
-                          src={image}
-                          alt={
-                            product.name
-                          }
-                        />
-                      </button>
-                    )
-                  )}
-                </div>
-              )}
-            </div>
+    {hasMultipleImages && (
+      <>
+        <button
+          type="button"
+          className="product-carousel-button product-carousel-previous"
+          onClick={showPreviousImage}
+          aria-label={t(
+            'product.previousImage'
+          )}
+        >
+          ‹
+        </button>
+
+        <button
+          type="button"
+          className="product-carousel-button product-carousel-next"
+          onClick={showNextImage}
+          aria-label={t(
+            'product.nextImage'
+          )}
+        >
+          ›
+        </button>
+
+        <div className="product-image-counter">
+          {selectedImageIndex + 1}
+          {' / '}
+          {productImages.length}
+        </div>
+      </>
+    )}
+  </div>
+
+  {hasMultipleImages && (
+    <div
+      className="product-carousel-dots"
+      aria-label={t(
+        'product.imageGallery'
+      )}
+    >
+      {productImages.map(
+        (image, index) => (
+          <button
+            key={`${image}-${index}`}
+            type="button"
+            className={
+              selectedImageIndex ===
+              index
+                ? 'product-carousel-dot is-active'
+                : 'product-carousel-dot'
+            }
+            onClick={() =>
+              setSelectedImageIndex(
+                index
+              )
+            }
+            aria-label={`${t(
+              'product.showImage'
+            )} ${index + 1}`}
+            aria-current={
+              selectedImageIndex ===
+              index
+                ? 'true'
+                : undefined
+            }
+          />
+        )
+      )}
+    </div>
+  )}
+</div>
 
             <div className="product-information">
               {product.marque && (
