@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import SiteAgentation from './SiteAgentation'
 import SiteFooter from './SiteFooter'
 import SiteHeader from './SiteHeader'
 
@@ -22,7 +23,9 @@ export default function SiteLayout({
 }) {
   return (
     <div className="site-shell">
-      <Suspense fallback={<HeaderFallback />}>
+      <Suspense
+        fallback={<HeaderFallback />}
+      >
         <SiteHeader />
       </Suspense>
 
@@ -31,6 +34,8 @@ export default function SiteLayout({
       </main>
 
       <SiteFooter />
+
+      <SiteAgentation />
     </div>
   )
 }
