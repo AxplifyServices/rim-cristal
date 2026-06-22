@@ -39,20 +39,51 @@ export default function AdminShell({ children }) {
   const nav = useMemo(() => {
     const role = user?.role
 
-    const all = [
-      { href: '/admin', label: t('nav.dashboard'), shortLabel: t('navShort.dashboard'), roles: ['admin', 'point_of_sale'] },
-      { href: '/admin/products', label: t('nav.products'), shortLabel: t('navShort.products'), roles: ['admin', 'point_of_sale'] },
-      { href: '/admin/points-of-sale', label: t('nav.pointsOfSale'), shortLabel: t('navShort.pointsOfSale'), roles: ['admin'] },
-      { href: '/admin/sales', label: t('nav.sales'), shortLabel: t('navShort.sales'), roles: ['admin', 'point_of_sale'] },
-      { href: '/admin/stock', label: t('nav.stock'), shortLabel: t('navShort.stock'), roles: ['admin'] },
-      { href: '/admin/orders', label: t('nav.orders'), shortLabel: t('navShort.orders'), roles: ['admin'] },
-      {
-  href: '/admin/contacts',
-  label: t('nav.contacts'),
-  shortLabel: t('navShort.contacts'),
-  roles: ['admin'],
-},
-    ]
+const all = [
+  {
+    href: '/admin',
+    label: t('nav.dashboard'),
+    shortLabel: t('navShort.dashboard'),
+    roles: ['admin', 'point_of_sale'],
+  },
+  {
+    href: '/admin/products',
+    label: t('nav.products'),
+    shortLabel: t('navShort.products'),
+    roles: ['admin', 'point_of_sale'],
+  },
+  {
+    href: '/admin/points-of-sale',
+    label: t('nav.pointsOfSale'),
+    shortLabel: t('navShort.pointsOfSale'),
+    roles: ['admin'],
+  },
+  {
+    href: '/admin/sales',
+    label: t('nav.sales'),
+    shortLabel: t('navShort.sales'),
+    roles: ['admin', 'point_of_sale'],
+  },
+  {
+    href: '/admin/stock',
+    label: t('nav.stock'),
+    shortLabel: t('navShort.stock'),
+    roles: ['admin'],
+  },
+  {
+    href: '/admin/orders',
+    label: t('nav.orders'),
+    shortLabel: t('navShort.orders'),
+    roles: ['admin'],
+  },
+  {
+    href: '/admin/contacts',
+    label: t('nav.contacts'),
+    shortLabel: t('navShort.contacts'),
+    roles: ['admin'],
+  },
+]
+    
 
     return all.filter(item => item.roles.includes(role))
   }, [user, t])

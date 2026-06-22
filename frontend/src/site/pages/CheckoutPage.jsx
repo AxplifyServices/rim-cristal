@@ -308,7 +308,10 @@ export default function CheckoutPage() {
             <div className="checkout-summary-items">
               {items.map(item => (
                 <article
-                  key={item.cartItemKey}
+                  key={
+                    item.cartItemKey ||
+                    `${item.id}:${item.selectedColor || ''}`
+                    }
                   className="checkout-summary-item"
                 >
                   <img

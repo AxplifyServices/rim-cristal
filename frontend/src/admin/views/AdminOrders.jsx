@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import AdminShell from '../components/AdminShell'
 import { adminApi } from '../lib/adminApi'
 import { useAdminI18n } from '../i18n/AdminI18nProvider'
+import { resolveImageUrl } from '../../site/lib/products'
 
 const ORDER_STATUSES = [
   'pending',
@@ -298,6 +299,16 @@ function OrderEditor({
   const [note, setNote] =
     useState('')
 
+useEffect(() => {
+  setStatus(order.status)
+  setPaymentStatus(order.payment_status)
+  setNote('')
+}, [
+  order.id,
+  order.status,
+  order.payment_status,
+])
+
   return (
     <div className="admin-order-editor">
       <section className="admin-order-detail-section">
@@ -333,10 +344,10 @@ function OrderEditor({
           {order.order_items?.map(item => (
             <article key={item.id}>
               {item.product_image && (
-                <img
-                  src={item.product_image}
-                  alt={item.product_name}
-                />
+<img
+  src={resolveImageUrl(item.product_image)}
+  alt={item.product_name}
+/>
               )}
 
               <div>

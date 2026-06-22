@@ -5,6 +5,7 @@ import AdminShell from '../components/AdminShell'
 import { adminApi } from '../lib/adminApi'
 import { useAdminI18n } from '../i18n/AdminI18nProvider'
 
+
 const CONTACT_STATUSES = [
   'new',
   'to_contact',
@@ -351,6 +352,25 @@ function ContactEditor({
             .slice(0, 16)
         : ''
     )
+
+useEffect(() => {
+  setStatus(contact.status)
+  setAdminNotes(contact.admin_notes || '')
+  setNote('')
+
+  setNextActionAt(
+    contact.next_action_at
+      ? new Date(contact.next_action_at)
+          .toISOString()
+          .slice(0, 16)
+      : ''
+  )
+}, [
+  contact.id,
+  contact.status,
+  contact.admin_notes,
+  contact.next_action_at,
+])    
 
   return (
     <div className="admin-contact-editor">
