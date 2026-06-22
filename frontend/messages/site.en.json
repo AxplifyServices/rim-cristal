@@ -75,23 +75,25 @@
   "selectCategory": "Select a category to display families."
 }
 },
-  "product": {
-    "reference": "Reference",
-    "sizes": "Sizes",
-    "brand": "Brand",
-    "family": "Family",
-    "category": "Category",
-    "description": "Description",
-    "quantity": "Quantity",
-    "notFound": "Product not found",
-    "notFoundText": "This product does not exist or is no longer available.",
-    "back": "Back to shop"
-  },
+"product": {
+  "reference": "Reference",
+  "brand": "Brand",
+  "family": "Family",
+  "category": "Category",
+  "dimensions": "Dimensions",
+  "availableColors": "Available colors",
+  "description": "Description",
+  "quantity": "Quantity",
+  "notFound": "Product not found",
+  "notFoundText": "This product does not exist or is no longer available.",
+  "back": "Back to shop"
+},
   "cart": {
     "title": "Your cart",
     "empty": "Your cart is empty.",
     "emptyText": "Discover our products and add your favourites.",
     "continue": "Continue shopping",
+    "color": "Color",
     "subtotal": "Subtotal",
     "checkout": "Order",
     "remove": "Remove",

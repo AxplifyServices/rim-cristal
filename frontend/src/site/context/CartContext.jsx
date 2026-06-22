@@ -8,10 +8,24 @@ import {
   useState,
 } from 'react'
 
-const CartContext = createContext(null)
+const CartContext =
+  createContext(null)
 
-export function CartProvider({ children }) {
-  const [items, setItems] = useState([])
+function createCartItemKey(
+  productId,
+  selectedColor
+) {
+  return [
+    productId,
+    selectedColor || '',
+  ].join(':')
+}
+
+export function CartProvider({
+  children,
+}) {
+  const [items, setItems] =
+    useState([])
 
   useEffect(() => {
     try {
@@ -22,7 +36,23 @@ export function CartProvider({ children }) {
       )
 
       if (Array.isArray(saved)) {
-        setItems(saved)
+        const normalized =
+          saved.map(item => ({
+            ...item,
+
+            selectedColor:
+              item.selectedColor ||
+              null,
+
+            cartItemKey:
+              item.cartItemKey ||
+              createCartItemKey(
+                item.id,
+                item.selectedColor
+              ),
+          }))
+
+        setItems(normalized)
       }
     } catch {
       setItems([])
@@ -41,69 +71,117 @@ export function CartProvider({ children }) {
       items,
 
       count: items.reduce(
-        (sum, item) => sum + item.quantity,
+        (sum, item) =>
+          sum + item.quantity,
         0
       ),
 
       subtotal: items.reduce(
         (sum, item) =>
-          sum + item.price * item.quantity,
+          sum +
+          item.price *
+            item.quantity,
         0
       ),
 
-      add(product, quantity = 1) {
+      add(
+        product,
+        quantity = 1
+      ) {
         setItems(current => {
-          const existing = current.find(
-            item => item.id === product.id
-          )
+          const selectedColor =
+            product.selectedColor ||
+            null
+
+          const cartItemKey =
+            createCartItemKey(
+              product.id,
+              selectedColor
+            )
+
+          const existing =
+            current.find(
+              item =>
+                item.cartItemKey ===
+                cartItemKey
+            )
 
           if (existing) {
-            return current.map(item =>
-              item.id === product.id
-                ? {
-                    ...item,
-                    quantity:
-                      item.quantity + quantity,
-                  }
-                : item
+            return current.map(
+              item =>
+                item.cartItemKey ===
+                cartItemKey
+                  ? {
+                      ...item,
+                      quantity:
+                        item.quantity +
+                        quantity,
+                    }
+                  : item
             )
           }
 
           return [
             ...current,
             {
-              id: product.id,
-              slug: product.slug,
-              name: product.name,
-              reference: product.reference,
-              price: product.price,
-              image: product.image,
+              cartItemKey,
+
+              id:
+                product.id,
+
+              slug:
+                product.slug,
+
+              name:
+                product.name,
+
+              reference:
+                product.reference,
+
+              price:
+                product.price,
+
+              image:
+                product.image,
+
+              selectedColor,
+
               quantity,
             },
           ]
         })
       },
 
-      update(id, quantity) {
+      update(
+        cartItemKey,
+        quantity
+      ) {
         setItems(current =>
           current.map(item =>
-            item.id === id
+            item.cartItemKey ===
+            cartItemKey
               ? {
                   ...item,
-                  quantity: Math.max(
-                    1,
-                    quantity
-                  ),
+
+                  quantity:
+                    Math.max(
+                      1,
+                      Number(
+                        quantity
+                      ) || 1
+                    ),
                 }
               : item
           )
         )
       },
 
-      remove(id) {
+      remove(cartItemKey) {
         setItems(current =>
           current.filter(
-            item => item.id !== id
+            item =>
+              item.cartItemKey !==
+              cartItemKey
           )
         )
       },
@@ -115,14 +193,17 @@ export function CartProvider({ children }) {
   }, [items])
 
   return (
-    <CartContext.Provider value={value}>
+    <CartContext.Provider
+      value={value}
+    >
       {children}
     </CartContext.Provider>
   )
 }
 
 export function useCart() {
-  const context = useContext(CartContext)
+  const context =
+    useContext(CartContext)
 
   if (!context) {
     throw new Error(

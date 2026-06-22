@@ -9,6 +9,27 @@ import {
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
+private normalizeProductColors(
+  hasColorVariants: boolean,
+  colors: unknown,
+): string[] {
+  if (!hasColorVariants) {
+    return [];
+  }
+
+  if (!Array.isArray(colors)) {
+    return [];
+  }
+
+  return [
+    ...new Set(
+      colors
+        .map(color => String(color || '').trim())
+        .filter(Boolean),
+    ),
+  ];
+}
+
 private normalizeRubrique(
   value: unknown,
   required = false,
@@ -532,8 +553,35 @@ rubrique:
 
       price: Number(body.price || 0),
 
-      colors: body.colors || [],
-      sizes: body.sizes || [],
+has_color_variants: Boolean(
+  body.has_color_variants,
+),
+
+colors: this.normalizeProductColors(
+  Boolean(body.has_color_variants),
+  body.colors,
+),
+
+width_cm:
+  body.width_cm !== undefined &&
+  body.width_cm !== null &&
+  body.width_cm !== ''
+    ? Number(body.width_cm)
+    : null,
+
+depth_cm:
+  body.depth_cm !== undefined &&
+  body.depth_cm !== null &&
+  body.depth_cm !== ''
+    ? Number(body.depth_cm)
+    : null,
+
+height_cm:
+  body.height_cm !== undefined &&
+  body.height_cm !== null &&
+  body.height_cm !== ''
+    ? Number(body.height_cm)
+    : null,
 
       stock: Number(body.stock || 0),
       weight:
@@ -573,7 +621,8 @@ rubrique:
 }
 
   async update(id: number, body: any) {
-    await this.findById(id);
+const currentProduct =
+  await this.findById(id);
 
 const nextSlug =
   body.name !== undefined ? await this.generateUniqueSlug(body.name, id) : undefined;
@@ -608,8 +657,53 @@ const nextSlug =
 
         ...(body.price !== undefined && { price: Number(body.price || 0) }),
 
-        ...(body.colors !== undefined && { colors: body.colors || [] }),
-        ...(body.sizes !== undefined && { sizes: body.sizes || [] }),
+...(body.has_color_variants !== undefined && {
+  has_color_variants: Boolean(
+    body.has_color_variants,
+  ),
+}),
+
+...(
+  body.colors !== undefined ||
+  body.has_color_variants !== undefined
+    ? {
+        colors: this.normalizeProductColors(
+          body.has_color_variants !== undefined
+            ? Boolean(body.has_color_variants)
+            : Boolean(
+                currentProduct.has_color_variants,
+              ),
+          body.colors !== undefined
+            ? body.colors
+            : currentProduct.colors,
+        ),
+      }
+    : {}
+),
+
+...(body.width_cm !== undefined && {
+  width_cm:
+    body.width_cm !== null &&
+    body.width_cm !== ''
+      ? Number(body.width_cm)
+      : null,
+}),
+
+...(body.depth_cm !== undefined && {
+  depth_cm:
+    body.depth_cm !== null &&
+    body.depth_cm !== ''
+      ? Number(body.depth_cm)
+      : null,
+}),
+
+...(body.height_cm !== undefined && {
+  height_cm:
+    body.height_cm !== null &&
+    body.height_cm !== ''
+      ? Number(body.height_cm)
+      : null,
+}),
 
         ...(body.stock !== undefined && { stock: Number(body.stock || 0) }),
         ...(body.weight !== undefined && {

@@ -15,13 +15,16 @@ export default function CartPage() {
     clear,
   } = useCart()
 
-  const { locale, t } = useSiteI18n()
+  const { locale, t } =
+    useSiteI18n()
 
   return (
     <SiteLayout>
       <section className="page-hero compact">
         <div className="container">
-          <h1>{t('cart.title')}</h1>
+          <h1>
+            {t('cart.title')}
+          </h1>
         </div>
       </section>
 
@@ -34,14 +37,18 @@ export default function CartPage() {
               </h2>
 
               <p>
-                {t('cart.emptyText')}
+                {t(
+                  'cart.emptyText'
+                )}
               </p>
 
               <Link
                 href="/shop"
                 className="primary-button"
               >
-                {t('cart.continue')}
+                {t(
+                  'cart.continue'
+                )}
               </Link>
             </div>
           ) : (
@@ -49,7 +56,9 @@ export default function CartPage() {
               <div className="cart-items">
                 {items.map(item => (
                   <article
-                    key={item.id}
+                    key={
+                      item.cartItemKey
+                    }
                     className="cart-item"
                   >
                     <Link
@@ -72,7 +81,23 @@ export default function CartPage() {
 
                       {item.reference && (
                         <p>
-                          {item.reference}
+                          {
+                            item.reference
+                          }
+                        </p>
+                      )}
+
+                      {item.selectedColor && (
+                        <p>
+                          <strong>
+                            {t(
+                              'cart.color'
+                            )}
+                            :
+                          </strong>{' '}
+                          {
+                            item.selectedColor
+                          }
                         </p>
                       )}
 
@@ -81,7 +106,9 @@ export default function CartPage() {
                           item.price,
                           locale
                         )}{' '}
-                        {t('common.currency')}
+                        {t(
+                          'common.currency'
+                        )}
                       </strong>
 
                       <div className="cart-item-actions">
@@ -90,7 +117,7 @@ export default function CartPage() {
                             type="button"
                             onClick={() => {
                               update(
-                                item.id,
+                                item.cartItemKey,
                                 item.quantity -
                                   1
                               )
@@ -100,14 +127,16 @@ export default function CartPage() {
                           </button>
 
                           <span>
-                            {item.quantity}
+                            {
+                              item.quantity
+                            }
                           </span>
 
                           <button
                             type="button"
                             onClick={() => {
                               update(
-                                item.id,
+                                item.cartItemKey,
                                 item.quantity +
                                   1
                               )
@@ -121,10 +150,14 @@ export default function CartPage() {
                           type="button"
                           className="remove-button"
                           onClick={() => {
-                            remove(item.id)
+                            remove(
+                              item.cartItemKey
+                            )
                           }}
                         >
-                          {t('cart.remove')}
+                          {t(
+                            'cart.remove'
+                          )}
                         </button>
                       </div>
                     </div>
@@ -134,7 +167,9 @@ export default function CartPage() {
 
               <aside className="cart-summary">
                 <h2>
-                  {t('cart.subtotal')}
+                  {t(
+                    'cart.subtotal'
+                  )}
                 </h2>
 
                 <div className="summary-price">
@@ -142,16 +177,22 @@ export default function CartPage() {
                     subtotal,
                     locale
                   )}{' '}
-                  {t('common.currency')}
+                  {t(
+                    'common.currency'
+                  )}
                 </div>
 
-                <p>{t('cart.notice')}</p>
+                <p>
+                  {t('cart.notice')}
+                </p>
 
                 <Link
                   href="/contact"
                   className="primary-button full-width"
                 >
-                  {t('cart.checkout')}
+                  {t(
+                    'cart.checkout'
+                  )}
                 </Link>
 
                 <button

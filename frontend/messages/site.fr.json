@@ -75,20 +75,22 @@
   "selectCategory": "Sélectionnez une catégorie pour afficher les familles."
 }
   },
-  "product": {
-    "reference": "Référence",
-    "brand": "Marque",
-    "family": "Famille",
-    "category": "Catégorie",
-    "sizes": "Tailles",
-    "description": "Description",
-    "quantity": "Quantité",
-    "notFound": "Produit introuvable",
-    "notFoundText": "Ce produit n’existe pas ou n’est plus disponible.",
-    "back": "Retour à la boutique"
-  },
+"product": {
+  "reference": "Référence",
+  "brand": "Marque",
+  "family": "Famille",
+  "category": "Catégorie",
+  "dimensions": "Dimensions",
+  "availableColors": "Couleurs disponibles",
+  "description": "Description",
+  "quantity": "Quantité",
+  "notFound": "Produit introuvable",
+  "notFoundText": "Ce produit n’existe pas ou n’est plus disponible.",
+  "back": "Retour à la boutique"
+},
   "cart": {
     "title": "Votre panier",
+    "color": "Couleur",
     "empty": "Votre panier est vide.",
     "emptyText": "Découvrez nos produits et ajoutez vos articles préférés.",
     "continue": "Continuer mes achats",

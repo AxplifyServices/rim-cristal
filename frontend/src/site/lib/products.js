@@ -1,25 +1,36 @@
 const PUBLIC_API_BASE =
   (
-    process.env.NEXT_PUBLIC_API_URL ||
+    process.env
+      .NEXT_PUBLIC_API_URL ||
     'http://localhost:3000/api'
   ).replace(/\/$/, '')
 
 function getApiOrigin() {
-  if (process.env.NEXT_PUBLIC_ASSETS_URL) {
-    return process.env.NEXT_PUBLIC_ASSETS_URL.replace(/\/$/, '')
+  if (
+    process.env
+      .NEXT_PUBLIC_ASSETS_URL
+  ) {
+    return process.env
+      .NEXT_PUBLIC_ASSETS_URL
+      .replace(/\/$/, '')
   }
 
-  return PUBLIC_API_BASE.endsWith('/api')
+  return PUBLIC_API_BASE.endsWith(
+    '/api'
+  )
     ? PUBLIC_API_BASE.slice(0, -4)
     : PUBLIC_API_BASE
 }
 
-export function resolveImageUrl(value) {
+export function resolveImageUrl(
+  value
+) {
   if (!value) {
     return '/images/product-placeholder.svg'
   }
 
-  const source = String(value).trim()
+  const source =
+    String(value).trim()
 
   if (!source) {
     return '/images/product-placeholder.svg'
@@ -36,34 +47,58 @@ export function resolveImageUrl(value) {
 
   const normalized = source
     .replace(/\\/g, '/')
-    .replace(/^backend\//, '/')
-    .replace(/^\/?uploads\//, '/uploads/')
+    .replace(
+      /^backend\//,
+      '/'
+    )
+    .replace(
+      /^\/?uploads\//,
+      '/uploads/'
+    )
 
-  const finalPath = normalized.startsWith('/')
-    ? normalized
-    : `/${normalized}`
+  const finalPath =
+    normalized.startsWith('/')
+      ? normalized
+      : `/${normalized}`
 
   return `${getApiOrigin()}${finalPath}`
 }
 
-function toBoolean(value, defaultValue = false) {
-  if (value === undefined || value === null) {
+function toBoolean(
+  value,
+  defaultValue = false
+) {
+  if (
+    value === undefined ||
+    value === null
+  ) {
     return defaultValue
   }
 
-  if (typeof value === 'boolean') {
+  if (
+    typeof value === 'boolean'
+  ) {
     return value
   }
 
-  return ['true', '1', 'yes', 'oui'].includes(
+  return [
+    'true',
+    '1',
+    'yes',
+    'oui',
+  ].includes(
     String(value).toLowerCase()
   )
 }
 
-function normalizeStringArray(value) {
+function normalizeStringArray(
+  value
+) {
   if (Array.isArray(value)) {
     return value
-      .map(item => String(item).trim())
+      .map(item =>
+        String(item).trim()
+      )
       .filter(Boolean)
   }
 
@@ -75,8 +110,11 @@ function normalizeStringArray(value) {
     return []
   }
 
-  if (typeof value === 'string') {
-    const trimmedValue = value.trim()
+  if (
+    typeof value === 'string'
+  ) {
+    const trimmedValue =
+      value.trim()
 
     if (!trimmedValue) {
       return []
@@ -86,7 +124,11 @@ function normalizeStringArray(value) {
       const parsedValue =
         JSON.parse(trimmedValue)
 
-      if (Array.isArray(parsedValue)) {
+      if (
+        Array.isArray(
+          parsedValue
+        )
+      ) {
         return parsedValue
           .map(item =>
             String(item).trim()
@@ -96,16 +138,37 @@ function normalizeStringArray(value) {
     } catch {
       return trimmedValue
         .split(',')
-        .map(item => item.trim())
+        .map(item =>
+          item.trim()
+        )
         .filter(Boolean)
     }
   }
 
-  return [String(value).trim()]
-    .filter(Boolean)
+  return [
+    String(value).trim(),
+  ].filter(Boolean)
 }
 
-export function mapProduct(product) {
+function nullableNumber(value) {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ''
+  ) {
+    return null
+  }
+
+  const number = Number(value)
+
+  return Number.isFinite(number)
+    ? number
+    : null
+}
+
+export function mapProduct(
+  product
+) {
   const images = [
     product.url_image1,
     product.url_image2,
@@ -122,64 +185,122 @@ export function mapProduct(product) {
     product.category?.name ||
     ''
 
+  const hasColorVariants =
+    toBoolean(
+      product.has_color_variants,
+      false
+    )
+
   return {
     id: product.id,
-    slug: product.slug || String(product.id),
-    name: product.name || 'Produit',
-    reference: product.reference || '',
-marque: product.marque || '',
-rubrique: product.rubrique || '',
-famille: product.famille || '',
-categorie: categoryName,
-description: product.description || '',
-price: Number(product.price || 0),
-stock: Math.max(
-  Number(product.stock || 0),
-  0
-),
-sizes: normalizeStringArray(
-  product.sizes
-),
-colors: normalizeStringArray(
-  product.colors
-),
+
+    slug:
+      product.slug ||
+      String(product.id),
+
+    name:
+      product.name ||
+      'Produit',
+
+    reference:
+      product.reference || '',
+
+    marque:
+      product.marque || '',
+
+    rubrique:
+      product.rubrique || '',
+
+    famille:
+      product.famille || '',
+
+    categorie:
+      categoryName,
+
+    description:
+      product.description || '',
+
+    price:
+      Number(
+        product.price || 0
+      ),
+
+    stock:
+      Math.max(
+        Number(
+          product.stock || 0
+        ),
+        0
+      ),
+
+    hasColorVariants,
+
+    colors:
+      hasColorVariants
+        ? normalizeStringArray(
+            product.colors
+          )
+        : [],
+
+    widthCm:
+      nullableNumber(
+        product.width_cm
+      ),
+
+    depthCm:
+      nullableNumber(
+        product.depth_cm
+      ),
+
+    heightCm:
+      nullableNumber(
+        product.height_cm
+      ),
 
     images:
       images.length > 0
         ? images
-        : ['/images/product-placeholder.svg'],
+        : [
+            '/images/product-placeholder.svg',
+          ],
 
     image:
       images[0] ||
       '/images/product-placeholder.svg',
 
-    badge: product.badge || '',
+    badge:
+      product.badge || '',
 
-    isFeatured: toBoolean(
-      product.is_featured,
-      false
-    ),
+    isFeatured:
+      toBoolean(
+        product.is_featured,
+        false
+      ),
 
-    isNew: toBoolean(
-      product.is_new,
-      false
-    ),
+    isNew:
+      toBoolean(
+        product.is_new,
+        false
+      ),
 
-    isBestseller: toBoolean(
-      product.is_bestseller,
-      false
-    ),
+    isBestseller:
+      toBoolean(
+        product.is_bestseller,
+        false
+      ),
 
-available:
-  toBoolean(
-    product.is_available_on_site,
-    true
-  ) &&
-  toBoolean(
-    product.is_active,
-    true
-  ) &&
-  Number(product.stock || 0) > 0,
+    available:
+      toBoolean(
+        product.is_available_on_site,
+        true
+      ) &&
+      toBoolean(
+        product.is_active,
+        true
+      ) &&
+      Number(
+        product.stock || 0
+      ) > 0,
   }
 }
 
@@ -188,15 +309,27 @@ function unwrapProducts(payload) {
     return payload
   }
 
-  if (Array.isArray(payload?.items)) {
+  if (
+    Array.isArray(
+      payload?.items
+    )
+  ) {
     return payload.items
   }
 
-  if (Array.isArray(payload?.products)) {
+  if (
+    Array.isArray(
+      payload?.products
+    )
+  ) {
     return payload.products
   }
 
-  if (Array.isArray(payload?.data)) {
+  if (
+    Array.isArray(
+      payload?.data
+    )
+  ) {
     return payload.data
   }
 
@@ -216,10 +349,15 @@ function appendListParams(
         : []
 
   normalizedValues
-    .map(value => String(value).trim())
+    .map(value =>
+      String(value).trim()
+    )
     .filter(Boolean)
     .forEach(value => {
-      params.append(key, value)
+      params.append(
+        key,
+        value
+      )
     })
 }
 
@@ -254,7 +392,8 @@ function buildProductsQuery({
     String(
       Math.min(
         Math.max(
-          Number(pageSize) || 10,
+          Number(pageSize) ||
+            10,
           1
         ),
         20
@@ -302,14 +441,18 @@ function buildProductsQuery({
     )
   }
 
-  if (search.trim()) {
+  if (
+    String(search).trim()
+  ) {
     params.set(
       'search',
-      search.trim()
+      String(search).trim()
     )
   }
 
-  if (featured !== undefined) {
+  if (
+    featured !== undefined
+  ) {
     params.set(
       'featured',
       String(featured)
@@ -325,7 +468,9 @@ function buildProductsQuery({
     )
   }
 
-  if (isNew !== undefined) {
+  if (
+    isNew !== undefined
+  ) {
     params.set(
       'is_new',
       String(isNew)
@@ -338,14 +483,16 @@ function buildProductsQuery({
 export async function getProductsPage(
   options = {}
 ) {
-  const query = buildProductsQuery(options)
+  const query =
+    buildProductsQuery(options)
 
   const response = await fetch(
     `${PUBLIC_API_BASE}/products?${query}`,
     {
       method: 'GET',
       headers: {
-        Accept: 'application/json',
+        Accept:
+          'application/json',
       },
       cache: 'no-store',
     }
@@ -357,23 +504,45 @@ export async function getProductsPage(
     )
   }
 
-  const payload = await response.json()
+  const payload =
+    await response.json()
 
-  const items = unwrapProducts(payload)
-    .map(mapProduct)
-    .filter(product => product.available)
+  const items =
+    unwrapProducts(payload)
+      .map(mapProduct)
+      .filter(
+        product =>
+          product.available
+      )
 
   return {
     items,
-    total: Number(payload?.total || items.length),
-    page: Number(payload?.page || 1),
-    pageSize: Number(
-      payload?.page_size || options.pageSize || 10
-    ),
-    pages: Math.max(
-      Number(payload?.pages || 1),
-      1
-    ),
+
+    total:
+      Number(
+        payload?.total ||
+          items.length
+      ),
+
+    page:
+      Number(
+        payload?.page || 1
+      ),
+
+    pageSize:
+      Number(
+        payload?.page_size ||
+          options.pageSize ||
+          10
+      ),
+
+    pages:
+      Math.max(
+        Number(
+          payload?.pages || 1
+        ),
+        1
+      ),
   }
 }
 
@@ -406,7 +575,8 @@ export async function getProductFilters({
     {
       method: 'GET',
       headers: {
-        Accept: 'application/json',
+        Accept:
+          'application/json',
       },
       cache: 'no-store',
     }
@@ -444,13 +614,17 @@ export async function getProductFilters({
         : [],
 
     price: {
-      min: Number(
-        payload?.price?.min || 0
-      ),
+      min:
+        Number(
+          payload?.price?.min ||
+            0
+        ),
 
-      max: Number(
-        payload?.price?.max || 0
-      ),
+      max:
+        Number(
+          payload?.price?.max ||
+            0
+        ),
     },
   }
 }
@@ -458,16 +632,19 @@ export async function getProductFilters({
 export async function getProducts(
   options = {}
 ) {
-  const result = await getProductsPage({
-    page: 1,
-    pageSize: 10,
-    ...options,
-  })
+  const result =
+    await getProductsPage({
+      page: 1,
+      pageSize: 10,
+      ...options,
+    })
 
   return result.items
 }
 
-export async function getProductBySlug(slug) {
+export async function getProductBySlug(
+  slug
+) {
   const response = await fetch(
     `${PUBLIC_API_BASE}/products/slug/${encodeURIComponent(
       String(slug)
@@ -475,7 +652,8 @@ export async function getProductBySlug(slug) {
     {
       method: 'GET',
       headers: {
-        Accept: 'application/json',
+        Accept:
+          'application/json',
       },
       cache: 'no-store',
     }
@@ -500,14 +678,22 @@ export async function getProductBySlug(slug) {
     : null
 }
 
-export function formatPrice(price, locale = 'fr') {
+export function formatPrice(
+  price,
+  locale = 'fr'
+) {
   const language =
     locale === 'en'
       ? 'en-US'
       : 'fr-MA'
 
-  return new Intl.NumberFormat(language, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(Number(price || 0))
+  return new Intl.NumberFormat(
+    language,
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }
+  ).format(
+    Number(price || 0)
+  )
 }
