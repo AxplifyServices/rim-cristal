@@ -6,6 +6,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
@@ -28,8 +29,14 @@ export class OrdersController {
   }
 
   @Get('my')
-  myOrders(@Query('user_id') userId?: string, @Query('email') email?: string) {
-    return this.service.myOrders({ userId, email });
+  myOrders(
+    @Query('user_id') userId?: string,
+    @Query('email') email?: string,
+  ) {
+    return this.service.myOrders({
+      userId,
+      email,
+    });
   }
 
   @Get('track/:orderNumber')
@@ -47,7 +54,15 @@ export class OrdersController {
   @Patch(':id/status')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  updateStatus(@Param('id') id: string, @Body() body: any) {
-    return this.service.updateStatus(Number(id), body.status);
+  updateStatus(
+    @Param('id') id: string,
+    @Body() body: any,
+    @Req() req: any,
+  ) {
+    return this.service.updateStatus(
+      Number(id),
+      body,
+      req.user,
+    );
   }
 }

@@ -5,165 +5,496 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
+const ORDER_STATUSES = [
+  'pending',
+  'confirmed',
+  'preparing',
+  'ready',
+  'shipped',
+  'delivered',
+  'cancelled',
+];
+
+const PAYMENT_STATUSES = [
+  'pending',
+  'paid',
+  'cancelled',
+];
+
 @Injectable()
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
+  /**
+ * Prisma nomme automatiquement la relation :
+ * order_status_history
+ *
+ * Le frontend utilise :
+ * status_history
+ *
+ * On convertit uniquement la réponse API.
+ */
+private formatOrder(order: any) {
+  if (!order) {
+    return order;
+  }
+
+  const {
+    order_status_history,
+    ...orderData
+  } = order;
+
+  return {
+    ...orderData,
+    status_history:
+      order_status_history || [],
+  };
+}  
+
+  private normalizeRequiredString(value: unknown, field: string) {
+    const normalized = String(value || '').trim();
+
+    if (!normalized) {
+      throw new BadRequestException(`${field} is required`);
+    }
+
+    return normalized;
+  }
+
+  private normalizeEmail(value: unknown) {
+    const email = this.normalizeRequiredString(value, 'email').toLowerCase();
+
+    if (!email.includes('@')) {
+      throw new BadRequestException('Invalid email');
+    }
+
+    return email;
+  }
+
+  private createOrderNumber() {
+    const random = Math.floor(1000 + Math.random() * 9000);
+
+    return `RC-${Date.now()}-${random}`;
+  }
 
   async create(body: any) {
-    const items = body.items || body.cart_items || [];
+    const requestedItems = body.items || body.cart_items || [];
 
-    if (!Array.isArray(items) || items.length === 0) {
-      throw new BadRequestException('Order must contain at least one item');
+    if (!Array.isArray(requestedItems) || requestedItems.length === 0) {
+      throw new BadRequestException(
+        'Order must contain at least one item',
+      );
     }
 
-    const userId =
-      body.user_id !== undefined && body.user_id !== null
-        ? Number(body.user_id)
-        : null;
+    const normalizedItems = requestedItems.map((item: any) => {
+      const productId = Number(item.product_id || item.id);
+      const quantity = Number(item.quantity || item.qty || 1);
 
-    const subtotal = Number(body.subtotal || 0);
-    const shippingCost = Number(body.shipping_cost || body.shippingCost || 0);
-    const discountAmount = Number(
-      body.discount_amount || body.discountAmount || 0,
+      if (!Number.isInteger(productId) || productId <= 0) {
+        throw new BadRequestException('Invalid product');
+      }
+
+      if (!Number.isInteger(quantity) || quantity <= 0) {
+        throw new BadRequestException('Invalid quantity');
+      }
+
+      return {
+        productId,
+        quantity,
+        selectedColor:
+          item.selected_color || item.selectedColor || item.color || null,
+        selectedSize:
+          item.selected_size || item.selectedSize || item.size || null,
+      };
+    });
+
+    const productIds = [
+      ...new Set(normalizedItems.map(item => item.productId)),
+    ];
+
+    const products = await this.prisma.products.findMany({
+      where: {
+        id: {
+          in: productIds,
+        },
+        is_active: true,
+        is_available_on_site: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        reference: true,
+        url_image1: true,
+        price: true,
+        price_wholesale: true,
+        wholesale_min_qty: true,
+        stock: true,
+        colors: true,
+        has_color_variants: true,
+      },
+    });
+
+    const productById = new Map(
+      products.map(product => [product.id, product]),
     );
-    const total = Number(body.total || subtotal + shippingCost - discountAmount);
 
-    const shipping = body.shipping || body.shipping_address || body.customer || body;
+    const computedItems = normalizedItems.map(item => {
+      const product = productById.get(item.productId);
 
-    const orderNumber = `LX-${Date.now()}`;
+      if (!product) {
+        throw new BadRequestException(
+          `Product ${item.productId} is unavailable`,
+        );
+      }
 
-    const order = await this.prisma.orders.create({
-      data: {
+      if (product.stock < item.quantity) {
+        throw new BadRequestException(
+          `Insufficient stock for ${product.name}`,
+        );
+      }
+
+      const retailPrice = Number(product.price);
+      const wholesalePrice = Number(product.price_wholesale || 0);
+      const wholesaleMinQty = Number(product.wholesale_min_qty || 1);
+
+      const unitPrice =
+        wholesalePrice > 0 && item.quantity >= wholesaleMinQty
+          ? wholesalePrice
+          : retailPrice;
+
+      if (product.has_color_variants && !item.selectedColor) {
+        throw new BadRequestException(
+          `A color must be selected for ${product.name}`,
+        );
+      }
+
+      return {
+        product_id: product.id,
+        product_name: product.name,
+        product_reference: product.reference,
+        product_image: product.url_image1,
+        selected_color: item.selectedColor,
+        selected_size: item.selectedSize,
+        unit_price: unitPrice,
+        quantity: item.quantity,
+        line_total: unitPrice * item.quantity,
+      };
+    });
+
+    const subtotal = computedItems.reduce(
+      (sum, item) => sum + item.line_total,
+      0,
+    );
+
+    const shippingCost = 0;
+    const discountAmount = 0;
+    const total = subtotal + shippingCost - discountAmount;
+
+    const customer = body.customer || body.shipping || body;
+
+    const firstName = this.normalizeRequiredString(
+      customer.first_name || customer.firstName,
+      'first_name',
+    );
+
+    const lastName = this.normalizeRequiredString(
+      customer.last_name || customer.lastName,
+      'last_name',
+    );
+
+    const email = this.normalizeEmail(customer.email);
+    const phone = this.normalizeRequiredString(customer.phone, 'phone');
+    const address = this.normalizeRequiredString(
+      customer.address,
+      'address',
+    );
+    const city = this.normalizeRequiredString(customer.city, 'city');
+
+    const order = await this.prisma.$transaction(async tx => {
+      const createdOrder = await tx.orders.create({
+        data: {
+          order_number: this.createOrderNumber(),
+          user_id:
+            body.user_id !== undefined && body.user_id !== null
+              ? Number(body.user_id)
+              : null,
+
+          subtotal,
+          shipping_cost: shippingCost,
+          discount_amount: discountAmount,
+          coupon_code: null,
+          total,
+
+          status: 'pending',
+          payment_status: 'pending',
+          payment_method: 'cash_on_delivery',
+
+          shipping_first_name: firstName,
+          shipping_last_name: lastName,
+          shipping_email: email,
+          shipping_phone: phone,
+          shipping_address: address,
+          shipping_apt:
+            String(customer.apt || '').trim() || null,
+          shipping_city: city,
+          shipping_state:
+            String(customer.state || '').trim() || null,
+          shipping_zip:
+            String(customer.zip || '').trim() || '',
+          shipping_country:
+            String(customer.country || 'Morocco').trim() || 'Morocco',
+          notes:
+            String(body.notes || customer.notes || '').trim() || null,
+
+          order_items: {
+            create: computedItems,
+          },
+        },
+        include: {
+          order_items: true,
+        },
+      });
+
+      await tx.order_status_history.create({
+        data: {
+          order_id: createdOrder.id,
+          status: 'pending',
+          payment_status: 'pending',
+          note: 'Commande créée depuis le site web',
+        },
+      });
+
+      return createdOrder;
+    });
+
+    return order;
+  }
+
+async track(orderNumber: string) {
+  const order =
+    await this.prisma.orders.findUnique({
+      where: {
         order_number: orderNumber,
-        user_id: userId,
-
-        subtotal,
-        shipping_cost: shippingCost,
-        discount_amount: discountAmount,
-        coupon_code: body.coupon_code || body.couponCode || null,
-        total,
-
-        status: 'pending',
-        payment_status: 'pending',
-        payment_method: body.payment_method || body.paymentMethod || null,
-
-        shipping_first_name:
-          shipping.first_name || shipping.firstName || body.first_name || body.firstName || '',
-        shipping_last_name:
-          shipping.last_name || shipping.lastName || body.last_name || body.lastName || '',
-        shipping_email: shipping.email || body.email || '',
-        shipping_phone: shipping.phone || body.phone || null,
-        shipping_address: shipping.address || body.address || '',
-        shipping_apt: shipping.apt || body.apt || null,
-        shipping_city: shipping.city || body.city || '',
-        shipping_state: shipping.state || body.state || null,
-        shipping_zip: shipping.zip || body.zip || '',
-        shipping_country: shipping.country || body.country || 'Morocco',
-        notes: body.notes || null,
-
-        order_items: {
-          create: items.map((item: any) => {
-            const quantity = Number(item.quantity || item.qty || 1);
-            const unitPrice = Number(
-              item.unit_price ||
-                item.price ||
-                item.salePrice ||
-                item.sale_price ||
-                0,
-            );
-
-            return {
-              product_id:
-                item.product_id || item.id ? Number(item.product_id || item.id) : null,
-              product_name: item.product_name || item.name || '',
-              product_reference: item.product_reference || item.reference || null,
-              product_image: item.product_image || item.image || item.url_image1 || null,
-              selected_color: item.selected_color || item.color || null,
-              selected_size: item.selected_size || item.size || null,
-              unit_price: unitPrice,
-              quantity,
-              line_total: Number(item.line_total || unitPrice * quantity),
-            };
-          }),
-        },
       },
+
       include: {
         order_items: true,
+
+        order_status_history: {
+          orderBy: {
+            created_at: 'asc',
+          },
+        },
       },
     });
 
-    return order;
+  if (!order) {
+    throw new NotFoundException(
+      'Order not found',
+    );
   }
 
-  async track(orderNumber: string) {
-    const order = await this.prisma.orders.findUnique({
-      where: { order_number: orderNumber },
+  return this.formatOrder(order);
+}
+
+async myOrders(params: {
+  userId?: string;
+  email?: string;
+}) {
+  const where = params.userId
+    ? {
+        user_id: Number(params.userId),
+      }
+    : params.email
+      ? {
+          shipping_email: params.email
+            .toLowerCase()
+            .trim(),
+        }
+      : null;
+
+  if (!where) {
+    throw new BadRequestException(
+      'user_id or email is required',
+    );
+  }
+
+  const orders =
+    await this.prisma.orders.findMany({
+      where,
+
       include: {
         order_items: true,
+
+        order_status_history: {
+          orderBy: {
+            created_at: 'asc',
+          },
+        },
       },
-    });
 
-    if (!order) {
-      throw new NotFoundException('Order not found');
-    }
-
-    return order;
-  }
-
-  async myOrders(params: { userId?: string; email?: string }) {
-    if (params.userId) {
-      return this.prisma.orders.findMany({
-        where: {
-          user_id: Number(params.userId),
-        },
-        include: {
-          order_items: true,
-        },
-        orderBy: {
-          created_at: 'desc',
-        },
-      });
-    }
-
-    if (params.email) {
-      return this.prisma.orders.findMany({
-        where: {
-          shipping_email: params.email.toLowerCase().trim(),
-        },
-        include: {
-          order_items: true,
-        },
-        orderBy: {
-          created_at: 'desc',
-        },
-      });
-    }
-
-    throw new BadRequestException('user_id or email is required');
-  }
-
-  async findAll() {
-    return this.prisma.orders.findMany({
-      include: {
-        order_items: true,
-      },
       orderBy: {
         created_at: 'desc',
       },
     });
-  }
 
-  async updateStatus(id: number, status: string) {
-    if (!status) {
-      throw new BadRequestException('status is required');
-    }
+  return orders.map(order =>
+    this.formatOrder(order),
+  );
+}
 
-    return this.prisma.orders.update({
-      where: { id },
-      data: {
-        status,
-        updated_at: new Date(),
+async findAll() {
+  const orders =
+    await this.prisma.orders.findMany({
+      include: {
+        order_items: true,
+
+        order_status_history: {
+          orderBy: {
+            created_at: 'asc',
+          },
+        },
+      },
+
+      orderBy: {
+        created_at: 'desc',
       },
     });
+
+  return orders.map(order =>
+    this.formatOrder(order),
+  );
+}
+
+async updateStatus(
+  id: number,
+  body: {
+    status?: string;
+    payment_status?: string;
+    note?: string;
+  },
+  user?: any,
+) {
+  const currentOrder =
+    await this.prisma.orders.findUnique({
+      where: {
+        id,
+      },
+    });
+
+  if (!currentOrder) {
+    throw new NotFoundException(
+      'Order not found',
+    );
   }
+
+  const nextStatus =
+    body.status || currentOrder.status;
+
+  const nextPaymentStatus =
+    body.payment_status ||
+    currentOrder.payment_status;
+
+  if (!ORDER_STATUSES.includes(nextStatus)) {
+    throw new BadRequestException(
+      'Invalid order status',
+    );
+  }
+
+  if (
+    !PAYMENT_STATUSES.includes(
+      nextPaymentStatus,
+    )
+  ) {
+    throw new BadRequestException(
+      'Invalid payment status',
+    );
+  }
+
+  const note = String(
+    body.note || '',
+  ).trim();
+
+  return this.prisma.$transaction(
+    async tx => {
+      await tx.orders.update({
+        where: {
+          id,
+        },
+
+        data: {
+          status: nextStatus,
+          payment_status:
+            nextPaymentStatus,
+
+          /*
+           * La date de livraison est renseignée
+           * à la première validation "delivered".
+           */
+          delivered_at:
+            nextStatus === 'delivered'
+              ? currentOrder.delivered_at ||
+                new Date()
+              : currentOrder.delivered_at,
+
+          /*
+           * La date de paiement est renseignée
+           * à la première validation "paid".
+           */
+          paid_at:
+            nextPaymentStatus === 'paid'
+              ? currentOrder.paid_at ||
+                new Date()
+              : currentOrder.paid_at,
+
+          updated_at: new Date(),
+        },
+      });
+
+      const hasChanged =
+        currentOrder.status !== nextStatus ||
+        currentOrder.payment_status !==
+          nextPaymentStatus ||
+        Boolean(note);
+
+      if (hasChanged) {
+        await tx.order_status_history.create({
+          data: {
+            order_id: id,
+            status: nextStatus,
+            payment_status:
+              nextPaymentStatus,
+            note: note || null,
+
+            created_by_user_id: user?.sub
+              ? Number(user.sub)
+              : null,
+          },
+        });
+      }
+
+      /*
+       * On relit la commande après insertion
+       * de l'historique.
+       */
+      const updatedOrder =
+        await tx.orders.findUnique({
+          where: {
+            id,
+          },
+
+          include: {
+            order_items: true,
+
+            order_status_history: {
+              orderBy: {
+                created_at: 'asc',
+              },
+            },
+          },
+        });
+
+      return this.formatOrder(updatedOrder);
+    },
+  );
+}
 }

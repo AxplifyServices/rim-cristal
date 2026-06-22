@@ -76,19 +76,28 @@ async stats(user?: any, query: any = {}) {
     }),
   };
 
-  const orderWhere: any = {
-    ...(createdAtFilter && { created_at: createdAtFilter }),
-    ...(pointOfSaleId && { point_of_sale_id: pointOfSaleId }),
-    ...(category && {
-      order_items: {
-        some: {
-          products: {
-            categorie: category,
-          },
+const orderWhere: any = {
+  status: 'delivered',
+  payment_status: 'paid',
+
+  ...(createdAtFilter && {
+    paid_at: createdAtFilter,
+  }),
+
+  ...(pointOfSaleId && {
+    point_of_sale_id: pointOfSaleId,
+  }),
+
+  ...(category && {
+    order_items: {
+      some: {
+        products: {
+          categorie: category,
         },
       },
-    }),
-  };
+    },
+  }),
+};
 
   const orderItemsWhere: any = {
     orders: orderWhere,

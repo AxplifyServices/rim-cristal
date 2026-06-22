@@ -28,6 +28,7 @@ export default function AdminShell({ children }) {
       '/admin/points-of-sale',
       '/admin/stock',
       '/admin/orders',
+      '/admin/contacts',
     ]
 
     if (user.role !== 'admin' && adminOnlyPaths.includes(pathname)) {
@@ -45,6 +46,12 @@ export default function AdminShell({ children }) {
       { href: '/admin/sales', label: t('nav.sales'), shortLabel: t('navShort.sales'), roles: ['admin', 'point_of_sale'] },
       { href: '/admin/stock', label: t('nav.stock'), shortLabel: t('navShort.stock'), roles: ['admin'] },
       { href: '/admin/orders', label: t('nav.orders'), shortLabel: t('navShort.orders'), roles: ['admin'] },
+      {
+  href: '/admin/contacts',
+  label: t('nav.contacts'),
+  shortLabel: t('navShort.contacts'),
+  roles: ['admin'],
+},
     ]
 
     return all.filter(item => item.roles.includes(role))

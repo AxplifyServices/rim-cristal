@@ -21,15 +21,43 @@
     "orders": "Orders from Website",
     "open": "Open menu",
     "collapse": "Collapse menu",
-    "expand": "Expand menu"
+    "expand": "Expand menu",
+    "contacts": "Asking for contact"
   },
+  "contacts": {
+  "title": "Contact requests",
+  "subtitle": "Track people who submitted the website contact form.",
+  "total": "Total",
+  "new": "New",
+  "toContact": "To contact",
+  "converted": "Converted",
+  "allStatuses": "All statuses",
+  "noSubject": "Website request",
+  "status": "Status",
+  "nextAction": "Next action",
+  "internalNotes": "Internal notes",
+  "historyNote": "History note",
+  "history": "Processing history",
+  "open": "Open",
+  "automaticStatusNote": "Contact status updated",
+  "statuses": {
+    "new": "New request",
+    "to_contact": "To contact",
+    "contacted": "Contacted",
+    "qualified": "Qualified",
+    "converted": "Converted to customer",
+    "closed": "Closed",
+    "unreachable": "Unreachable"
+  }
+},
   "navShort": {
     "dashboard": "DB",
     "products": "PR",
     "pointsOfSale": "POS",
     "sales": "SA",
     "stock": "ST",
-    "orders": "OR"
+    "orders": "OR",
+    "contacts": "CT"
   },
   "roles": {
     "admin": "Administrator",
@@ -165,10 +193,36 @@
     "adjust": "Adjust stock",
     "movements": "Stock movements"
   },
-  "orders": {
-    "title": "Orders",
-    "subtitle": "Web orders linked to points of sale."
+"orders": {
+  "title": "Website orders",
+  "subtitle": "Track preparation, delivery and payment for orders received from the website.",
+  "customer": "Customer",
+  "items": "items",
+  "color": "Color",
+  "total": "Total",
+  "open": "View details",
+  "update": "Update order",
+  "deliveryStatus": "Delivery stage",
+  "paymentStatus": "Payment status",
+  "note": "Tracking note",
+  "history": "History",
+  "automaticStatusNote": "Delivery stage updated",
+  "automaticPaymentNote": "Payment status updated",
+  "statuses": {
+    "pending": "New order",
+    "confirmed": "Order confirmed",
+    "preparing": "Preparing",
+    "ready": "Ready to ship",
+    "shipped": "Out for delivery",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled"
   },
+  "paymentStatuses": {
+    "pending": "Payment pending",
+    "paid": "Paid",
+    "cancelled": "Payment cancelled"
+  }
+},
   "common": {
     "loading": "Loading...",
     "save": "Save",

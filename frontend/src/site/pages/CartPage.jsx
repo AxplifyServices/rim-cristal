@@ -186,10 +186,10 @@ export default function CartPage() {
                   {t('cart.notice')}
                 </p>
 
-                <Link
-                  href="/contact"
-                  className="primary-button full-width"
-                >
+<Link
+  href="/checkout"
+  className="primary-button full-width"
+>
                   {t(
                     'cart.checkout'
                   )}

@@ -21,7 +21,8 @@
     "orders": "Commandes Site Web",
     "open": "Ouvrir le menu",
     "collapse": "Réduire le menu",
-    "expand": "Agrandir le menu"
+    "expand": "Agrandir le menu",
+    "contacts": "Demandes de contact"
   },
   "navShort": {
     "dashboard": "TB",
@@ -29,7 +30,8 @@
     "pointsOfSale": "PV",
     "sales": "VE",
     "stock": "ST",
-    "orders": "CO"
+    "orders": "CO",
+    "contacts": "CT"
   },
   "roles": {
     "admin": "Administrateur",
@@ -165,10 +167,36 @@
     "adjust": "Ajuster le stock",
     "movements": "Mouvements de stock"
   },
-  "orders": {
-    "title": "Commandes",
-    "subtitle": "Commandes web associées aux points de vente."
+"orders": {
+  "title": "Commandes du site web",
+  "subtitle": "Suivez la préparation, la livraison et le paiement des commandes reçues depuis le site.",
+  "customer": "Client",
+  "items": "articles",
+  "color": "Couleur",
+  "total": "Total",
+  "open": "Voir le détail",
+  "update": "Mettre à jour la commande",
+  "deliveryStatus": "Étape de livraison",
+  "paymentStatus": "État du paiement",
+  "note": "Note de suivi",
+  "history": "Historique",
+  "automaticStatusNote": "Étape de livraison mise à jour",
+  "automaticPaymentNote": "État du paiement mis à jour",
+  "statuses": {
+    "pending": "Nouvelle commande",
+    "confirmed": "Commande confirmée",
+    "preparing": "En préparation",
+    "ready": "Prête à expédier",
+    "shipped": "En cours de livraison",
+    "delivered": "Livrée",
+    "cancelled": "Annulée"
   },
+  "paymentStatuses": {
+    "pending": "En attente du paiement",
+    "paid": "Payée",
+    "cancelled": "Paiement annulé"
+  }
+},
   "common": {
     "loading": "Chargement...",
     "save": "Enregistrer",
@@ -179,5 +207,31 @@
     "empty": "Aucune donnée",
         "language": "Langue",
     "close": "Fermer"
+  },
+  "contacts": {
+  "title": "Demandes de contact",
+  "subtitle": "Suivez les personnes ayant rempli le formulaire de contact du site.",
+  "total": "Total",
+  "new": "Nouvelles",
+  "toContact": "À contacter",
+  "converted": "Converties",
+  "allStatuses": "Tous les statuts",
+  "noSubject": "Demande depuis le site",
+  "status": "Statut",
+  "nextAction": "Prochaine action",
+  "internalNotes": "Notes internes",
+  "historyNote": "Note à ajouter à l’historique",
+  "history": "Historique du traitement",
+  "open": "Ouvrir",
+  "automaticStatusNote": "Statut du contact mis à jour",
+  "statuses": {
+    "new": "Nouvelle demande",
+    "to_contact": "À contacter",
+    "contacted": "Contacté",
+    "qualified": "Demande qualifiée",
+    "converted": "Converti en client",
+    "closed": "Traitement terminé",
+    "unreachable": "Injoignable"
   }
+}
 }
