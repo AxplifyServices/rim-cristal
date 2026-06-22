@@ -11,7 +11,7 @@ function HeaderFallback() {
           className="brand"
           aria-hidden="true"
         >
-          Rim Cristal
+          Lux Lumina
         </div>
       </div>
     </header>

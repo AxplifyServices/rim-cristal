@@ -811,32 +811,28 @@ export default function ShopPage() {
 
   return (
     <SiteLayout>
-      <section className="page-hero">
-        <div className="container">
-          <p className="section-eyebrow">
-            Rim Cristal
-          </p>
+<section className="page-hero compact">
+  <div className="container">
+    <h1>
+      {selectedSectionLabel ||
+        t('shop.title')}
+    </h1>
 
-          <h1>
-            {selectedSectionLabel ||
-              t('shop.title')}
-          </h1>
+    <p>
+      {selectedSectionLabel
+        ? t(
+            'shop.sectionSubtitle',
+            {
+              section:
+                selectedSectionLabel,
+            }
+          )
+        : t('shop.subtitle')}
+    </p>
+  </div>
+</section>
 
-          <p>
-            {selectedSectionLabel
-              ? t(
-                  'shop.sectionSubtitle',
-                  {
-                    section:
-                      selectedSectionLabel,
-                  }
-                )
-              : t('shop.subtitle')}
-          </p>
-        </div>
-      </section>
-
-      <section className="section">
+<section className="section shop-section">
         <div className="container">
           <div className="shop-toolbar">
             <label className="search-field">

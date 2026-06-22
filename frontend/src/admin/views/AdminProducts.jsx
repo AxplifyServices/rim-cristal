@@ -55,6 +55,7 @@ depth: '',
   badge: '',
   is_active: true,
   is_available_on_site: true,
+  is_bestseller: false,
   care_instructions: '',
   origin_country: '',
   collection_name: '',
@@ -201,6 +202,10 @@ depth: Array.isArray(product.sizes) ? product.sizes[2] || '' : '',
         product.is_available_on_site !== undefined
           ? Boolean(product.is_available_on_site)
           : true,
+
+      is_bestseller: Boolean(
+        product.is_bestseller
+      ),    
       care_instructions: product.care_instructions || '',
       origin_country: product.origin_country || '',
       collection_name: product.collection_name || '',
@@ -239,7 +244,9 @@ sizes: [form.height, form.width, form.depth]
 
       is_active: Boolean(form.is_active),
       is_available_on_site: Boolean(form.is_available_on_site),
-
+      is_bestseller: Boolean(
+        form.is_bestseller
+      ),
       care_instructions: form.care_instructions.trim() || null,
       origin_country: form.origin_country || null,
       collection_name: form.collection_name.trim() || null,
@@ -466,6 +473,17 @@ sizes: [form.height, form.width, form.depth]
               label={t('products.availableOnSite')}
               value={form.is_available_on_site}
               onChange={value => updateForm('is_available_on_site', value)}
+            />
+
+            <BooleanField
+              label={t('products.bestseller')}
+              value={form.is_bestseller}
+              onChange={value =>
+                updateForm(
+                  'is_bestseller',
+                  value
+                )
+              }
             />
 
             <SelectField
