@@ -63,59 +63,54 @@ const [
   const [error, setError] =
     useState('')
 
-  useEffect(() => {
-    let active = true
+useEffect(() => {
+  let active = true
 
-    async function loadProduct() {
-      setLoading(true)
-      setError('')
+  async function loadProduct() {
+    setLoading(true)
+    setError('')
 
-      try {
-        const result =
-          await getProductBySlug(
-            slug
-          )
+    try {
+      const result =
+        await getProductBySlug(slug)
 
-        if (!active) {
-          return
-        }
+      if (!active) {
+        return
+      }
 
-        setProduct(result)
+      setProduct(result)
+      setSelectedImageIndex(0)
 
-setSelectedImageIndex(0)
+      setSelectedColor(
+        result.hasColorVariants &&
+        result.colors.length > 0
+          ? result.colors[0]
+          : ''
+      )
 
-          setSelectedColor(
-            result.hasColorVariants &&
-            result.colors.length > 0
-              ? result.colors[0]
-              : ''
-          )
+      setQuantity(1)
+    } catch (loadError) {
+      console.error(loadError)
 
-          setQuantity(1)
-        }
-      } catch (loadError) {
-        console.error(
-          loadError
+      if (active) {
+        setError(
+          t('common.error')
         )
-
-        if (active) {
-          setError(
-            t('common.error')
-          )
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
+      }
+    } finally {
+      if (active) {
+        setLoading(false)
       }
     }
+  }
 
-    loadProduct()
+  loadProduct()
 
-    return () => {
-      active = false
-    }
-  }, [slug])
+  return () => {
+    active = false
+  }
+}, [slug, t])
+
 
   const formattedDimensions =
     useMemo(() => {
