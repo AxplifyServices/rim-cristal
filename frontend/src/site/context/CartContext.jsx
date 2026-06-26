@@ -32,10 +32,16 @@ export function CartProvider({
 
   useEffect(() => {
     try {
-      const saved = JSON.parse(
+      const savedCart =
         window.localStorage.getItem(
-          'lux-lumina-cart'
-        ) || '[]'
+          CART_STORAGE_KEY
+        ) ||
+        window.localStorage.getItem(
+          LEGACY_CART_STORAGE_KEY
+        )
+
+      const saved = JSON.parse(
+        savedCart || '[]'
       )
 
       if (Array.isArray(saved)) {
@@ -64,8 +70,12 @@ export function CartProvider({
 
   useEffect(() => {
     window.localStorage.setItem(
-      'lux-lumina-cart',
+      CART_STORAGE_KEY,
       JSON.stringify(items)
+    )
+
+    window.localStorage.removeItem(
+      LEGACY_CART_STORAGE_KEY
     )
   }, [items])
 

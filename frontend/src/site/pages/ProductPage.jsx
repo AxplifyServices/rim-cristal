@@ -674,6 +674,41 @@ function handleTouchEnd(event) {
                 </button>
               </div>
 
+ {whatsappProductUrl && (
+                <a
+                  href={whatsappProductUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="product-whatsapp-button"
+                >
+                  <span
+                    className="product-whatsapp-icon"
+                    aria-hidden="true"
+                  >
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M12 2a9.8 9.8 0 0 0-8.4 14.9L2 22l5.3-1.5A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.4-.2-3.1.9.9-3-.2-.4A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.7.9c-.1.2-.3.2-.5.1-1.4-.7-2.4-1.5-3.3-2.9-.2-.3.2-.5.6-1 .1-.2.1-.3 0-.5l-.7-1.7c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.7.7-1.1 1.7-1 2.7.1 1.3.7 2.6 1.6 3.6 1.7 2 3.8 3.5 6.3 4.2.8.2 1.7.3 2.5.1.9-.1 1.8-.8 2.2-1.6.2-.5.2-1 .1-1.1-.1-.2-.3-.2-.6-.4Z"
+                      />
+                    </svg>
+                  </span>
+
+                  <span>
+                    <strong>
+                      {t(
+                        'product.whatsappButton'
+                      )}
+                    </strong>
+
+                    <small>
+                      {t(
+                        'product.whatsappHelp'
+                      )}
+                    </small>
+                  </span>
+                </a>
+              )}
+
               {product.description && (
                 <div className="product-description">
                   <h2>

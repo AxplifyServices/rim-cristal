@@ -38,6 +38,9 @@ services:
       args:
         NEXT_PUBLIC_API_URL: https://rim-cristal.axplitest.com/api
         NEXT_PUBLIC_ADMIN_URL: https://rim-cristal-admin.axplitest.com
+        NEXT_PUBLIC_FACEBOOK_URL: ${NEXT_PUBLIC_FACEBOOK_URL}
+        NEXT_PUBLIC_INSTAGRAM_URL: ${NEXT_PUBLIC_INSTAGRAM_URL}
+        NEXT_PUBLIC_WHATSAPP_NUMBER: ${NEXT_PUBLIC_WHATSAPP_NUMBER}
     container_name: rim-cristal-frontend
     restart: unless-stopped
     depends_on:
