@@ -1453,6 +1453,44 @@ a {
   line-height: 1.7;
 }
 
+.footer-social-links {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-social-links a {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.04);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.footer-social-links a:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.45);
+  transform: translateY(-2px);
+}
+
+.footer-social-links a:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 3px;
+}
+
+.footer-social-links svg {
+  width: 21px;
+  height: 21px;
+}
+
 .footer-title {
   margin: 0 0 18px;
   font-size: 13px;
@@ -1887,6 +1925,70 @@ a {
     background: rgba(245, 242, 235, 0.96);
     backdrop-filter: blur(12px);
   }
+
+.product-whatsapp-button {
+  width: 100%;
+  min-height: 58px;
+  margin-top: 14px;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid #1f9d55;
+  border-radius: 14px;
+  background: #25d366;
+  color: #102d1b;
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.product-whatsapp-button:hover {
+  background: #20c45d;
+  box-shadow: 0 12px 28px rgba(37, 211, 102, 0.22);
+  transform: translateY(-1px);
+}
+
+.product-whatsapp-button:focus-visible {
+  outline: 3px solid rgba(37, 211, 102, 0.35);
+  outline-offset: 3px;
+}
+
+.product-whatsapp-icon {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+}
+
+.product-whatsapp-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.product-whatsapp-button > span:last-child {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.product-whatsapp-button strong {
+  font-size: 14px;
+}
+
+.product-whatsapp-button small {
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+@media (max-width: 640px) {
+  .product-whatsapp-button {
+    min-height: 62px;
+    border-radius: 12px;
+  }
+}
 
 .product-carousel-button {
   width: 42px;

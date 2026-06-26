@@ -11,7 +11,7 @@ function HeaderFallback() {
           className="brand"
           aria-hidden="true"
         >
-          Lux Lumina
+          Kaystia Home
         </div>
       </div>
     </header>

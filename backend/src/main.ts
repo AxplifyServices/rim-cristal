@@ -42,7 +42,7 @@ const allowedOrigins = [
 
   await app.listen(port);
 
-  console.log(`Lux Lumina API running on http://localhost:${port}/api`);
+  console.log(`Kaystia Home API running on http://localhost:${port}/api`);
 }
 
 bootstrap();

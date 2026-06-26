@@ -1,5 +1,5 @@
 {
-  "brand": "Lux Lumina",
+ "brand": "Kaystia Home",
   "nav": {
     "home": "Accueil",
     "shop": "Boutique",
@@ -34,7 +34,7 @@
     "categoriesTitle": "Acheter par catégorie",
     "categoriesSubtitle": "Trouvez rapidement les pièces adaptées à votre intérieur.",
 "featuredTitle": "Meilleures ventes",
-"featuredSubtitle": "Découvrez les produits les plus appréciés de Lux Lumina.",
+"featuredSubtitle": "Découvrez les produits les plus appréciés de Kaystia Home.",
     "benefit1Title": "Sélection soignée",
     "benefit1Text": "Des collections choisies pour leur style, leur qualité et leur facilité d’intégration.",
     "benefit2Title": "Conseil humain",
@@ -48,7 +48,7 @@
   },
   "shop": {
     "title": "La boutique",
-    "subtitle": "Explorez toutes les collections Lux Lumina.",
+    "subtitle": "Explorez toutes les collections Kaystia Home.",
     "sectionSubtitle": "Découvrez les produits de la rubrique {section}.",
     "search": "Rechercher un produit, une référence ou une marque",
     "all": "Tous les produits",
@@ -90,7 +90,13 @@
   "previousImage": "Image précédente",
 "nextImage": "Image suivante",
 "imageGallery": "Galerie d’images du produit",
-"showImage": "Afficher l’image"
+"showImage": "Afficher l’image",
+"productName": "Produit",
+"selectedColor": "Couleur sélectionnée",
+"productLink": "Lien du produit",
+"whatsappButton": "Demander plus d’informations",
+"whatsappHelp": "Envoyer un message sur WhatsApp",
+"whatsappMessage": "Bonjour, je souhaite obtenir plus d’informations sur ce produit."
 },
   "cart": {
     "title": "Votre panier",
@@ -152,6 +158,10 @@
     "description": "Mobilier, luminaires et décoration pour des intérieurs uniques.",
     "navigation": "Navigation",
     "language": "Langue",
-    "rights": "Tous droits réservés."
+    "rights": "Tous droits réservés.",
+    "socialNetworks": "Réseaux sociaux",
+"facebook": "Facebook",
+"instagram": "Instagram",
+"whatsapp": "WhatsApp"
   }
 }

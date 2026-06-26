@@ -342,11 +342,42 @@ async myOrders(params: {
   );
 }
 
-async findAll() {
+async findAll(user?: any) {
+  const userId = Number(user?.sub || 0);
+
+  const pointOfSaleId = Number(
+    user?.point_of_sale_id || 0,
+  );
+
+  const where =
+    user?.role === 'point_of_sale'
+      ? {
+          OR: [
+            {
+              point_of_sale_id:
+                pointOfSaleId,
+            },
+            {
+              created_by_user_id:
+                userId,
+            },
+          ],
+        }
+      : {};
+
   const orders =
     await this.prisma.orders.findMany({
+      where,
+
       include: {
         order_items: true,
+
+        point_of_sales: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
 
         order_status_history: {
           orderBy: {
@@ -385,6 +416,30 @@ async updateStatus(
     throw new NotFoundException(
       'Order not found',
     );
+  }
+
+    if (
+    user?.role === 'point_of_sale'
+  ) {
+    const userId = Number(
+      user?.sub || 0,
+    );
+
+    const pointOfSaleId = Number(
+      user?.point_of_sale_id || 0,
+    );
+
+    const canAccessOrder =
+      currentOrder.point_of_sale_id ===
+        pointOfSaleId ||
+      currentOrder.created_by_user_id ===
+        userId;
+
+    if (!canAccessOrder) {
+      throw new ForbiddenException(
+        'You cannot update this order',
+      );
+    }
   }
 
   const nextStatus =

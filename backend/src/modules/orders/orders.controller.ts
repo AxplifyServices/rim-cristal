@@ -44,16 +44,50 @@ export class OrdersController {
     return this.service.track(orderNumber);
   }
 
+  @Get('backoffice/options')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('admin', 'point_of_sale')
+  backofficeOptions(
+    @Req() req: any,
+    @Query('stock_source_type')
+    stockSourceType?: string,
+    @Query('point_of_sale_id')
+    pointOfSaleId?: string,
+  ) {
+    return this.service.backofficeOptions(
+      req.user,
+      {
+        stock_source_type:
+          stockSourceType,
+        point_of_sale_id:
+          pointOfSaleId,
+      },
+    );
+  }
+
+  @Post('backoffice')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('admin', 'point_of_sale')
+  createBackoffice(
+    @Body() body: any,
+    @Req() req: any,
+  ) {
+    return this.service.createBackoffice(
+      body,
+      req.user,
+    );
+  }
+
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
-  findAll() {
-    return this.service.findAll();
+  @Roles('admin', 'point_of_sale')
+  findAll(@Req() req: any) {
+    return this.service.findAll(req.user);
   }
 
   @Patch(':id/status')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'point_of_sale')
   updateStatus(
     @Param('id') id: string,
     @Body() body: any,

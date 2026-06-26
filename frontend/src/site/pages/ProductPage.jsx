@@ -29,12 +29,21 @@ function formatDimension(value) {
   ).format(number)
 }
 
+function normalizeWhatsAppNumber(value) {
+  return String(value || '').replace(/\D/g, '')
+}
+
 export default function ProductPage({
   slug,
 }) {
   const { add } = useCart()
   const { locale, t } =
     useSiteI18n()
+
+  const whatsappNumber =
+    normalizeWhatsAppNumber(
+      process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
+    )
 
   const [product, setProduct] =
     useState(null)
@@ -293,6 +302,26 @@ function handleTouchEnd(event) {
     product.stock > 0 &&
     (!colorChoiceRequired ||
       Boolean(selectedColor))
+
+  const whatsappMessageParts = [
+    t('product.whatsappMessage'),
+    '',
+    `${t('product.reference')} : ${product.reference || '-'}`,
+    `${t('product.productName')} : ${product.name}`,
+    selectedColor
+      ? `${t('product.selectedColor')} : ${selectedColor}`
+      : '',
+    typeof window !== 'undefined'
+      ? `${t('product.productLink')} : ${window.location.href}`
+      : '',
+  ].filter(Boolean)
+
+  const whatsappProductUrl =
+    whatsappNumber
+      ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+          whatsappMessageParts.join('\n')
+        )}`
+      : ''
 
   return (
     <SiteLayout>

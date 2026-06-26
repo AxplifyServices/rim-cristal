@@ -1,8 +1,13 @@
 import { AdminI18nProvider } from '../../src/admin/i18n/AdminI18nProvider'
 
 export const metadata = {
-  title: 'Rim Cristal Admin',
-  description: 'Gestion stock et points de vente Rim Cristal',
+  title: 'Kaystia Home Admin',
+  description:
+    'Gestion des commandes, des stocks et des points de vente Kaystia Home',
+  icons: {
+    icon: '/icon.png',
+    apple: '/apple-icon.png',
+  },
 }
 
 export default function AdminLayout({ children }) {

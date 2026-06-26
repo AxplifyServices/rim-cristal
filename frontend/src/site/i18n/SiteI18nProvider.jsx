@@ -16,6 +16,20 @@ const dictionaries = {
   en,
 }
 
+const LOCALE_STORAGE_KEY =
+  'kaystia-home-locale'
+
+const LEGACY_LOCALE_STORAGE_KEY =
+  'lux-lumina-locale'
+
+const storedLocale =
+  localStorage.getItem(
+    LOCALE_STORAGE_KEY
+  ) ||
+  localStorage.getItem(
+    LEGACY_LOCALE_STORAGE_KEY
+  )
+
 const SiteI18nContext = createContext(null)
 
 function getNestedValue(object, path) {

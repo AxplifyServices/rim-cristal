@@ -90,37 +90,44 @@ model order_items {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model orders {
-  id                   Int                    @id @default(autoincrement())
-  order_number         String                 @unique @db.VarChar(80)
-  user_id              Int?
-  subtotal             Decimal                @db.Decimal(12, 2)
-  shipping_cost        Decimal                @default(0) @db.Decimal(12, 2)
-  discount_amount      Decimal                @default(0) @db.Decimal(12, 2)
-  coupon_code          String?                @db.VarChar(80)
-  total                Decimal                @db.Decimal(12, 2)
-  status               String                 @default("pending") @db.VarChar(40)
-  payment_status       String                 @default("pending") @db.VarChar(40)
-  payment_method       String?                @default("cash_on_delivery") @db.VarChar(80)
-  shipping_first_name  String                 @db.VarChar(120)
-  shipping_last_name   String                 @db.VarChar(120)
-  shipping_email       String                 @db.VarChar(255)
-  shipping_phone       String?                @db.VarChar(50)
-  shipping_address     String
-  shipping_apt         String?                @db.VarChar(120)
-  shipping_city        String                 @db.VarChar(120)
-  shipping_state       String?                @db.VarChar(120)
-  shipping_zip         String                 @db.VarChar(50)
-  shipping_country     String                 @default("Morocco") @db.VarChar(120)
-  notes                String?
-  created_at           DateTime               @default(now()) @db.Timestamp(6)
-  updated_at           DateTime               @default(now()) @db.Timestamp(6)
-  point_of_sale_id     Int?
-  delivered_at         DateTime?              @db.Timestamp(6)
-  paid_at              DateTime?              @db.Timestamp(6)
-  order_items          order_items[]
-  order_status_history order_status_history[]
-  point_of_sales       point_of_sales?        @relation(fields: [point_of_sale_id], references: [id], onUpdate: NoAction)
-  users                users?                 @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+  id                                     Int                    @id @default(autoincrement())
+  order_number                           String                 @unique @db.VarChar(80)
+  user_id                                Int?
+  subtotal                               Decimal                @db.Decimal(12, 2)
+  shipping_cost                          Decimal                @default(0) @db.Decimal(12, 2)
+  discount_amount                        Decimal                @default(0) @db.Decimal(12, 2)
+  coupon_code                            String?                @db.VarChar(80)
+  total                                  Decimal                @db.Decimal(12, 2)
+  status                                 String                 @default("pending") @db.VarChar(40)
+  payment_status                         String                 @default("pending") @db.VarChar(40)
+  payment_method                         String?                @default("cash_on_delivery") @db.VarChar(80)
+  shipping_first_name                    String                 @db.VarChar(120)
+  shipping_last_name                     String                 @db.VarChar(120)
+  shipping_email                         String                 @db.VarChar(255)
+  shipping_phone                         String?                @db.VarChar(50)
+  shipping_address                       String
+  shipping_apt                           String?                @db.VarChar(120)
+  shipping_city                          String                 @db.VarChar(120)
+  shipping_state                         String?                @db.VarChar(120)
+  shipping_zip                           String                 @db.VarChar(50)
+  shipping_country                       String                 @default("Morocco") @db.VarChar(120)
+  notes                                  String?
+  created_at                             DateTime               @default(now()) @db.Timestamp(6)
+  updated_at                             DateTime               @default(now()) @db.Timestamp(6)
+  point_of_sale_id                       Int?
+  delivered_at                           DateTime?              @db.Timestamp(6)
+  paid_at                                DateTime?              @db.Timestamp(6)
+  order_origin                           String                 @default("website") @db.VarChar(40)
+  created_by_user_id                     Int?
+  stock_source_type                      String                 @default("global") @db.VarChar(40)
+  stock_deducted_at                      DateTime?              @db.Timestamp(6)
+  stock_restored_at                      DateTime?              @db.Timestamp(6)
+  order_items                            order_items[]
+  order_status_history                   order_status_history[]
+  users_orders_created_by_user_idTousers users?                 @relation("orders_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onUpdate: NoAction, map: "fk_orders_created_by_user")
+  point_of_sales                         point_of_sales?        @relation(fields: [point_of_sale_id], references: [id], onUpdate: NoAction)
+  users                                  users?                 @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+  stock_movements                        stock_movements[]
 
   @@index([order_number], map: "idx_orders_order_number")
   @@index([user_id], map: "idx_orders_user_id")
@@ -129,6 +136,9 @@ model orders {
   @@index([status, payment_status], map: "idx_orders_delivered_paid")
   @@index([payment_status], map: "idx_orders_payment_status")
   @@index([status], map: "idx_orders_status")
+  @@index([created_by_user_id], map: "idx_orders_created_by_user")
+  @@index([order_origin], map: "idx_orders_origin")
+  @@index([stock_source_type, point_of_sale_id], map: "idx_orders_stock_source")
 }
 
 model products {
@@ -216,27 +226,28 @@ model reviews {
 }
 
 model users {
-  id                      Int                       @id @default(autoincrement())
-  email                   String                    @unique @db.VarChar(255)
-  hashed_password         String
-  first_name              String                    @db.VarChar(120)
-  last_name               String                    @db.VarChar(120)
-  phone                   String?                   @db.VarChar(50)
-  is_active               Boolean                   @default(true)
-  is_admin                Boolean                   @default(false)
-  created_at              DateTime                  @default(now()) @db.Timestamp(6)
-  updated_at              DateTime                  @default(now()) @db.Timestamp(6)
-  role                    String                    @default("customer") @db.VarChar(40)
-  point_of_sale_id        Int?
-  last_login_at           DateTime?                 @db.Timestamp(6)
-  addresses               addresses[]
-  contact_message_history contact_message_history[]
-  contact_messages        contact_messages[]
-  order_status_history    order_status_history[]
-  orders                  orders[]
-  reviews                 reviews[]
-  point_of_sales          point_of_sales?           @relation(fields: [point_of_sale_id], references: [id], onUpdate: NoAction, map: "fk_users_point_of_sale")
-  wishlist_items          wishlist_items[]
+  id                                      Int                       @id @default(autoincrement())
+  email                                   String                    @unique @db.VarChar(255)
+  hashed_password                         String
+  first_name                              String                    @db.VarChar(120)
+  last_name                               String                    @db.VarChar(120)
+  phone                                   String?                   @db.VarChar(50)
+  is_active                               Boolean                   @default(true)
+  is_admin                                Boolean                   @default(false)
+  created_at                              DateTime                  @default(now()) @db.Timestamp(6)
+  updated_at                              DateTime                  @default(now()) @db.Timestamp(6)
+  role                                    String                    @default("customer") @db.VarChar(40)
+  point_of_sale_id                        Int?
+  last_login_at                           DateTime?                 @db.Timestamp(6)
+  addresses                               addresses[]
+  contact_message_history                 contact_message_history[]
+  contact_messages                        contact_messages[]
+  order_status_history                    order_status_history[]
+  orders_orders_created_by_user_idTousers orders[]                  @relation("orders_created_by_user_idTousers")
+  orders                                  orders[]
+  reviews                                 reviews[]
+  point_of_sales                          point_of_sales?           @relation(fields: [point_of_sale_id], references: [id], onUpdate: NoAction, map: "fk_users_point_of_sale")
+  wishlist_items                          wishlist_items[]
 
   @@index([point_of_sale_id], map: "idx_users_point_of_sale")
   @@index([role], map: "idx_users_role")
@@ -360,6 +371,8 @@ model stock_movements {
   sale_id             Int?
   note                String?
   created_at          DateTime             @default(now()) @db.Timestamp(6)
+  order_id            Int?
+  orders              orders?              @relation(fields: [order_id], references: [id], onUpdate: NoAction, map: "fk_stock_movements_order")
   point_of_sales      point_of_sales?      @relation(fields: [point_of_sale_id], references: [id], onUpdate: NoAction)
   products            products             @relation(fields: [product_id], references: [id], onUpdate: NoAction)
   point_of_sale_sales point_of_sale_sales? @relation(fields: [sale_id], references: [id], onUpdate: NoAction)
@@ -368,6 +381,7 @@ model stock_movements {
   @@index([point_of_sale_id], map: "idx_stock_movements_pos")
   @@index([product_id], map: "idx_stock_movements_product")
   @@index([movement_type], map: "idx_stock_movements_type")
+  @@index([order_id], map: "idx_stock_movements_order")
 }
 
 model contact_message_history {

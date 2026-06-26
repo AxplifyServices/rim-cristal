@@ -8,6 +8,9 @@ import {
   useState,
 } from 'react'
 
+const CART_STORAGE_KEY = 'kaystia-home-cart'
+const LEGACY_CART_STORAGE_KEY = 'lux-lumina-cart'
+
 const CartContext =
   createContext(null)
 

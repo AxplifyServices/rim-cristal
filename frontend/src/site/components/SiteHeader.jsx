@@ -109,7 +109,7 @@ export default function SiteHeader() {
           className="brand"
           onClick={closeMenu}
         >
-          Lux Lumina
+          {t('brand')}
         </Link>
 
         <nav
