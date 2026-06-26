@@ -24,12 +24,11 @@ export default function AdminShell({ children }) {
   useEffect(() => {
     if (!user) return
 
-    const adminOnlyPaths = [
-      '/admin/points-of-sale',
-      '/admin/stock',
-      '/admin/orders',
-      '/admin/contacts',
-    ]
+const adminOnlyPaths = [
+  '/admin/points-of-sale',
+  '/admin/stock',
+  '/admin/contacts',
+]
 
     if (user.role !== 'admin' && adminOnlyPaths.includes(pathname)) {
       router.replace('/admin')
@@ -70,12 +69,12 @@ const all = [
     shortLabel: t('navShort.stock'),
     roles: ['admin'],
   },
-  {
-    href: '/admin/orders',
-    label: t('nav.orders'),
-    shortLabel: t('navShort.orders'),
-    roles: ['admin'],
-  },
+{
+  href: '/admin/orders',
+  label: t('nav.orders'),
+  shortLabel: t('navShort.orders'),
+  roles: ['admin', 'point_of_sale'],
+},
   {
     href: '/admin/contacts',
     label: t('nav.contacts'),

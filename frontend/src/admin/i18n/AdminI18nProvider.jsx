@@ -103,15 +103,43 @@ export function AdminI18nProvider({
         )
       },
 
-      t(key) {
-        return (
-          getNestedValue(
-            dictionary,
-            key
-          ) ||
-          key
-        )
-      },
+t(key, variables = {}) {
+  const translation =
+    getNestedValue(
+      dictionary,
+      key
+    ) ||
+    getNestedValue(
+      dictionaries.fr,
+      key
+    ) ||
+    key
+
+  if (
+    typeof translation !==
+    'string'
+  ) {
+    return translation
+  }
+
+  return Object.entries(
+    variables
+  ).reduce(
+    (
+      result,
+      [
+        variableName,
+        variableValue,
+      ]
+    ) => {
+      return result.replaceAll(
+        `{${variableName}}`,
+        String(variableValue)
+      )
+    },
+    translation
+  )
+},
     }
   }, [locale, dictionary])
 
