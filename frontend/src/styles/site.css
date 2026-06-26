@@ -1228,6 +1228,76 @@ a {
   align-self: end;
 }
 
+.product-whatsapp-button {
+  width: 100%;
+  min-height: 56px;
+  margin-top: 14px;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid #1fa855;
+  border-radius: 12px;
+  background: #25d366;
+  color: #102d1b;
+  text-decoration: none;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.product-whatsapp-button:hover {
+  background: #20c45d;
+  box-shadow:
+    0 10px 24px
+    rgba(37, 211, 102, 0.22);
+  transform: translateY(-1px);
+}
+
+.product-whatsapp-button:focus-visible {
+  outline: 3px solid
+    rgba(37, 211, 102, 0.3);
+  outline-offset: 3px;
+}
+
+.product-whatsapp-icon {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  display: grid;
+  place-items: center;
+}
+
+.product-whatsapp-icon svg {
+  width: 26px;
+  height: 26px;
+  display: block;
+}
+
+.product-whatsapp-button
+  > span:last-child {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.product-whatsapp-button strong {
+  display: block;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.product-whatsapp-button small {
+  display: block;
+  color: inherit;
+  font-size: 11px;
+  line-height: 1.25;
+  opacity: 0.75;
+}
+
 .product-description {
   margin-top: 42px;
   padding-top: 28px;
@@ -1927,23 +1997,16 @@ a {
   }
 
 .product-whatsapp-button {
-  width: 100%;
   min-height: 58px;
-  margin-top: 14px;
-  padding: 10px 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  border: 1px solid #1f9d55;
-  border-radius: 14px;
-  background: #25d366;
-  color: #102d1b;
-  text-decoration: none;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    background 160ms ease;
+  margin-top: 12px;
+}
+
+.product-whatsapp-button strong {
+  font-size: 13px;
+}
+
+.product-whatsapp-button small {
+  font-size: 10px;
 }
 
 .product-whatsapp-button:hover {
