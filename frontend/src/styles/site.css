@@ -577,18 +577,18 @@ a {
 }
 
 .benefits-section {
-  padding: 70px 0;
+  padding: 56px 0;
   background: var(--accent);
   color: var(--white);
 }
 
 .benefits-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .benefits-grid article {
-  padding: 12px 36px;
+  padding: 4px 34px;
   border-right: 1px solid rgba(255, 255, 255, 0.24);
 }
 
@@ -601,22 +601,20 @@ a {
   border-right: 0;
 }
 
-.benefits-grid span {
-  font-size: 12px;
-  opacity: 0.7;
-}
-
 .benefits-grid h2 {
-  margin: 18px 0 12px;
+  margin: 0 0 12px;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 25px;
+  font-size: clamp(22px, 2vw, 27px);
+  line-height: 1.2;
   font-weight: 500;
 }
 
 .benefits-grid p {
+  max-width: 34rem;
   margin: 0;
-  opacity: 0.82;
-  line-height: 1.7;
+  opacity: 0.84;
+  font-size: 15px;
+  line-height: 1.65;
 }
 
 .page-hero {
@@ -1951,6 +1949,10 @@ a {
     height: 36px;
   }
 
+  .benefits-section {
+    padding: 38px 0;
+  }
+
   .benefits-grid {
     grid-template-columns: 1fr;
   }
@@ -1958,13 +1960,30 @@ a {
   .benefits-grid article,
   .benefits-grid article:first-child,
   .benefits-grid article:last-child {
-    padding: 26px 0;
+    padding: 22px 0;
     border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .benefits-grid article:first-child {
+    padding-top: 0;
   }
 
   .benefits-grid article:last-child {
+    padding-bottom: 0;
     border-bottom: 0;
+  }
+
+  .benefits-grid h2 {
+    margin-bottom: 9px;
+    font-size: 26px;
+    line-height: 1.18;
+  }
+
+  .benefits-grid p {
+    max-width: 36rem;
+    font-size: 14px;
+    line-height: 1.55;
   }
 
   .page-hero {
@@ -2120,6 +2139,34 @@ a {
   .footer-grid {
     grid-template-columns: 1fr;
     gap: 34px;
+  }
+
+    .benefits-section {
+    padding: 32px 0;
+  }
+
+  .benefits-grid article,
+  .benefits-grid article:first-child,
+  .benefits-grid article:last-child {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+
+  .benefits-grid article:first-child {
+    padding-top: 0;
+  }
+
+  .benefits-grid article:last-child {
+    padding-bottom: 0;
+  }
+
+  .benefits-grid h2 {
+    font-size: 24px;
+  }
+
+  .benefits-grid p {
+    font-size: 13.5px;
+    line-height: 1.5;
   }
 }
 

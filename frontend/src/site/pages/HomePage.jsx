@@ -328,8 +328,6 @@ export default function HomePage() {
       <section className="benefits-section">
         <div className="container benefits-grid">
           <article>
-            <span>01</span>
-
             <h2>
               {t('home.benefit1Title')}
             </h2>
@@ -340,8 +338,6 @@ export default function HomePage() {
           </article>
 
           <article>
-            <span>02</span>
-
             <h2>
               {t('home.benefit2Title')}
             </h2>
@@ -352,8 +348,6 @@ export default function HomePage() {
           </article>
 
           <article>
-            <span>03</span>
-
             <h2>
               {t('home.benefit3Title')}
             </h2>
