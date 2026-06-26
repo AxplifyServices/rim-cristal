@@ -22,21 +22,18 @@ const LOCALE_STORAGE_KEY =
 const LEGACY_LOCALE_STORAGE_KEY =
   'lux-lumina-locale'
 
-const storedLocale =
-  localStorage.getItem(
-    LOCALE_STORAGE_KEY
-  ) ||
-  localStorage.getItem(
-    LEGACY_LOCALE_STORAGE_KEY
-  )
+const SiteI18nContext =
+  createContext(null)
 
-const SiteI18nContext = createContext(null)
-
-function getNestedValue(object, path) {
+function getNestedValue(
+  object,
+  path
+) {
   return path
     .split('.')
     .reduce(
-      (value, key) => value?.[key],
+      (value, key) =>
+        value?.[key],
       object
     )
 }
@@ -48,15 +45,39 @@ export function SiteI18nProvider({
     useState('fr')
 
   useEffect(() => {
-    const saved =
+    const currentLocale =
       window.localStorage.getItem(
-        'lux-lumina-locale'
+        LOCALE_STORAGE_KEY
       )
 
-    if (saved && dictionaries[saved]) {
-      setLocaleState(saved)
-      document.documentElement.lang = saved
-    }
+    const legacyLocale =
+      window.localStorage.getItem(
+        LEGACY_LOCALE_STORAGE_KEY
+      )
+
+    const savedLocale =
+      currentLocale ||
+      legacyLocale
+
+    const safeLocale =
+      savedLocale &&
+      dictionaries[savedLocale]
+        ? savedLocale
+        : 'fr'
+
+    setLocaleState(safeLocale)
+
+    document.documentElement.lang =
+      safeLocale
+
+    window.localStorage.setItem(
+      LOCALE_STORAGE_KEY,
+      safeLocale
+    )
+
+    window.localStorage.removeItem(
+      LEGACY_LOCALE_STORAGE_KEY
+    )
   }, [])
 
   const value = useMemo(() => {
@@ -72,45 +93,62 @@ export function SiteI18nProvider({
         setLocaleState(safeLocale)
 
         window.localStorage.setItem(
-          'lux-lumina-locale',
+          LOCALE_STORAGE_KEY,
           safeLocale
+        )
+
+        window.localStorage.removeItem(
+          LEGACY_LOCALE_STORAGE_KEY
         )
 
         document.documentElement.lang =
           safeLocale
       },
 
-t(key, variables = {}) {
-  const translation =
-    getNestedValue(
-      dictionaries[locale],
-      key
-    ) ||
-    getNestedValue(
-      dictionaries.fr,
-      key
-    ) ||
-    key
+      t(key, variables = {}) {
+        const translation =
+          getNestedValue(
+            dictionaries[locale],
+            key
+          ) ||
+          getNestedValue(
+            dictionaries.fr,
+            key
+          ) ||
+          key
 
-  if (typeof translation !== 'string') {
-    return translation
-  }
+        if (
+          typeof translation !==
+          'string'
+        ) {
+          return translation
+        }
 
-  return Object.entries(variables).reduce(
-    (result, [variableName, variableValue]) => {
-      return result.replaceAll(
-        `{${variableName}}`,
-        String(variableValue)
-      )
-    },
-    translation
-  )
-},
+        return Object.entries(
+          variables
+        ).reduce(
+          (
+            result,
+            [
+              variableName,
+              variableValue,
+            ]
+          ) => {
+            return result.replaceAll(
+              `{${variableName}}`,
+              String(variableValue)
+            )
+          },
+          translation
+        )
+      },
     }
   }, [locale])
 
   return (
-    <SiteI18nContext.Provider value={value}>
+    <SiteI18nContext.Provider
+      value={value}
+    >
       {children}
     </SiteI18nContext.Provider>
   )

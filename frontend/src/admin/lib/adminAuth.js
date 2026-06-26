@@ -1,80 +1,168 @@
 'use client'
 
-const TOKEN_KEY = 'kaystia-admin-token'
-const USER_KEY = 'kaystia-admin-user'
+const TOKEN_KEY =
+  'kaystia-admin-token'
 
-const LEGACY_TOKEN_KEY = 'rim-admin-token'
-const LEGACY_USER_KEY = 'rim-admin-user'
+const USER_KEY =
+  'kaystia-admin-user'
+
+const LEGACY_TOKEN_KEY =
+  'rim-admin-token'
+
+const LEGACY_USER_KEY =
+  'rim-admin-user'
 
 export function getAdminToken() {
-  if (typeof window === 'undefined') {
+  if (
+    typeof window === 'undefined'
+  ) {
     return null
   }
 
-  const token =
-    localStorage.getItem(TOKEN_KEY) ||
-    localStorage.getItem(
+  const currentToken =
+    window.localStorage.getItem(
+      TOKEN_KEY
+    )
+
+  const legacyToken =
+    window.localStorage.getItem(
       LEGACY_TOKEN_KEY
     )
+
+  const token =
+    currentToken ||
+    legacyToken
 
   if (
     token &&
-    !localStorage.getItem(TOKEN_KEY)
+    !currentToken
   ) {
-    localStorage.setItem(
+    window.localStorage.setItem(
       TOKEN_KEY,
       token
     )
-
-    localStorage.removeItem(
-      LEGACY_TOKEN_KEY
-    )
   }
+
+  window.localStorage.removeItem(
+    LEGACY_TOKEN_KEY
+  )
 
   return token
 }
 
 export function getAdminUser() {
-  if (typeof window === 'undefined') return null
+  if (
+    typeof window === 'undefined'
+  ) {
+    return null
+  }
 
   try {
-const raw =
-  localStorage.getItem(USER_KEY) ||
-  localStorage.getItem(
-    LEGACY_USER_KEY
-  )
-    return raw ? JSON.parse(raw) : null
+    const currentUser =
+      window.localStorage.getItem(
+        USER_KEY
+      )
+
+    const legacyUser =
+      window.localStorage.getItem(
+        LEGACY_USER_KEY
+      )
+
+    const raw =
+      currentUser ||
+      legacyUser
+
+    if (
+      raw &&
+      !currentUser
+    ) {
+      window.localStorage.setItem(
+        USER_KEY,
+        raw
+      )
+    }
+
+    window.localStorage.removeItem(
+      LEGACY_USER_KEY
+    )
+
+    return raw
+      ? JSON.parse(raw)
+      : null
   } catch {
     return null
   }
 }
 
-export function setAdminSession(data) {
-  if (typeof window === 'undefined') return
+export function setAdminSession(
+  data
+) {
+  if (
+    typeof window === 'undefined'
+  ) {
+    return
+  }
 
   if (data?.access_token) {
-    localStorage.setItem(TOKEN_KEY, data.access_token)
+    window.localStorage.setItem(
+      TOKEN_KEY,
+      data.access_token
+    )
   }
 
   if (data?.user) {
-    localStorage.setItem(USER_KEY, JSON.stringify(data.user))
+    window.localStorage.setItem(
+      USER_KEY,
+      JSON.stringify(
+        data.user
+      )
+    )
   }
+
+  window.localStorage.removeItem(
+    LEGACY_TOKEN_KEY
+  )
+
+  window.localStorage.removeItem(
+    LEGACY_USER_KEY
+  )
 }
 
 export function clearAdminSession() {
-  if (typeof window === 'undefined') return
+  if (
+    typeof window === 'undefined'
+  ) {
+    return
+  }
 
-localStorage.removeItem(LEGACY_TOKEN_KEY)
-localStorage.removeItem(LEGACY_USER_KEY)
+  window.localStorage.removeItem(
+    TOKEN_KEY
+  )
 
+  window.localStorage.removeItem(
+    USER_KEY
+  )
 
+  window.localStorage.removeItem(
+    LEGACY_TOKEN_KEY
+  )
+
+  window.localStorage.removeItem(
+    LEGACY_USER_KEY
+  )
 }
 
-export function requireAdminSession(router) {
-  const token = getAdminToken()
+export function requireAdminSession(
+  router
+) {
+  const token =
+    getAdminToken()
 
   if (!token) {
-    router.replace('/admin/login')
+    router.replace(
+      '/admin/login'
+    )
+
     return null
   }
 

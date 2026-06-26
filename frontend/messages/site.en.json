@@ -34,7 +34,7 @@
     "categoriesTitle": "Shop by category",
     "categoriesSubtitle": "Quickly find products that suit your interior.",
 "featuredTitle": "Bestsellers",
-"featuredSubtitle": "Découvrez les produits les plus appréciés de Kaystia Home.",
+"featuredSubtitle": "Discover the most popular products from Kaystia Home.",
     "benefit1Title": "Carefully selected",
     "benefit1Text": "Products selected for their style, quality and ease of integration.",
     "benefit2Title": "Personal advice",
@@ -48,7 +48,7 @@
   },
 "shop": {
   "title": "The shop",
-  "subtitle": "Explorez toutes les collections Kaystia Home.",
+  "subtitle": "Explore all Kaystia Home collections.",
   "sectionSubtitle": "Discover products from the {section} section.",
   "search": "Search for a product, reference or brand",
   "all": "All products",
