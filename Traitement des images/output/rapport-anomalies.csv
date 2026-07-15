@@ -1,3 +1,0 @@
-﻿json_file,source_file,cleaned_file,reference,name,field,reason
-PHOTO-2026-06-08-15-42-16 2.json,PHOTO-2026-06-08-15-42-16 2.jpg,5018.jpg,,,warning,La référence et la taille semblent combinées dans le même texte visible.
-PHOTO-2026-06-08-15-42-16.json,PHOTO-2026-06-08-15-42-16.jpg,7301-80-180.jpg,,,warning,La taille semble intégrée à la référence visible dans la box commerciale.
