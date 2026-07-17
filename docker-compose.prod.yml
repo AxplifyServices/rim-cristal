@@ -1,16 +1,109 @@
 services:
-  rim-cristal-backend:
+  casaluxurydecor-minio:
+    image: quay.io/minio/minio:latest
+    container_name: casaluxurydecor-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - casaluxurydecor_minio_data:/data
+    networks:
+      - web
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:9000/minio/health/live"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+
+      - traefik.http.routers.casaluxurydecor-media.rule=Host(`casaluxurydecor.axplitest.com`) && PathPrefix(`/media`)
+      - traefik.http.routers.casaluxurydecor-media.entrypoints=websecure
+      - traefik.http.routers.casaluxurydecor-media.tls=true
+      - traefik.http.routers.casaluxurydecor-media.tls.certresolver=letsencrypt
+      - traefik.http.routers.casaluxurydecor-media.priority=300
+      - traefik.http.routers.casaluxurydecor-media.middlewares=casaluxurydecor-media-rewrite
+      - traefik.http.routers.casaluxurydecor-media.service=casaluxurydecor-minio
+
+      - traefik.http.middlewares.casaluxurydecor-media-rewrite.replacepathregex.regex=^/media/(.*)
+      - traefik.http.middlewares.casaluxurydecor-media-rewrite.replacepathregex.replacement=/casaluxurydecor-media/$${1}
+
+      - traefik.http.services.casaluxurydecor-minio.loadbalancer.server.port=9000
+
+  casaluxurydecor-minio-init:
+    image: quay.io/minio/mc:latest
+    container_name: casaluxurydecor-minio-init
+    depends_on:
+      casaluxurydecor-minio:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set casaluxurydecor http://casaluxurydecor-minio:9000
+      \"$${MINIO_ROOT_USER}\"
+      \"$${MINIO_ROOT_PASSWORD}\";
+
+      mc mb --ignore-existing
+      casaluxurydecor/casaluxurydecor-media;
+
+      mc anonymous set download
+      casaluxurydecor/casaluxurydecor-media;
+
+      mc admin user add
+      casaluxurydecor
+      \"$${MINIO_ACCESS_KEY}\"
+      \"$${MINIO_SECRET_KEY}\" || true;
+
+      mc admin policy create
+      casaluxurydecor
+      casaluxurydecor-api
+      /policies/casaluxurydecor-api-policy.json || true;
+
+      mc admin policy attach
+      casaluxurydecor
+      casaluxurydecor-api
+      --user \"$${MINIO_ACCESS_KEY}\";
+
+      exit 0;
+      "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+    volumes:
+      - ./infra/minio:/policies:ro
+    networks:
+      - web
+
+  casaluxurydecor-backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: rim-cristal-backend
+    container_name: casaluxurydecor-backend
     restart: unless-stopped
+    depends_on:
+      casaluxurydecor-minio:
+        condition: service_healthy
+      casaluxurydecor-minio-init:
+        condition: service_completed_successfully
     env_file:
       - .env.prod
     environment:
       PORT: 3000
-    volumes:
-      - /opt/apps/rim_cristal/backend/uploads:/app/uploads
+      MINIO_ENDPOINT: casaluxurydecor-minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -19,32 +112,30 @@ services:
       - traefik.enable=true
       - traefik.docker.network=web
 
-      - traefik.http.routers.rim-cristal-api.rule=Host(`rim-cristal.axplitest.com`) && PathPrefix(`/api`)
-      - traefik.http.routers.rim-cristal-api.entrypoints=websecure
-      - traefik.http.routers.rim-cristal-api.tls.certresolver=letsencrypt
-      - traefik.http.routers.rim-cristal-api.priority=100
-      - traefik.http.services.rim-cristal-api.loadbalancer.server.port=3000
-      - traefik.http.routers.rim-cristal-uploads.rule=Host(`rim-cristal.axplitest.com`) && PathPrefix(`/uploads`)
-      - traefik.http.routers.rim-cristal-uploads.entrypoints=websecure
-      - traefik.http.routers.rim-cristal-uploads.tls=true
-      - traefik.http.routers.rim-cristal-uploads.tls.certresolver=letsencrypt
-      - traefik.http.routers.rim-cristal-uploads.priority=200
-      - traefik.http.routers.rim-cristal-uploads.service=rim-cristal-api
+      - traefik.http.routers.casaluxurydecor-api.rule=Host(`casaluxurydecor.axplitest.com`) && PathPrefix(`/api`)
+      - traefik.http.routers.casaluxurydecor-api.entrypoints=websecure
+      - traefik.http.routers.casaluxurydecor-api.tls=true
+      - traefik.http.routers.casaluxurydecor-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.casaluxurydecor-api.priority=200
+      - traefik.http.routers.casaluxurydecor-api.service=casaluxurydecor-api
 
-  rim-cristal-frontend:
+      - traefik.http.services.casaluxurydecor-api.loadbalancer.server.port=3000
+
+  casaluxurydecor-frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://rim-cristal.axplitest.com/api
-        NEXT_PUBLIC_ADMIN_URL: https://rim-cristal-admin.axplitest.com
+        NEXT_PUBLIC_API_URL: https://casaluxurydecor.axplitest.com/api
+        NEXT_PUBLIC_ASSETS_URL: https://casaluxurydecor.axplitest.com
+        NEXT_PUBLIC_ADMIN_URL: https://casaluxurydecor.axplitest.com/admin
         NEXT_PUBLIC_FACEBOOK_URL: ${NEXT_PUBLIC_FACEBOOK_URL}
         NEXT_PUBLIC_INSTAGRAM_URL: ${NEXT_PUBLIC_INSTAGRAM_URL}
         NEXT_PUBLIC_WHATSAPP_NUMBER: ${NEXT_PUBLIC_WHATSAPP_NUMBER}
-    container_name: rim-cristal-frontend
+    container_name: casaluxurydecor-frontend
     restart: unless-stopped
     depends_on:
-      - rim-cristal-backend
+      - casaluxurydecor-backend
     env_file:
       - .env.prod
     networks:
@@ -53,21 +144,18 @@ services:
       - traefik.enable=true
       - traefik.docker.network=web
 
-      - traefik.http.routers.rim-cristal-front.rule=Host(`rim-cristal.axplitest.com`)
-      - traefik.http.routers.rim-cristal-front.entrypoints=websecure
-      - traefik.http.routers.rim-cristal-front.tls=true
-      - traefik.http.routers.rim-cristal-front.tls.certresolver=letsencrypt
-      - traefik.http.routers.rim-cristal-front.priority=10
-      - traefik.http.routers.rim-cristal-front.service=rim-cristal-front
+      - traefik.http.routers.casaluxurydecor-front.rule=Host(`casaluxurydecor.axplitest.com`)
+      - traefik.http.routers.casaluxurydecor-front.entrypoints=websecure
+      - traefik.http.routers.casaluxurydecor-front.tls=true
+      - traefik.http.routers.casaluxurydecor-front.tls.certresolver=letsencrypt
+      - traefik.http.routers.casaluxurydecor-front.priority=10
+      - traefik.http.routers.casaluxurydecor-front.service=casaluxurydecor-front
 
-      - traefik.http.routers.rim-cristal-admin.rule=Host(`rim-cristal-admin.axplitest.com`)
-      - traefik.http.routers.rim-cristal-admin.entrypoints=websecure
-      - traefik.http.routers.rim-cristal-admin.tls=true
-      - traefik.http.routers.rim-cristal-admin.tls.certresolver=letsencrypt
-      - traefik.http.routers.rim-cristal-admin.priority=20
-      - traefik.http.routers.rim-cristal-admin.service=rim-cristal-front
+      - traefik.http.services.casaluxurydecor-front.loadbalancer.server.port=3000
 
-      - traefik.http.services.rim-cristal-front.loadbalancer.server.port=3000
+volumes:
+  casaluxurydecor_minio_data:
+    name: casaluxurydecor_minio_data
 
 networks:
   web:

@@ -45,12 +45,12 @@ pdv123
 
 rim_cristal
 
-psql -U postgres -d rim_cristal -f database/schema/015_extend_stock_movement_types.sql
+psql -U postgres -d rim_cristal -f database/schema/016_migrate_product_images_to_minio.sql
 
 ** Exécution serveur : 
 
 cd /opt/apps/rim_cristal
 
-sudo -u postgres psql -d rim_cristal  -f database/schema/015_extend_stock_movement_types.sql
+sudo -u postgres psql -d rim_cristal  -f database/schema/016_migrate_product_images_to_minio.sql
 
 

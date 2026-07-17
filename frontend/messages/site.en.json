@@ -1,5 +1,5 @@
 {
- "brand": "Kaystia Home",
+ "brand": "Casa Luxury Decor",
 "nav": {
   "home": "Home",
   "cart": "Cart",
@@ -34,7 +34,7 @@
     "categoriesTitle": "Shop by category",
     "categoriesSubtitle": "Quickly find products that suit your interior.",
 "featuredTitle": "Bestsellers",
-"featuredSubtitle": "Discover the most popular products from Kaystia Home.",
+"featuredSubtitle": "Discover the most popular products from Casa Luxury Decor.",
 "benefit1Title": "A carefully curated selection",
 "benefit1Text": "Pieces selected for their style, quality and ability to blend naturally into your home.",
 "benefit2Title": "Personal guidance",
@@ -48,7 +48,7 @@
   },
 "shop": {
   "title": "The shop",
-  "subtitle": "Explore all Kaystia Home collections.",
+  "subtitle": "Explore all Casa Luxury Decor collections.",
   "sectionSubtitle": "Discover products from the {section} section.",
   "search": "Search for a product, reference or brand",
   "all": "All products",

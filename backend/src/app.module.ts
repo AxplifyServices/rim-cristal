@@ -2,12 +2,13 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ContactsModule } from './modules/contacts/contacts.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
 import { OrdersModule } from './modules/orders/orders.module';
-import { ProductsModule } from './modules/products/products.module';
-import { PrismaModule } from './prisma/prisma.module';
 import { PointOfSaleModule } from './modules/point-of-sale/point-of-sale.module';
-import { ContactsModule } from './modules/contacts/contacts.module';
+import { ProductsModule } from './modules/products/products.module';
+import { StorageModule } from './modules/storage/storage.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ContactsModule } from './modules/contacts/contacts.module';
       isGlobal: true,
     }),
     PrismaModule,
+    StorageModule,
     ProductsModule,
     AuthModule,
     OrdersModule,

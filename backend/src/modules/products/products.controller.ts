@@ -11,17 +11,19 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ProductsService } from './products.service';
 import { AuthGuard } from '../../common/auth/auth.guard';
-import { RolesGuard } from '../../common/auth/roles.guard';
 import { Roles } from '../../common/auth/roles.decorator';
+import { RolesGuard } from '../../common/auth/roles.guard';
+import { StorageService } from '../storage/storage.service';
+import { ProductsService } from './products.service';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly service: ProductsService) {}
+  constructor(
+    private readonly service: ProductsService,
+    private readonly storageService: StorageService,
+  ) {}
 
   @Get()
   findAll(@Query() query: any) {
@@ -43,30 +45,16 @@ export class ProductsController {
   @Roles('admin')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/products',
-        filename: (_req, file, callback) => {
-          const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-          callback(null, `product-${unique}${extname(file.originalname)}`);
-        },
-      }),
-      fileFilter: (_req, file, callback) => {
-        if (!file.mimetype.startsWith('image/')) {
-          callback(new Error('Only image files are allowed'), false);
-          return;
-        }
-
-        callback(null, true);
-      },
       limits: {
-        fileSize: 5 * 1024 * 1024,
+        files: 1,
+        fileSize: 8 * 1024 * 1024,
       },
     }),
   )
-  uploadImage(@UploadedFile() file: Express.Multer.File) {
-    return {
-      url: `/uploads/products/${file.filename}`,
-    };
+  async uploadImage(
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.storageService.uploadProductImage(file);
   }
 
   @Get(':id')
@@ -84,7 +72,10 @@ export class ProductsController {
   @Put(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  update(@Param('id') id: string, @Body() body: any) {
+  update(
+    @Param('id') id: string,
+    @Body() body: any,
+  ) {
     return this.service.update(Number(id), body);
   }
 

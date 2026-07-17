@@ -1,4 +1,4 @@
-name: Deploy Rim Cristal
+name: Deploy Casa Luxury Decor
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to VPS
+    name: Deploy Casa Luxury Decor
     runs-on: ubuntu-latest
 
     steps:
@@ -24,21 +24,35 @@ jobs:
           script: |
             set -e
 
-            echo "===== Go to app folder ====="
+            echo "===== Go to Casa Luxury Decor folder ====="
             cd /opt/apps/rim_cristal
 
             echo "===== Fetch latest code ====="
             git fetch origin main
             git reset --hard origin/main
 
-            echo "===== Ensure production env exists ====="
+            echo "===== Check production environment ====="
             test -f .env.prod
 
-            echo "===== Build and restart containers ====="
-            docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+            echo "===== Start MinIO first ====="
+            docker compose \
+              --env-file .env.prod \
+              -f docker-compose.prod.yml \
+              up -d \
+              casaluxurydecor-minio \
+              casaluxurydecor-minio-init
 
-            echo "===== Cleanup unused docker images ====="
+            echo "===== Build and restart application ====="
+            docker compose \
+              --env-file .env.prod \
+              -f docker-compose.prod.yml \
+              up -d --build
+
+            echo "===== Cleanup unused Docker images ====="
             docker image prune -f
 
-            echo "===== Status ====="
-            docker ps
+            echo "===== Container status ====="
+            docker compose \
+              --env-file .env.prod \
+              -f docker-compose.prod.yml \
+              ps

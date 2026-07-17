@@ -2,33 +2,44 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { join } from 'path';
-import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-    const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
 
-  app.useStaticAssets(join(process.cwd(), 'uploads'), {
-    prefix: '/uploads',
-  });
-
   const config = app.get(ConfigService);
-  const frontendUrl = config.get<string>('FRONTEND_URL') || 'http://localhost:3001';
-  const adminFrontendUrl = config.get<string>('ADMIN_FRONTEND_URL');
 
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  process.env.ADMIN_FRONTEND_URL,
-  process.env.CORS_ORIGIN,
-  'http://localhost:3000',
-  'http://localhost:3001',
-].filter((origin): origin is string => Boolean(origin));
+  const allowedOrigins = [
+    config.get<string>('FRONTEND_URL'),
+    config.get<string>('ADMIN_FRONTEND_URL'),
+    config.get<string>('CORS_ORIGIN'),
+    'http://localhost:3000',
+    'http://localhost:3001',
+  ].filter((origin): origin is string => Boolean(origin));
 
   app.enableCors({
-    origin: allowedOrigins,
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error('Origin not allowed by CORS'));
+    },
     credentials: true,
+    methods: [
+      'GET',
+      'POST',
+      'PUT',
+      'PATCH',
+      'DELETE',
+      'OPTIONS',
+    ],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+    ],
   });
 
   app.useGlobalPipes(
@@ -40,9 +51,11 @@ const allowedOrigins = [
 
   const port = Number(config.get('PORT') || 3000);
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
-  console.log(`Kaystia Home API running on http://localhost:${port}/api`);
+  console.log(
+    `Casa Luxury Decor API running on http://localhost:${port}/api`,
+  );
 }
 
 bootstrap();
