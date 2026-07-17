@@ -1,9 +1,21 @@
 import { AdminI18nProvider } from '../../src/admin/i18n/AdminI18nProvider'
 
 export const metadata = {
-  title: 'Kaystia Home Admin',
+  title: {
+    default: 'Administration | Casa Luxury Decor',
+    template: '%s | Administration Casa Luxury Decor',
+  },
+
   description:
-    'Gestion des commandes, des stocks et des points de vente Kaystia Home',
+    'Gestion des produits, des commandes, des stocks et des points de vente Casa Luxury Decor.',
+
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nocache: true,
+  },
+
   icons: {
     icon: '/icon.png',
     apple: '/apple-icon.png',
