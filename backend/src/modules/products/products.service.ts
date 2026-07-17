@@ -1,13 +1,26 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   isProductRubrique,
   PRODUCT_RUBRIQUES,
 } from './product-rubriques';
 
+import { StorageService } from '../storage/storage.service';
+
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(ProductsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storageService: StorageService,
+  ) {}
 
 private normalizeProductColors(
   hasColorVariants: boolean,
@@ -773,13 +786,126 @@ const nextSlug =
     });
   }
 
-  async remove(id: number) {
-    await this.findById(id);
+async remove(id: number) {
+  const product = await this.findById(id);
 
-    await this.prisma.products.delete({
-      where: { id },
+  const imageUrls = [
+    product.url_image1,
+    product.url_image2,
+    product.url_image3,
+    product.url_image4,
+    product.url_image5,
+  ].filter((url): url is string => Boolean(url));
+
+  try {
+    await this.prisma.$transaction(async tx => {
+      /*
+       * Les commandes doivent conserver leur historique.
+       * On détache donc le produit au lieu de supprimer les lignes.
+       */
+      await tx.order_items.updateMany({
+        where: {
+          product_id: id,
+        },
+        data: {
+          product_id: null,
+        },
+      });
+
+      /*
+       * Même logique pour les ventes effectuées en point de vente.
+       */
+      await tx.point_of_sale_sale_items.updateMany({
+        where: {
+          product_id: id,
+        },
+        data: {
+          product_id: null,
+        },
+      });
+
+      /*
+       * Ces mouvements dépendent directement du produit et bloquent
+       * actuellement la suppression à cause du ON DELETE RESTRICT.
+       */
+      await tx.stock_movements.deleteMany({
+        where: {
+          product_id: id,
+        },
+      });
+
+      /*
+       * Suppressions explicites pour rendre le comportement clair,
+       * même si certaines contraintes sont déjà en cascade.
+       */
+      await tx.point_of_sale_stocks.deleteMany({
+        where: {
+          product_id: id,
+        },
+      });
+
+      await tx.wishlist_items.deleteMany({
+        where: {
+          product_id: id,
+        },
+      });
+
+      await tx.reviews.deleteMany({
+        where: {
+          product_id: id,
+        },
+      });
+
+      await tx.products.delete({
+        where: {
+          id,
+        },
+      });
     });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : String(error);
 
-    return { success: true };
+    this.logger.error(
+      `Suppression impossible pour le produit ${id} : ${message}`,
+    );
+
+    throw new InternalServerErrorException(
+      'Le produit n’a pas pu être supprimé.',
+    );
   }
+
+  /*
+   * Les fichiers MinIO sont supprimés après validation de la transaction.
+   * Une erreur MinIO ne doit pas restaurer un produit déjà supprimé.
+   */
+  const imageDeletionResults =
+    await Promise.allSettled(
+      imageUrls.map(url =>
+        this.storageService.removeObjectFromUrl(url),
+      ),
+    );
+
+  const failedImageDeletions =
+    imageDeletionResults.filter(
+      result => result.status === 'rejected',
+    ).length;
+
+  if (failedImageDeletions > 0) {
+    this.logger.warn(
+      `${failedImageDeletions} image(s) MinIO du produit ${id} n’ont pas pu être supprimées.`,
+    );
+  }
+
+  return {
+    success: true,
+    deleted_product_id: id,
+    detached_order_items: true,
+    detached_point_of_sale_sale_items: true,
+    image_cleanup_warning:
+      failedImageDeletions > 0,
+  };
+}
 }
