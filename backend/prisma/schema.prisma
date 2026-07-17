@@ -73,19 +73,26 @@ model newsletter_subscribers {
 }
 
 model order_items {
-  id                Int       @id @default(autoincrement())
-  order_id          Int
-  product_id        Int?
-  product_name      String    @db.VarChar(255)
-  product_reference String?   @db.VarChar(100)
-  product_image     String?
-  selected_color    String?   @db.VarChar(80)
-  selected_size     String?   @db.VarChar(80)
-  unit_price        Decimal   @db.Decimal(12, 2)
-  quantity          Int       @default(1)
-  line_total        Decimal   @db.Decimal(12, 2)
-  orders            orders    @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  products          products? @relation(fields: [product_id], references: [id], onUpdate: NoAction)
+  id                      Int                    @id @default(autoincrement())
+  order_id                Int
+  product_id              Int?
+  product_name            String                 @db.VarChar(255)
+  product_reference       String?                @db.VarChar(100)
+  product_image           String?
+  selected_color          String?                @db.VarChar(80)
+  selected_size           String?                @db.VarChar(80)
+  unit_price              Decimal                @db.Decimal(12, 2)
+  quantity                Int                    @default(1)
+  line_total              Decimal                @db.Decimal(12, 2)
+  product_size_variant_id BigInt?
+  selected_width_cm       Decimal?               @db.Decimal(10, 2)
+  selected_depth_cm       Decimal?               @db.Decimal(10, 2)
+  selected_height_cm      Decimal?               @db.Decimal(10, 2)
+  product_size_variants   product_size_variants? @relation(fields: [product_size_variant_id], references: [id], onUpdate: NoAction, map: "fk_order_items_size_variant")
+  orders                  orders                 @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  products                products?              @relation(fields: [product_id], references: [id], onUpdate: NoAction)
+
+  @@index([product_size_variant_id], map: "idx_order_items_size_variant")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -183,9 +190,11 @@ model products {
   width_cm                                                       Decimal?                   @db.Decimal(10, 2)
   depth_cm                                                       Decimal?                   @db.Decimal(10, 2)
   height_cm                                                      Decimal?                   @db.Decimal(10, 2)
+  has_size_variants                                              Boolean                    @default(false)
   order_items                                                    order_items[]
   point_of_sale_sale_items                                       point_of_sale_sale_items[]
   point_of_sale_stocks                                           point_of_sale_stocks[]
+  product_size_variants                                          product_size_variants[]
   product_categories_products_category_idToproduct_categories    product_categories?        @relation("products_category_idToproduct_categories", fields: [category_id], references: [id], onUpdate: NoAction)
   product_categories_products_subcategory_idToproduct_categories product_categories?        @relation("products_subcategory_idToproduct_categories", fields: [subcategory_id], references: [id], onUpdate: NoAction)
   reviews                                                        reviews[]
@@ -266,19 +275,26 @@ model wishlist_items {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model point_of_sale_sale_items {
-  id                  Int                 @id @default(autoincrement())
-  sale_id             Int
-  product_id          Int?
-  product_name        String              @db.VarChar(255)
-  product_reference   String?             @db.VarChar(100)
-  unit_price          Decimal             @default(0) @db.Decimal(12, 2)
-  quantity            Int                 @default(1)
-  line_total          Decimal             @default(0) @db.Decimal(12, 2)
-  products            products?           @relation(fields: [product_id], references: [id], onUpdate: NoAction)
-  point_of_sale_sales point_of_sale_sales @relation(fields: [sale_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                      Int                    @id @default(autoincrement())
+  sale_id                 Int
+  product_id              Int?
+  product_name            String                 @db.VarChar(255)
+  product_reference       String?                @db.VarChar(100)
+  unit_price              Decimal                @default(0) @db.Decimal(12, 2)
+  quantity                Int                    @default(1)
+  line_total              Decimal                @default(0) @db.Decimal(12, 2)
+  product_size_variant_id BigInt?
+  selected_size           String?                @db.VarChar(160)
+  selected_width_cm       Decimal?               @db.Decimal(10, 2)
+  selected_depth_cm       Decimal?               @db.Decimal(10, 2)
+  selected_height_cm      Decimal?               @db.Decimal(10, 2)
+  product_size_variants   product_size_variants? @relation(fields: [product_size_variant_id], references: [id], onUpdate: NoAction, map: "fk_pos_sale_items_size_variant")
+  products                products?              @relation(fields: [product_id], references: [id], onUpdate: NoAction)
+  point_of_sale_sales     point_of_sale_sales    @relation(fields: [sale_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([product_id], map: "idx_pos_sale_items_product")
   @@index([sale_id], map: "idx_pos_sale_items_sale")
+  @@index([product_size_variant_id], map: "idx_pos_sale_items_size_variant")
 }
 
 model point_of_sale_sales {
@@ -302,18 +318,21 @@ model point_of_sale_sales {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model point_of_sale_stocks {
-  id               Int            @id @default(autoincrement())
-  point_of_sale_id Int
-  product_id       Int
-  quantity         Int            @default(0)
-  created_at       DateTime       @default(now()) @db.Timestamp(6)
-  updated_at       DateTime       @default(now()) @db.Timestamp(6)
-  point_of_sales   point_of_sales @relation(fields: [point_of_sale_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  products         products       @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                      Int                   @id @default(autoincrement())
+  point_of_sale_id        Int
+  product_id              Int
+  quantity                Int                   @default(0)
+  created_at              DateTime              @default(now()) @db.Timestamp(6)
+  updated_at              DateTime              @default(now()) @db.Timestamp(6)
+  product_size_variant_id BigInt
+  product_size_variants   product_size_variants @relation(fields: [product_size_variant_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_pos_stocks_size_variant")
+  point_of_sales          point_of_sales        @relation(fields: [point_of_sale_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  products                products              @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@unique([point_of_sale_id, product_id], map: "uq_pos_product_stock")
+  @@unique([point_of_sale_id, product_size_variant_id], map: "uq_pos_product_size_variant_stock")
   @@index([point_of_sale_id], map: "idx_pos_stocks_pos")
   @@index([product_id], map: "idx_pos_stocks_product")
+  @@index([product_size_variant_id], map: "idx_pos_stocks_size_variant")
 }
 
 model point_of_sales {
@@ -359,29 +378,32 @@ model product_categories {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model stock_movements {
-  id                  Int                  @id @default(autoincrement())
-  product_id          Int
-  point_of_sale_id    Int?
-  movement_type       String               @db.VarChar(40)
-  quantity            Int
-  stock_global_before Int?
-  stock_global_after  Int?
-  stock_pos_before    Int?
-  stock_pos_after     Int?
-  sale_id             Int?
-  note                String?
-  created_at          DateTime             @default(now()) @db.Timestamp(6)
-  order_id            Int?
-  orders              orders?              @relation(fields: [order_id], references: [id], onUpdate: NoAction, map: "fk_stock_movements_order")
-  point_of_sales      point_of_sales?      @relation(fields: [point_of_sale_id], references: [id], onUpdate: NoAction)
-  products            products             @relation(fields: [product_id], references: [id], onUpdate: NoAction)
-  point_of_sale_sales point_of_sale_sales? @relation(fields: [sale_id], references: [id], onUpdate: NoAction)
+  id                      Int                    @id @default(autoincrement())
+  product_id              Int
+  point_of_sale_id        Int?
+  movement_type           String                 @db.VarChar(40)
+  quantity                Int
+  stock_global_before     Int?
+  stock_global_after      Int?
+  stock_pos_before        Int?
+  stock_pos_after         Int?
+  sale_id                 Int?
+  note                    String?
+  created_at              DateTime               @default(now()) @db.Timestamp(6)
+  order_id                Int?
+  product_size_variant_id BigInt?
+  orders                  orders?                @relation(fields: [order_id], references: [id], onUpdate: NoAction, map: "fk_stock_movements_order")
+  product_size_variants   product_size_variants? @relation(fields: [product_size_variant_id], references: [id], onUpdate: NoAction, map: "fk_stock_movements_size_variant")
+  point_of_sales          point_of_sales?        @relation(fields: [point_of_sale_id], references: [id], onUpdate: NoAction)
+  products                products               @relation(fields: [product_id], references: [id], onUpdate: NoAction)
+  point_of_sale_sales     point_of_sale_sales?   @relation(fields: [sale_id], references: [id], onUpdate: NoAction)
 
   @@index([created_at], map: "idx_stock_movements_created_at")
   @@index([point_of_sale_id], map: "idx_stock_movements_pos")
   @@index([product_id], map: "idx_stock_movements_product")
   @@index([movement_type], map: "idx_stock_movements_type")
   @@index([order_id], map: "idx_stock_movements_order")
+  @@index([product_size_variant_id], map: "idx_stock_movements_size_variant")
 }
 
 model contact_message_history {
@@ -410,4 +432,34 @@ model order_status_history {
 
   @@index([created_at], map: "idx_order_status_history_created_at")
   @@index([order_id], map: "idx_order_status_history_order")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model product_size_variants {
+  id                       BigInt                     @id @default(autoincrement())
+  product_id               Int
+  label                    String?                    @db.VarChar(160)
+  reference                String?                    @db.VarChar(140)
+  width_cm                 Decimal?                   @db.Decimal(10, 2)
+  depth_cm                 Decimal?                   @db.Decimal(10, 2)
+  height_cm                Decimal?                   @db.Decimal(10, 2)
+  price                    Decimal                    @default(0) @db.Decimal(12, 2)
+  price_wholesale          Decimal                    @default(0) @db.Decimal(12, 2)
+  wholesale_min_qty        Int                        @default(1)
+  stock                    Int                        @default(0)
+  is_primary               Boolean                    @default(false)
+  is_active                Boolean                    @default(true)
+  display_order            Int                        @default(0)
+  created_at               DateTime                   @default(now()) @db.Timestamp(6)
+  updated_at               DateTime                   @default(now()) @db.Timestamp(6)
+  order_items              order_items[]
+  point_of_sale_sale_items point_of_sale_sale_items[]
+  point_of_sale_stocks     point_of_sale_stocks[]
+  products                 products                   @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_product_size_variants_product")
+  stock_movements          stock_movements[]
+
+  @@index([product_id, is_active], map: "idx_product_size_variants_active")
+  @@index([product_id, display_order, id], map: "idx_product_size_variants_display_order")
+  @@index([product_id], map: "idx_product_size_variants_product")
+  @@index([stock], map: "idx_product_size_variants_stock")
 }
