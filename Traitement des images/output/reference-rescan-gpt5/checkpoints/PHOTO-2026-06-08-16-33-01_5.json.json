@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "3473",
+      "size": "",
+      "price": "270 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette rouge en haut de l’image : “3473” au-dessus de “270 dh”"
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "3433/34",
+      "size": "",
+      "price": "270 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "La partie '34' pourrait correspondre à une taille, aucune unité n’est indiquée."
+  ]
+}

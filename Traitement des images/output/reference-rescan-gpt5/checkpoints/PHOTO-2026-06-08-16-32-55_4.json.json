@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "2797",
+      "size": "",
+      "price": "420 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Badge rouge en haut à droite : '2797 420 dh'"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible.",
+    "Une petite étiquette sur le plateau en haut est présente mais illisible."
+  ]
+}

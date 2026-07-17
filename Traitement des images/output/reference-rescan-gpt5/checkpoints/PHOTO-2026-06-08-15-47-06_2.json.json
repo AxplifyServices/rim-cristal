@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "d006",
+      "size": "",
+      "price": "290 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Encadré jaune en bas à gauche : « d006 290 dh »"
+    }
+  ],
+  "warnings": []
+}

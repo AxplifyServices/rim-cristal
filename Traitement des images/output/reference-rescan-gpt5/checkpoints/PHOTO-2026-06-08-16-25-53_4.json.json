@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "Flower 1",
+      "size": "",
+      "price": "790 dh",
+      "confidence_reference": 0.95,
+      "evidence": "Encart prix en haut à droite : 'Flower 1' au-dessus de '790 dh'."
+    }
+  ],
+  "warnings": []
+}

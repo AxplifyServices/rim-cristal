@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "4444",
+      "size": "120x80",
+      "price": "1300 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encart rouge en haut à gauche : « 4444 » au-dessus de « 120x80 »"
+    }
+  ],
+  "warnings": []
+}

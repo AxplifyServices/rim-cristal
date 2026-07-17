@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "SC 126",
+      "size": "",
+      "price": "3450 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Bloc jaune en haut à droite"
+    }
+  ],
+  "warnings": []
+}

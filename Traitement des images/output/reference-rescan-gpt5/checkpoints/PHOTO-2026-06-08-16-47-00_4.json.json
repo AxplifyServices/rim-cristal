@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "175/90cm",
+      "price": "950 dh",
+      "confidence_reference": 0.1,
+      "evidence": "Étiquette rouge en haut à gauche : \"175/90cm 950 dh\""
+    }
+  ],
+  "warnings": [
+    "Aucune référence commerciale visible dans l'image ; logo de marque ignoré."
+  ]
+}

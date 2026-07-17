@@ -1,0 +1,28 @@
+{
+  "products": [
+    {
+      "reference": "2914/3-3",
+      "size": "",
+      "price": "65dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rouge au-dessus de la statuette de gauche"
+    },
+    {
+      "reference": "2914/3-2",
+      "size": "",
+      "price": "65 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rouge au-dessus de la statuette centrale"
+    },
+    {
+      "reference": "2914/3-1",
+      "size": "",
+      "price": "65 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rouge au-dessus de la statuette de droite"
+    }
+  ],
+  "warnings": [
+    "Le format d'espacement du prix varie (65dh vs 65 dh) — reproduit tel quel."
+  ]
+}

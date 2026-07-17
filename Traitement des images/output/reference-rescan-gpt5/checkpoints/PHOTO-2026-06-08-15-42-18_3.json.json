@@ -1,0 +1,19 @@
+{
+  "products": [
+    {
+      "reference": "81025/6",
+      "size": "",
+      "price": "3950 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré violet en haut à droite, 1re ligne"
+    },
+    {
+      "reference": "81025/80",
+      "size": "",
+      "price": "5800 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré violet en haut à droite, 2e ligne"
+    }
+  ],
+  "warnings": []
+}

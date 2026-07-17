@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "L 2258",
+      "size": "",
+      "price": "650 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette jaune en bas à gauche indiquant 'L 2258' au-dessus de '650 dh'."
+    }
+  ],
+  "warnings": []
+}

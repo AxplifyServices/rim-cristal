@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "2615/3-1-2-3",
+      "size": "",
+      "price": "480 dh",
+      "confidence_reference": 0.95,
+      "evidence": "étiquette rouge en haut de l’image"
+    }
+  ],
+  "warnings": []
+}

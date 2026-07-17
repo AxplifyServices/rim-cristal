@@ -1,0 +1,28 @@
+{
+  "products": [
+    {
+      "reference": "8338/45",
+      "size": "45",
+      "price": "790 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Bloc violet en bas à gauche"
+    },
+    {
+      "reference": "8338/55",
+      "size": "55",
+      "price": "1100 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Bloc violet en bas à gauche"
+    },
+    {
+      "reference": "8338/80×30",
+      "size": "80×30",
+      "price": "1200 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Bloc violet en bas à gauche"
+    }
+  ],
+  "warnings": [
+    "Les points finaux après les codes semblent typographiques et ont été ignorés dans les références."
+  ]
+}

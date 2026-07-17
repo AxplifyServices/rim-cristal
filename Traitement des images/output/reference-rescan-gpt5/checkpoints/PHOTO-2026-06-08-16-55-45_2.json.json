@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "js 32 B",
+      "size": "",
+      "price": "1450 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette rose en haut à droite: 'js 32 B' au-dessus de '1450 dh'"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l'image."
+  ]
+}

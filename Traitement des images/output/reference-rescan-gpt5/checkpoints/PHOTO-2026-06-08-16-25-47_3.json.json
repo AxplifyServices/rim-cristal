@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "7461/62",
+      "size": "",
+      "price": "850 dh",
+      "confidence_reference": 0.99,
+      "evidence": "étiquette rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Deux objets visibles mais une seule étiquette donne référence et prix. Aucune taille lisible."
+  ]
+}

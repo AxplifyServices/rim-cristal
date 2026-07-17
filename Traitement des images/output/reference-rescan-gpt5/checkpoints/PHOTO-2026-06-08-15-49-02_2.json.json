@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "0145 BK",
+      "size": "",
+      "price": "285 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Texte en haut à droite « 0145 BK »"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible dans l'image."
+  ]
+}

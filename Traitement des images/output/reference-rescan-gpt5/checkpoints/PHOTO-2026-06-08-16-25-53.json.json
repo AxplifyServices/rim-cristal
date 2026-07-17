@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "flower 2",
+      "size": "",
+      "price": "790 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Etiquette en haut à droite affichant \"flower 2\" avec le prix juste dessous"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible.",
+    "Autres textes sur l’emballage en bas à droite trop petits/illisibles."
+  ]
+}

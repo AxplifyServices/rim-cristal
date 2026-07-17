@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "3346",
+      "size": "50*70",
+      "price": "150 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rouge sous l’image : 3346"
+    }
+  ],
+  "warnings": []
+}

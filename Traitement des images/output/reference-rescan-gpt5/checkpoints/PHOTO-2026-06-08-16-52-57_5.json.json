@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "8385",
+      "size": "",
+      "price": "190 dh",
+      "confidence_reference": 0.99,
+      "evidence": "étiquette verte en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Taille non indiquée.",
+    "Deux vases visibles mais une seule étiquette de référence/prix."
+  ]
+}

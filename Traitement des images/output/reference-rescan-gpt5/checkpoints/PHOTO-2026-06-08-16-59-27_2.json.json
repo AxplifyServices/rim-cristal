@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "H 2017-1",
+      "size": "",
+      "price": "6500 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré rouge en haut à droite."
+    }
+  ],
+  "warnings": [
+    "Aucune autre référence ou taille lisible sur l’image."
+  ]
+}

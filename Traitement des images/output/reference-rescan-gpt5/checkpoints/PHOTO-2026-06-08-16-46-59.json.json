@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8213",
+      "size": "68 cm",
+      "price": "480 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Bloc rouge en bas à gauche : '8213'"
+    }
+  ],
+  "warnings": [
+    "Une petite étiquette blanche au bas de l’objet est illisible ; d’éventuelles références supplémentaires n’ont pas pu être lues."
+  ]
+}

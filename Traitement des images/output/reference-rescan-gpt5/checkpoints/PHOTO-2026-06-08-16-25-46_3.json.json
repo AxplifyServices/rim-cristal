@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "7415/16/17",
+      "size": "",
+      "price": "1200 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encart rouge en haut à droite : \"7415/16/17 1200 dh\""
+    }
+  ],
+  "warnings": [
+    "Plusieurs pièces visibles mais tailles non précisées ; un seul bloc référence/prix lisible."
+  ]
+}

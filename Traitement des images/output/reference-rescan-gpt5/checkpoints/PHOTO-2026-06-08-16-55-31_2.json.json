@@ -1,0 +1,21 @@
+{
+  "products": [
+    {
+      "reference": "SJ 1381",
+      "size": "100*100",
+      "price": "4950 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Texte en haut à droite «SJ 1381»"
+    },
+    {
+      "reference": "SJ 1381",
+      "size": "70*70",
+      "price": "4950 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Ligne «Size 70*70» sous la référence"
+    }
+  ],
+  "warnings": [
+    "Un seul prix «4950 dh» est affiché ; supposé commun aux deux tailles faute d’indication contraire."
+  ]
+}

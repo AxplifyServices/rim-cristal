@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "kd 159",
+      "size": "",
+      "price": "1700dh",
+      "confidence_reference": 0.98,
+      "evidence": "étiquette jaune en haut à gauche"
+    }
+  ],
+  "warnings": []
+}

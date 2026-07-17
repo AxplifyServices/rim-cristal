@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8131/3-1-2-3",
+      "size": "",
+      "price": "110 dh",
+      "confidence_reference": 0.93,
+      "evidence": "étiquette rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Des indications de tailles apparaissent sur les cadres (ex. 4x6, 5x7, 8x10) mais elles ne constituent pas des références; aucune association certaine à la référence n’est lisible."
+  ]
+}

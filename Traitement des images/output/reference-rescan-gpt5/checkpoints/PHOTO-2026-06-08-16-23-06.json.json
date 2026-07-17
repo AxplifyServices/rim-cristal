@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8106",
+      "size": "15x20cm",
+      "price": "50 dh",
+      "confidence_reference": 0.99,
+      "evidence": "encart rouge en haut à droite « 8106 50 dh »"
+    }
+  ],
+  "warnings": [
+    "Une pastille verte sur le cadre semble afficher un code mais il est illisible ; non pris en compte."
+  ]
+}

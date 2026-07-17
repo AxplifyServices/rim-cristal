@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "XD 0013",
+      "size": "",
+      "price": "980 dh",
+      "confidence_reference": 0.99,
+      "evidence": "étiquette jaune en bas à gauche indiquant « XD 0013 »"
+    }
+  ],
+  "warnings": []
+}

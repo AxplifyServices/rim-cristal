@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8254",
+      "size": "H 57×80 cm",
+      "price": "1050 dh",
+      "confidence_reference": 0.98,
+      "evidence": "encadré vert en haut à droite"
+    }
+  ],
+  "warnings": []
+}

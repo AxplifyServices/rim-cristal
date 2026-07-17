@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "077.",
+      "size": "",
+      "price": "650 dh",
+      "confidence_reference": 0.95,
+      "evidence": "Encadré rouge en bas à droite affichant '077.' et '650 dh'."
+    }
+  ],
+  "warnings": [
+    "Autres petits textes au centre de la fleur illisibles."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "920",
+      "size": "",
+      "price": "2100 dh",
+      "confidence_reference": 0.93,
+      "evidence": "Étiquette jaune en haut à droite : \"920\" au-dessus de \"2100 dh\"."
+    }
+  ],
+  "warnings": [
+    "Deux tables visibles mais une seule étiquette ; aucune taille indiquée."
+  ]
+}

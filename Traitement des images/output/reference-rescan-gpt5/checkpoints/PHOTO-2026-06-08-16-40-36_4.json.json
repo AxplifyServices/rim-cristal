@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2765/66",
+      "size": "",
+      "price": "90 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Étiquette orange en haut à droite affichant '2765/66' au-dessus de '90 dh'."
+    }
+  ],
+  "warnings": [
+    "Deux objets de tailles différentes sont visibles mais aucune taille n’est indiquée; une seule référence et un seul prix lisibles."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "L006/12",
+      "size": "",
+      "price": "2300 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Étiquette jaune en bas à gauche"
+    }
+  ],
+  "warnings": [
+    "Aucune taille distincte lisible ; “/12” considéré comme partie de la référence."
+  ]
+}

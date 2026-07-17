@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "3202/03/04",
+      "size": "",
+      "price": "580 dh.",
+      "confidence_reference": 0.96,
+      "evidence": "étiquette rouge en haut : « 3202/03/04 580 dh. »"
+    }
+  ],
+  "warnings": [
+    "Plusieurs objets visibles mais une seule référence affichée.",
+    "Aucune taille lisible sur l’image."
+  ]
+}

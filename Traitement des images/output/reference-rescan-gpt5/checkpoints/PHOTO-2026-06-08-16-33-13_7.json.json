@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "3073/74/75",
+      "size": "",
+      "price": "320 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Encadré rouge en haut à droite : '3073/74/75 320 dh'"
+    }
+  ],
+  "warnings": [
+    "Référence abrégée regroupant plusieurs variantes possibles; aucune taille indiquée sur l'image."
+  ]
+}

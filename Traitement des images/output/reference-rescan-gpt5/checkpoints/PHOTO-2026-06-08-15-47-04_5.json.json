@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "d 206",
+      "size": "",
+      "price": "385 dh",
+      "confidence_reference": 0.66,
+      "evidence": "étiquette jaune en bas à gauche"
+    }
+  ],
+  "warnings": [
+    "Le texte « d 206 » pourrait être une dimension et non une référence; aucune autre référence lisible."
+  ]
+}

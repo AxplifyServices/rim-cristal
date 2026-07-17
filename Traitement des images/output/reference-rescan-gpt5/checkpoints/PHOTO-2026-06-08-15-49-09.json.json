@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "12063/3 LED",
+      "size": "",
+      "price": "480 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Texte en bas à droite: '12063/3 LED'"
+    }
+  ],
+  "warnings": []
+}

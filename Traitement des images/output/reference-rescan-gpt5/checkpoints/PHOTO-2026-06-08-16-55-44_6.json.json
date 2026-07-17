@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "ID-18",
+      "size": "",
+      "price": "2800 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette jaune en haut à droite : « ID-18 » avec « 2800 dh »."
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l’image.",
+    "De petits autocollants sur les plateaux semblent contenir du texte mais sont illisibles."
+  ]
+}

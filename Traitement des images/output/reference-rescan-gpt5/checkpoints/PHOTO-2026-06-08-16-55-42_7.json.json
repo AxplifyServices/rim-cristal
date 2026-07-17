@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "kd 247",
+      "size": "",
+      "price": "1800 dh",
+      "confidence_reference": 0.95,
+      "evidence": "étiquette jaune en haut à gauche : 'kd 247'"
+    }
+  ],
+  "warnings": []
+}

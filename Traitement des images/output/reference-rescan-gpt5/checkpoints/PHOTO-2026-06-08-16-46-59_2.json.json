@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8021",
+      "size": "90x75 cm",
+      "price": "490 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré rouge en haut à droite : '8021 90x75 cm 490 dh'"
+    }
+  ],
+  "warnings": []
+}

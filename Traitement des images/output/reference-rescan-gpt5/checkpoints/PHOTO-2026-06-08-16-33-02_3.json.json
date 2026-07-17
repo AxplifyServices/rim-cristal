@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2825/3-1-2-3",
+      "size": "",
+      "price": "220 dh",
+      "confidence_reference": 0.96,
+      "evidence": "étiquette rouge en haut"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l’image. Le prix semble s’appliquer à l’ensemble, non précisé par taille."
+  ]
+}

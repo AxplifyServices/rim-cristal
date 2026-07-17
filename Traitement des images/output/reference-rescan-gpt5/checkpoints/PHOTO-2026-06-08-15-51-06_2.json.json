@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "A264",
+      "size": "",
+      "price": "175 dh",
+      "confidence_reference": 0.98,
+      "evidence": "En haut à droite : 'A264' au-dessus de '175 dh'."
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l'image."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "A1007",
+      "size": "",
+      "price": "295 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Texte en haut à droite : « A1007 »"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible n’apparaît dans l’image."
+  ]
+}

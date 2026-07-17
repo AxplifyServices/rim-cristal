@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "1701",
+      "size": "",
+      "price": "450 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Texte rouge en bas de l'image : « 1701 » juste au-dessus de « 450 dh »."
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible sur l'image.",
+    "La monnaie « dh » n'est pas explicitée (probablement dirhams)."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "860 S",
+      "size": "",
+      "price": "185 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Etiquette jaune en haut à gauche « 860 S »"
+    }
+  ],
+  "warnings": []
+}

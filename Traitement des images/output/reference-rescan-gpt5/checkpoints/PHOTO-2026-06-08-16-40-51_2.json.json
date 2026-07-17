@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "3244/46",
+      "size": "",
+      "price": "215 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Cartouche rouge en haut à droite affichant '3244/46' et '215 dh'."
+    }
+  ],
+  "warnings": []
+}

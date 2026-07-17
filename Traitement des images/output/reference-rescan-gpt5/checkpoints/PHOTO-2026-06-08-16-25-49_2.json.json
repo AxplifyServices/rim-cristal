@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "3102/03/04",
+      "size": "",
+      "price": "580 dh.",
+      "confidence_reference": 0.95,
+      "evidence": "Étiquette rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Plusieurs objets de tailles différentes sont visibles mais aucune taille n’est lisible.",
+    "La chaîne « 3102/03/04 » peut regrouper plusieurs variantes; l’image ne précise pas la correspondance par taille."
+  ]
+}

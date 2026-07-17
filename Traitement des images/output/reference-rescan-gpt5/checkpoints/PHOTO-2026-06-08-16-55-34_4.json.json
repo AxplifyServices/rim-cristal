@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "A 30.",
+      "size": "90*43*85",
+      "price": "1700 dh.",
+      "confidence_reference": 0.98,
+      "evidence": "Texte en haut à droite : “A 30.”, “Size 90*43*85”, “1700 dh.”"
+    }
+  ],
+  "warnings": []
+}

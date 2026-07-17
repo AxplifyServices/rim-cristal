@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "5005",
+      "size": "",
+      "price": "550 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Bloc rouge en haut à gauche affichant '5005' et '550 dh'"
+    }
+  ],
+  "warnings": []
+}

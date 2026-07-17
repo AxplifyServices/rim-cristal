@@ -1,0 +1,21 @@
+{
+  "products": [
+    {
+      "reference": "95488/4 Bd",
+      "size": "4",
+      "price": "780 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Encadré jaune en haut à droite, 1ère ligne"
+    },
+    {
+      "reference": "95488/6 BD",
+      "size": "6",
+      "price": "1100 dh",
+      "confidence_reference": 0.95,
+      "evidence": "Encadré jaune en haut à droite, 2e ligne"
+    }
+  ],
+  "warnings": [
+    "L’unité monétaire en fin de ligne est légèrement tronquée; lecture 'dh' avec légère incertitude."
+  ]
+}

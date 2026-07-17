@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "3133",
+      "size": "",
+      "price": "165 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rouge en haut à droite : '3133 165 dh'."
+    }
+  ],
+  "warnings": [
+    "Plusieurs objets visibles (fleurs et plateaux). L'étiquette semble concerner les plateaux."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "kd 160",
+      "size": "180x40cm",
+      "price": "1800 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré blanc en bas à droite : 'kd 160'"
+    }
+  ],
+  "warnings": []
+}

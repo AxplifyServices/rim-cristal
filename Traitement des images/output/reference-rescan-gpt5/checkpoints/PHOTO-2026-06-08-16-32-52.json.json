@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "2794/2-1-2",
+      "size": "",
+      "price": "240 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rouge en haut à droite indiquant la référence et le prix"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l'image.",
+    "Une seule étiquette pour deux vases ; association précise par pièce non indiquée."
+  ]
+}

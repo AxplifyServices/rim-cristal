@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8203.",
+      "size": "95x58 cm",
+      "price": "550 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Encadré rouge en haut à droite : '8203. 95x58 cm 550 dh'"
+    }
+  ],
+  "warnings": []
+}

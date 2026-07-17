@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "11813/1 bk",
+      "size": "",
+      "price": "395 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Texte en haut à droite : \"11813/1 bk\" et \"395 dh\""
+    }
+  ],
+  "warnings": []
+}

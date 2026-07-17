@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "c 922 A",
+      "size": "",
+      "price": "1950 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Étiquette jaune en bas à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l’image."
+  ]
+}

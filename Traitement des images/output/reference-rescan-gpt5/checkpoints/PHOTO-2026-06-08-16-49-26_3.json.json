@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2924",
+      "size": "",
+      "price": "130 dh",
+      "confidence_reference": 0.94,
+      "evidence": "Encadré rouge en haut à droite : “2924” au-dessus de “130 dh”"
+    }
+  ],
+  "warnings": [
+    "Plusieurs plateaux de tailles différentes visibles, mais aucune taille n’est lisible."
+  ]
+}

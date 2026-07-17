@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "A 2337",
+      "size": "",
+      "price": "3200 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette jaune en haut à droite : 'A 2337 3200 dh'"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l'image."
+  ]
+}

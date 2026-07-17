@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8191",
+      "size": "",
+      "price": "650 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Pastille prix en haut à droite : « 8191 » au-dessus de « 650 dh »."
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l’image ; plusieurs hauteurs visibles mais non spécifiées."
+  ]
+}

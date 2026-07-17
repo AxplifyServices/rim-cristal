@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "L 2688",
+      "size": "",
+      "price": "650 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette jaune en bas à gauche : 'L 2688 650 dh'"
+    }
+  ],
+  "warnings": []
+}

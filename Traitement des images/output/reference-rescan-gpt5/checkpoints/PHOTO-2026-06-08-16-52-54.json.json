@@ -1,0 +1,21 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "",
+      "price": "",
+      "confidence_reference": 0.05,
+      "evidence": "Étiquette verte à la base du chameau gauche (illisible)"
+    },
+    {
+      "reference": "",
+      "size": "",
+      "price": "",
+      "confidence_reference": 0.05,
+      "evidence": "Aucune référence visible sur le chameau droit"
+    }
+  ],
+  "warnings": [
+    "Aucun code, taille ou prix lisibles sur l’image. Pas de tableau/légende de catalogue visible."
+  ]
+}

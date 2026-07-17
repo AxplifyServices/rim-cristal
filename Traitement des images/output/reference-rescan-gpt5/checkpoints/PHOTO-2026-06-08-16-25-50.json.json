@@ -1,0 +1,21 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "",
+      "price": "",
+      "confidence_reference": 0.1,
+      "evidence": "Aucune réf. lisible (produit blanc/or, côté gauche)"
+    },
+    {
+      "reference": "",
+      "size": "",
+      "price": "",
+      "confidence_reference": 0.1,
+      "evidence": "Aucune réf. lisible (produit rouge/or, côté droit)"
+    }
+  ],
+  "warnings": [
+    "Aucune référence commerciale, taille ou prix visibles ; seulement logos et mentions de marque."
+  ]
+}

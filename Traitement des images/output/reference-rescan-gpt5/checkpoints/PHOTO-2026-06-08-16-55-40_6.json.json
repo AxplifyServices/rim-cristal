@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "cj 1201",
+      "size": "",
+      "price": "3950 dh",
+      "confidence_reference": 0.96,
+      "evidence": "étiquette jaune en haut à droite « cj 1201 »"
+    }
+  ],
+  "warnings": []
+}

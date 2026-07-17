@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "L007/6",
+      "size": "",
+      "price": "1100 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré jaune en bas à gauche : \"L007/6 1100 dh\""
+    }
+  ],
+  "warnings": [
+    "Aucune taille/dimension lisible.",
+    "Logos/branding ignorés."
+  ]
+}

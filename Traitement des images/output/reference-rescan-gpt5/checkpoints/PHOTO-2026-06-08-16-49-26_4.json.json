@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2814",
+      "size": "",
+      "price": "110 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Sticker rouge en haut à droite : \"2814\" et \"110 dh\"."
+    }
+  ],
+  "warnings": [
+    "Deux plateaux de tailles différentes visibles mais aucune dimension n’est lisible."
+  ]
+}

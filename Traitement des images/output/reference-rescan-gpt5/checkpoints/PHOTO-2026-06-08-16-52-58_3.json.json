@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8297/2-1-2",
+      "size": "",
+      "price": "280 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette verte en haut à droite avec le texte '8297/2-1-2'."
+    }
+  ],
+  "warnings": []
+}

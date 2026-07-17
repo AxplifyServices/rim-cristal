@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "rim 13",
+      "size": "120x80cm",
+      "price": "1300 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Bloc rouge en haut à gauche : \"rim 13 120x80cm\""
+    }
+  ],
+  "warnings": [
+    "Logo/marque \"Kim Cristal\" ignoré (règle 8)."
+  ]
+}

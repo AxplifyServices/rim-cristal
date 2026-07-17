@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "T2258",
+      "size": "",
+      "price": "320 dh",
+      "confidence_reference": 0.99,
+      "evidence": "encadré jaune en haut à droite 'T2258 320 dh'"
+    }
+  ],
+  "warnings": []
+}

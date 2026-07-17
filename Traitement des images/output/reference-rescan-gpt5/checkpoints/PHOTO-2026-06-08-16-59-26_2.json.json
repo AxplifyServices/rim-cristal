@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "h788-1",
+      "size": "",
+      "price": "7500 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette jaune en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible sur l'image."
+  ]
+}

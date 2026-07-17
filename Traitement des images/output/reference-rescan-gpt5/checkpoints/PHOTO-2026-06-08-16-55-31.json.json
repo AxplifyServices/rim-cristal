@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "cj 1323",
+      "size": "150*80*35",
+      "price": "3950 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Texte en haut à gauche : « cj 1323 »"
+    }
+  ],
+  "warnings": []
+}

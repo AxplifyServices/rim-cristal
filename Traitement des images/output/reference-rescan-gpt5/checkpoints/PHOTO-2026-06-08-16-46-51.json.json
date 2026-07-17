@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "3954.",
+      "size": "140x90cm",
+      "price": "780dh",
+      "confidence_reference": 0.96,
+      "evidence": "étiquette jaune en bas à droite"
+    }
+  ],
+  "warnings": []
+}

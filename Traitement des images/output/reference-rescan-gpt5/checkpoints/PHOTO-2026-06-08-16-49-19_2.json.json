@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8193",
+      "size": "",
+      "price": "220 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Étiquette orange en haut à droite '8193 220 dh'"
+    }
+  ],
+  "warnings": []
+}

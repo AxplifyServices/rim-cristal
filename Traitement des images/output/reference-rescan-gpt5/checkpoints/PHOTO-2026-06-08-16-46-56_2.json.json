@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8224",
+      "size": "",
+      "price": "490 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Cartouche orange en bas à droite : '8224' au-dessus de '490 dh'"
+    }
+  ],
+  "warnings": []
+}

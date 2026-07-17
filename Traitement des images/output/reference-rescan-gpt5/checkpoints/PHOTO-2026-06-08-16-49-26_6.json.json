@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "2816",
+      "size": "",
+      "price": "110 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Pastille rouge en haut à droite « 2816 »"
+    }
+  ],
+  "warnings": [
+    "Deux plateaux visibles mais aucune taille lisible.",
+    "Le prix affiché peut concerner une pièce ou l’ensemble, information non précisée."
+  ]
+}

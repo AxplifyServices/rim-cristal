@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2453",
+      "size": "",
+      "price": "350dh",
+      "confidence_reference": 0.98,
+      "evidence": "encart rose/violet en haut à droite « 2453 350dh »"
+    }
+  ],
+  "warnings": [
+    "Plusieurs bougeoirs visibles mais une seule référence/prix affichés ; aucune taille lisible."
+  ]
+}

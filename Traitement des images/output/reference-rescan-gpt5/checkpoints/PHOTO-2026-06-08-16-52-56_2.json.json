@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "8193/2-1-2",
+      "size": "",
+      "price": "170 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Texte blanc sur encart vert en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible.",
+    "Plusieurs objets visibles mais une seule référence/prix indiqués."
+  ]
+}

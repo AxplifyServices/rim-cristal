@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "868/90",
+      "size": "90",
+      "price": "950 dh",
+      "confidence_reference": 0.97,
+      "evidence": "étiquette rouge en haut à gauche « 868/90 » et « 950 dh »"
+    }
+  ],
+  "warnings": []
+}

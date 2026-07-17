@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "kd 242",
+      "size": "1+4",
+      "price": "3200 dh",
+      "confidence_reference": 0.98,
+      "evidence": "cadre jaune en haut à droite « kd 242 1+4 3200 dh »"
+    }
+  ],
+  "warnings": []
+}

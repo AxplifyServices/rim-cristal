@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "9824",
+      "size": "",
+      "price": "285 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré rouge en haut à droite affichant \"9824\" et \"285 dh\"."
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible sur l'image."
+  ]
+}

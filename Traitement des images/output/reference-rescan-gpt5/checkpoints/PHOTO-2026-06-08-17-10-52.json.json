@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "rim004",
+      "size": "",
+      "price": "450,00",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rose en haut : « rim004 » au-dessus de « 450,00 »"
+    }
+  ],
+  "warnings": []
+}

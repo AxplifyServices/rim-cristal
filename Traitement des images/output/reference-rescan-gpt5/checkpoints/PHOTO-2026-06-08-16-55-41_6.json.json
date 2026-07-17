@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "92323",
+      "size": "",
+      "price": "1300 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette orange en haut à droite affichant \"92323\" et \"1300 dh\""
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l'image."
+  ]
+}

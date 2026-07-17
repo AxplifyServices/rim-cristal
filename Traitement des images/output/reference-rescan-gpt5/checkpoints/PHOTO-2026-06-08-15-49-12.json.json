@@ -1,0 +1,21 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "",
+      "price": "480 dh",
+      "confidence_reference": 0.05,
+      "evidence": "aucune référence visible; prix rouge «480 dh» en bas gauche"
+    },
+    {
+      "reference": "",
+      "size": "",
+      "price": "1752",
+      "confidence_reference": 0.05,
+      "evidence": "aucune référence visible; nombre rouge «1752» sous «480 dh»"
+    }
+  ],
+  "warnings": [
+    "Aucune référence commerciale lisible sur l’image. Uniquement des prix visibles («480 dh», «1752»)."
+  ]
+}

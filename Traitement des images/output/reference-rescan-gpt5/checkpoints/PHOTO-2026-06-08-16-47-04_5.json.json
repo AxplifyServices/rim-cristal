@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "rim 54",
+      "size": "",
+      "price": "1300 dh",
+      "confidence_reference": 0.93,
+      "evidence": "Étiquette rouge en haut à droite indiquant « rim 54 » au-dessus de « 1300 dh »."
+    }
+  ],
+  "warnings": [
+    "La mention « 54 » pourrait représenter une taille mais aucune unité n’est visible."
+  ]
+}

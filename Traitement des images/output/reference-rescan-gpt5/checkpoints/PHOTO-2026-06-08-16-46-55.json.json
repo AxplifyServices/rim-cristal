@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8115",
+      "size": "60/60 cm",
+      "price": "350 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Cartouche rouge en haut à gauche"
+    }
+  ],
+  "warnings": []
+}

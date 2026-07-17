@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2880/2-1-2",
+      "size": "",
+      "price": "480 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encart rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible sur l'image."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "rim 333",
+      "size": "100x100",
+      "price": "1450 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Cartouche rouge en haut à droite « rim 333 100x100 »"
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "ST 045",
+      "size": "",
+      "price": "4450 dh",
+      "confidence_reference": 0.99,
+      "evidence": "étiquette jaune en haut à gauche : \"ST 045\""
+    }
+  ],
+  "warnings": []
+}

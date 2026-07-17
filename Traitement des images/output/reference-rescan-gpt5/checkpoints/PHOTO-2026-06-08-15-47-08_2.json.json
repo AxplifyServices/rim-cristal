@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "MX 65/6",
+      "size": "",
+      "price": "1200 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encart jaune en bas à gauche"
+    }
+  ],
+  "warnings": []
+}

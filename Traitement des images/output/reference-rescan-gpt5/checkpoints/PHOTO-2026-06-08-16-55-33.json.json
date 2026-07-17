@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "JS 095.",
+      "size": "70*45*85",
+      "price": "1700 dh.",
+      "confidence_reference": 0.99,
+      "evidence": "Texte en haut à droite : « JS 095. »"
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "5021/50",
+      "size": "",
+      "price": "1050 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Encadré violet en haut à droite : '5021/50 1050 dh'"
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8251",
+      "size": "H46×33cm",
+      "price": "245 dh.",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré vert en haut à droite"
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "C 919",
+      "size": "",
+      "price": "2100 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Encadré jaune en bas à gauche : 'C 919' et juste en dessous '2100 dh'."
+    }
+  ],
+  "warnings": [
+    "Taille non indiquée.",
+    "Deux tables visibles mais une seule référence/prix affichés."
+  ]
+}

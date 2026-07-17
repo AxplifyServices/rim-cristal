@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "9010",
+      "size": "",
+      "price": "450 dh",
+      "confidence_reference": 0.95,
+      "evidence": "Texte rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l'image"
+  ]
+}

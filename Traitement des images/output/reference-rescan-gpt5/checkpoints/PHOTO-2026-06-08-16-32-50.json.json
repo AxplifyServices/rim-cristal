@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "3724/25/26",
+      "size": "",
+      "price": "260 dh",
+      "confidence_reference": 0.98,
+      "evidence": "étiquette rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "La chaîne '3724/25/26' semble regrouper plusieurs variantes; aucune taille distincte n'est lisible."
+  ]
+}

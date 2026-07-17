@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "flower 2",
+      "size": "",
+      "price": "790 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Encadré en haut à droite : \"flower 2\" au-dessus de \"790 dh\"."
+    }
+  ],
+  "warnings": [
+    "Aucune autre référence lisible sur la boîte en bas à droite."
+  ]
+}

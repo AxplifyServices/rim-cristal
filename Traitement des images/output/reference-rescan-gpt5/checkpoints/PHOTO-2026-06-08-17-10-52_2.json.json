@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "rim004",
+      "size": "",
+      "price": "450,00",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré violet en haut à gauche : 'rim004 450,00'"
+    }
+  ],
+  "warnings": []
+}

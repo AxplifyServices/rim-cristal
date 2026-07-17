@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "L021/5",
+      "size": "",
+      "price": "850dh",
+      "confidence_reference": 0.9,
+      "evidence": "Encadré jaune en bas à droite affichant: L021/5 850dh"
+    }
+  ],
+  "warnings": [
+    "Ambiguïté possible sur le caractère après 'L' (0 zéro ou O). Lecture retenue : L021/5."
+  ]
+}

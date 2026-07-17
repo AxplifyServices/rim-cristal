@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8219",
+      "size": "115 cm",
+      "price": "650 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré rouge en haut à droite : « 8219 / 115 cm / 650 dh »"
+    }
+  ],
+  "warnings": []
+}

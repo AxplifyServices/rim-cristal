@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "T 2203",
+      "size": "",
+      "price": "320 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Cartouche jaune en haut à droite"
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "",
+      "price": "450 dh",
+      "confidence_reference": 0.05,
+      "evidence": "Aucune référence lisible ; seul texte de prix \"450 dh\" en rouge en haut à droite."
+    }
+  ],
+  "warnings": [
+    "Aucune référence commerciale visible sur l'image.",
+    "Le nombre \"1750\" apparaît sans unité ; ignoré comme prix potentiel."
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "products": [
+    {
+      "reference": "2749",
+      "size": "",
+      "price": "55 dh",
+      "confidence_reference": 0.99,
+      "evidence": "étiquette rose au-dessus du produit gauche «2749 55 dh»"
+    },
+    {
+      "reference": "2747",
+      "size": "",
+      "price": "55 dh",
+      "confidence_reference": 0.99,
+      "evidence": "étiquette rose au-dessus du produit central «2747 55 dh»"
+    },
+    {
+      "reference": "2748",
+      "size": "",
+      "price": "55 dh",
+      "confidence_reference": 0.99,
+      "evidence": "étiquette rose au-dessus du produit droit «2748 55 dh»"
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8250",
+      "size": "H 50×39cm",
+      "price": "550 dh.",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré vert en haut à droite affichant 8250"
+    }
+  ],
+  "warnings": [
+    "Petite étiquette verte sur le socle avec logo/texte illisible ignorée."
+  ]
+}

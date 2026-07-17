@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "",
+      "price": "160 dh",
+      "confidence_reference": 0.05,
+      "evidence": "Réf. absente; encadré rouge en haut à droite n’indique qu’un prix."
+    }
+  ],
+  "warnings": [
+    "Aucune référence commerciale lisible sur l’image.",
+    "Le nombre « 2800 » apparaît aussi dans l’encadré rouge sans unité ni libellé, non interprété."
+  ]
+}

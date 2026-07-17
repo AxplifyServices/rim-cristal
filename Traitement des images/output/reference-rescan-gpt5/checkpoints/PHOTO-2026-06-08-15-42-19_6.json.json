@@ -1,0 +1,19 @@
+{
+  "products": [
+    {
+      "reference": "6126/8",
+      "size": "",
+      "price": "850 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Texte rouge à gauche '6126/8' au-dessus du prix violet '850 dh'."
+    },
+    {
+      "reference": "6126/6",
+      "size": "",
+      "price": "650 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Texte rouge à droite '6126/6' au-dessus du prix violet '650 dh'."
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8248",
+      "size": "H 44 cm",
+      "price": "480 cm",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette verte en haut à droite : '8248'"
+    }
+  ],
+  "warnings": [
+    "Le prix lu est '480 cm' (aucune devise) ; possible erreur de libellé sur l'image."
+  ]
+}

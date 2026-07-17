@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8060",
+      "size": "",
+      "price": "135 dh",
+      "confidence_reference": 0.99,
+      "evidence": "cartouche rouge en haut à gauche affichant \"8060\" et \"135 dh\""
+    }
+  ],
+  "warnings": []
+}

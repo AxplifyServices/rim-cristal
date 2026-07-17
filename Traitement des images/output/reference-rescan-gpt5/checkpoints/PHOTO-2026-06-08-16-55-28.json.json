@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "HX 410",
+      "size": "",
+      "price": "1650 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette blanche en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible sur l'image."
+  ]
+}

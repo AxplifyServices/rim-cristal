@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "SC 151",
+      "size": "75*50",
+      "price": "3200 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Texte en haut à droite"
+    }
+  ],
+  "warnings": []
+}

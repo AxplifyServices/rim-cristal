@@ -1,0 +1,21 @@
+{
+  "products": [
+    {
+      "reference": "3029/40",
+      "size": "40",
+      "price": "690 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Bloc violet en bas à gauche, 1re ligne : '3029/40   690 dh'."
+    },
+    {
+      "reference": "3029/60.",
+      "size": "60",
+      "price": "1150 dh",
+      "confidence_reference": 0.95,
+      "evidence": "Bloc violet en bas à gauche, 2e ligne : '3029/60.   1150 dh'."
+    }
+  ],
+  "warnings": [
+    "La seconde référence comporte un point final tel qu’affiché : '3029/60.'"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "269/90cm",
+      "size": "90cm",
+      "price": "950 dh",
+      "confidence_reference": 0.9,
+      "evidence": "Encadré rouge en bas à gauche indiquant \"269/90cm\" et juste dessous \"950 dh\"."
+    }
+  ],
+  "warnings": [
+    "Une petite étiquette blanche pendante à droite est illisible ; aucune autre référence lisible."
+  ]
+}

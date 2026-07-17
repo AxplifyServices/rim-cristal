@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "7432",
+      "size": "",
+      "price": "850 dh",
+      "confidence_reference": 0.96,
+      "evidence": "étiquette rouge en haut à droite : \"7432\" au-dessus de \"850 dh\""
+    }
+  ],
+  "warnings": [
+    "Trois contenants de tailles différentes visibles mais aucune taille écrite.",
+    "Une seule étiquette de prix/référence visible ; correspondance exacte avec chaque variante non précisée."
+  ]
+}

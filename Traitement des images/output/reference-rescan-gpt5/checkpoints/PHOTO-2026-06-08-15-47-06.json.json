@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "d 224",
+      "size": "",
+      "price": "285 dh",
+      "confidence_reference": 0.86,
+      "evidence": "Encadré jaune en bas à gauche : 'd 224' au-dessus de '285 dh'."
+    }
+  ],
+  "warnings": []
+}

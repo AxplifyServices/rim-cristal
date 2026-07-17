@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "380",
+      "price": "950 dh",
+      "confidence_reference": 0.05,
+      "evidence": "Encadré jaune en haut à droite : '380' au-dessus de '950 dh'; aucune référence visible."
+    }
+  ],
+  "warnings": [
+    "Aucune référence commerciale lisible ; seule la taille et le prix sont visibles."
+  ]
+}

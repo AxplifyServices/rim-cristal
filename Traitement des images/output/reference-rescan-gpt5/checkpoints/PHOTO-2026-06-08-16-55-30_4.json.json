@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8075",
+      "size": "table 60 cm",
+      "price": "2500 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Texte blanc en haut à droite : « 8075 »"
+    }
+  ],
+  "warnings": []
+}

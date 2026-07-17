@@ -1,0 +1,29 @@
+{
+  "products": [
+    {
+      "reference": "3331/32/33",
+      "size": "6\"x8\" (15x20cm)",
+      "price": "110dh.",
+      "confidence_reference": 0.97,
+      "evidence": "Étiquette rouge: \"3331/32/33 110dh.\"; taille visible sur le cadre gauche 6\"x8\" (15x20cm)"
+    },
+    {
+      "reference": "3331/32/33",
+      "size": "5\"x7\" (13x18cm)",
+      "price": "110dh.",
+      "confidence_reference": 0.97,
+      "evidence": "Étiquette rouge: \"3331/32/33 110dh.\"; taille sur le cadre droit 5\"x7\" (13x18cm)"
+    },
+    {
+      "reference": "3331/32/33",
+      "size": "4\"x6\" (10x15cm)",
+      "price": "110dh.",
+      "confidence_reference": 0.97,
+      "evidence": "Étiquette rouge: \"3331/32/33 110dh.\"; taille sur le cadre avant 4\"x6\" (10x15cm)"
+    }
+  ],
+  "warnings": [
+    "Une seule étiquette de prix \"110dh.\" couvre les trois variantes ; prix supposé identique pour chaque taille.",
+    "La référence est groupée sous la forme \"3331/32/33\" sans correspondance taille↔réf. spécifique visible."
+  ]
+}

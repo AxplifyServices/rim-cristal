@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "8142",
+      "size": "",
+      "price": "95 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré rouge en haut à droite : 8142 au-dessus de 95 dh."
+    }
+  ],
+  "warnings": [
+    "Logo 'RIM Cristal' ignoré (pas une référence).",
+    "Aucune taille visible."
+  ]
+}

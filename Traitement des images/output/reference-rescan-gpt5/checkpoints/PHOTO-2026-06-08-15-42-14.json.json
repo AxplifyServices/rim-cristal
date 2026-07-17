@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "SR 1167/65",
+      "size": "65",
+      "price": "850 dh.",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré rouge en haut à droite"
+    }
+  ],
+  "warnings": []
+}

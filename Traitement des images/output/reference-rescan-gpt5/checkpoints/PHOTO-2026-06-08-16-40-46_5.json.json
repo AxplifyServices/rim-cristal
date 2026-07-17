@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2557",
+      "size": "",
+      "price": "230 dh",
+      "confidence_reference": 0.94,
+      "evidence": "encadré rouge en haut à droite : \"2557 230 dh\""
+    }
+  ],
+  "warnings": [
+    "Texte éventuel sur le socle flou/illisible."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "3900",
+      "size": "",
+      "price": "85 dh",
+      "confidence_reference": 0.7,
+      "evidence": "Étiquette rouge en haut à droite : \"3900\" au-dessus de \"85 dh\"."
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible.",
+    "\"3900\" interprété comme référence car le prix explicite \"85 dh\" est indiqué en dessous."
+  ]
+}

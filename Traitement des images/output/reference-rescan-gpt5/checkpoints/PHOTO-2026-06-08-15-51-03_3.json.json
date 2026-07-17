@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "9820",
+      "size": "H 43 cm",
+      "price": "295 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré jaune en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Le mot « abajoure » est ignoré car descriptif et non une référence."
+  ]
+}

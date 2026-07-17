@@ -1,0 +1,22 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "",
+      "price": "1300 dh",
+      "confidence_reference": 0.05,
+      "evidence": "Étiquette rouge en haut à gauche « 1300 dh »."
+    },
+    {
+      "reference": "",
+      "size": "120x80 cm",
+      "price": "999",
+      "confidence_reference": 0.05,
+      "evidence": "Étiquette rouge en haut à droite « 999 » au-dessus de « 120x80 cm »."
+    }
+  ],
+  "warnings": [
+    "Aucune référence commerciale lisible dans l’image ; la marque « Rim Cristal » est ignorée.",
+    "Le « 999 » semble être un prix, pas une référence."
+  ]
+}

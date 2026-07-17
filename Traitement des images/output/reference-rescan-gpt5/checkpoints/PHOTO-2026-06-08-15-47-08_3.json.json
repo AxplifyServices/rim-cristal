@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "L028/6",
+      "size": "",
+      "price": "1100,00",
+      "confidence_reference": 0.82,
+      "evidence": "étiquette jaune en bas à gauche \"L028/6\" avec prix"
+    }
+  ],
+  "warnings": [
+    "Le deuxième caractère peut être un zéro «0» ou la lettre «O». La devise du prix n’est pas précisée."
+  ]
+}

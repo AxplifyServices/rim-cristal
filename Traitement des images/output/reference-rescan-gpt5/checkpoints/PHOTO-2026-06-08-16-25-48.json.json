@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "7425/26",
+      "size": "",
+      "price": "450 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Deux bocaux visibles mais une seule référence/prix ; taille non indiquée."
+  ]
+}

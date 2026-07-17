@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "173.",
+      "size": "120x80cm",
+      "price": "950 dh",
+      "confidence_reference": 0.95,
+      "evidence": "Bloc rouge en haut à gauche : \"173. 120x80cm 950 dh\"."
+    }
+  ],
+  "warnings": []
+}

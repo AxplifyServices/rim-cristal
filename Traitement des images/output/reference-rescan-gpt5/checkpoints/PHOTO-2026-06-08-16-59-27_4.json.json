@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "H 784",
+      "size": "",
+      "price": "6500 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Encart rouge en haut à droite avec le code et le prix."
+    }
+  ],
+  "warnings": []
+}

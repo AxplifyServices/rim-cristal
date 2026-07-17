@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "L012/6",
+      "size": "",
+      "price": "1050dh",
+      "confidence_reference": 0.94,
+      "evidence": "Cartouche jaune en bas à droite : « L012/6 1050dh »"
+    }
+  ],
+  "warnings": [
+    "Logo commercial « Rim Cristal » ignoré (règle 8)."
+  ]
+}

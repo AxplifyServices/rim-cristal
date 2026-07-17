@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "3325/26/27",
+      "size": "",
+      "price": "165 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette rouge en haut : « 3325/26/27 165 dh »"
+    }
+  ],
+  "warnings": [
+    "Les petites inscriptions de taille sur les photos des cadres sont trop floues/illisibles.",
+    "Aucune autre référence lisible sur l’image."
+  ]
+}

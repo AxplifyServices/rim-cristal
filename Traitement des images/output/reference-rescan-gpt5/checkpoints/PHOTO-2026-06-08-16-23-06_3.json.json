@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2128/3-1-2-3",
+      "size": "",
+      "price": "110 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Étiquette rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Tailles mentionnées sur les papiers des cadres illisibles dans l’image ; non associées."
+  ]
+}

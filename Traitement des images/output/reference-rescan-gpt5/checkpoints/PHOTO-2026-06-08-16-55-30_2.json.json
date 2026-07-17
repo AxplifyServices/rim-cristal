@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8076.",
+      "size": "60 cm",
+      "price": "2800 dh",
+      "confidence_reference": 0.9,
+      "evidence": "Texte en haut à droite : \"8076.\" suivi de \"table 60 cm\" et \"2800 dh\""
+    }
+  ],
+  "warnings": [
+    "Le point final après 8076 peut être une simple ponctuation et non une partie de la référence."
+  ]
+}

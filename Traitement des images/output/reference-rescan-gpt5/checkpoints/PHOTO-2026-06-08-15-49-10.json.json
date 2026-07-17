@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "D9688",
+      "size": "",
+      "price": "245 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Texte en haut à droite : « D9688 245 dh »"
+    }
+  ],
+  "warnings": []
+}

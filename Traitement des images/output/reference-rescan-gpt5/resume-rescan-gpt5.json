@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5",
+  "sources_candidates": 623,
+  "sources_scanned_via_api": 623,
+  "sources_loaded_from_checkpoint": 0,
+  "references_applied": 636,
+  "low_confidence_or_empty": 22,
+  "technical_errors": 0,
+  "minimum_confidence": 0.7,
+  "products_input_csv": "output\\consolidation-produits-avec-images.csv",
+  "updated_products_csv": "output\\reference-rescan-gpt5\\consolidation-produits-references-gpt5.csv",
+  "corrections_csv": "output\\reference-rescan-gpt5\\references-corrigees-gpt5.csv"
+}

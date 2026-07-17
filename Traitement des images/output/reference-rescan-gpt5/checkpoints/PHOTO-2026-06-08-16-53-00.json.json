@@ -1,0 +1,28 @@
+{
+  "products": [
+    {
+      "reference": "8274/2-2",
+      "size": "",
+      "price": "680 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette verte au-dessus du vase gauche"
+    },
+    {
+      "reference": "8274/2-2",
+      "size": "",
+      "price": "680 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette verte au-dessus du vase droit"
+    },
+    {
+      "reference": "8274/2-1",
+      "size": "",
+      "price": "350 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette verte au-dessus du bol central"
+    }
+  ],
+  "warnings": [
+    "Aucune taille ou dimension visible sur l'image."
+  ]
+}

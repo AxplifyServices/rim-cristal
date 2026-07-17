@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "CJ 1250.",
+      "size": "200x40x40 cm",
+      "price": "2950 dh",
+      "confidence_reference": 0.94,
+      "evidence": "Bloc jaune en bas à gauche : texte \"CJ 1250.\""
+    }
+  ],
+  "warnings": [
+    "Ponctuation finale (.) peut être typographique et non partie de la référence."
+  ]
+}

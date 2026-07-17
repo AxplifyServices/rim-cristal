@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8286/3-1",
+      "size": "",
+      "price": "230 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré vert en haut à droite."
+    }
+  ],
+  "warnings": [
+    "Une petite étiquette sur le pied semble contenir du texte mais elle est illisible."
+  ]
+}

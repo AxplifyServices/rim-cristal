@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2450/3-1-2-3",
+      "size": "",
+      "price": "280dh",
+      "confidence_reference": 0.98,
+      "evidence": "encart rose en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Trois objets visibles mais une seule référence/prix ; taille non précisée sur l'image."
+  ]
+}

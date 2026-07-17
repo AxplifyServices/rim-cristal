@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "Flower 3",
+      "size": "",
+      "price": "790 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Encart rose/orange en haut à droite : 'Flower 3' avec le prix '790 dh'"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l'image.",
+    "Textes sur la boîte en bas à droite illisibles, aucune référence supplémentaire extraite."
+  ]
+}

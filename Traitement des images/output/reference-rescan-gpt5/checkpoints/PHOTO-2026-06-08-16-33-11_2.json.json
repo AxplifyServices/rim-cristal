@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "8083",
+      "size": "",
+      "price": "150 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré rouge en haut à gauche : '8083 150 dh'."
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible pour la référence.",
+    "D'autres objets sont visibles mais sans référence lisible."
+  ]
+}

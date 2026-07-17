@@ -1,0 +1,22 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "d 233",
+      "price": "390 dh",
+      "confidence_reference": 0.1,
+      "evidence": "Étiquette blanche sur la lampe gauche (illisible); pastille jaune 'd 233 390 dh'"
+    },
+    {
+      "reference": "",
+      "size": "",
+      "price": "",
+      "confidence_reference": 0.1,
+      "evidence": "Étiquette blanche/rouge sur la lampe droite (illisible)"
+    }
+  ],
+  "warnings": [
+    "Références trop petites/illisibles sur les étiquettes pendantes.",
+    "La pastille 'd 233 390 dh' est interprétée comme taille et prix; impossible d’associer avec certitude aux deux variantes."
+  ]
+}

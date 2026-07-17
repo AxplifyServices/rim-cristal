@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "rim 59",
+      "size": "120x80cm",
+      "price": "1450 dh",
+      "confidence_reference": 0.94,
+      "evidence": "Etiquette rouge en haut à droite 'rim 59 120x80cm'; prix en haut à gauche '1450 dh'"
+    }
+  ],
+  "warnings": []
+}

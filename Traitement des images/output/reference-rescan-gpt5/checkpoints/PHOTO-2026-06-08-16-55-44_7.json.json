@@ -1,0 +1,16 @@
+{
+  "products": [
+    {
+      "reference": "c 926",
+      "size": "",
+      "price": "2450 dh",
+      "confidence_reference": 0.96,
+      "evidence": "étiquette jaune en haut à droite : 'c 926'"
+    }
+  ],
+  "warnings": [
+    "Deux tables visibles mais aucune taille n'est indiquée.",
+    "Un seul prix affiché; incertain s'il s'applique à une pièce ou à un ensemble.",
+    "'marber' semble décrire le matériau et non une référence."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8110",
+      "size": "120/80cm",
+      "price": "450 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré rouge en haut à gauche affichant '8110 120/80cm 450 dh'."
+    }
+  ],
+  "warnings": []
+}

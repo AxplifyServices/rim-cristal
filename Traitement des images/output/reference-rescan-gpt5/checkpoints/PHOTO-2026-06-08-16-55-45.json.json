@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "ID 21",
+      "size": "",
+      "price": "2800 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré jaune en haut à droite : 'ID 21'"
+    }
+  ],
+  "warnings": []
+}

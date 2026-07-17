@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "B 8016",
+      "size": "35 cm",
+      "price": "285 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré jaune à droite indiquant 'B 8016'."
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8225",
+      "size": "98/68cm",
+      "price": "550 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette verte en haut à droite : '8225 98/68cm 550 dh'"
+    }
+  ],
+  "warnings": []
+}

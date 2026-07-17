@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "2825/3-1-2-3",
+      "size": "",
+      "price": "280 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Etiquette rose en haut à droite avec le code '2825/3-1-2-3'."
+    }
+  ],
+  "warnings": []
+}

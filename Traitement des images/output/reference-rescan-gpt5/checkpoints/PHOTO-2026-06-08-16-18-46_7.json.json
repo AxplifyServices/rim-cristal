@@ -1,0 +1,22 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "",
+      "price": "",
+      "confidence_reference": 0.1,
+      "evidence": "Petite étiquette suspendue sur le grand cylindre, texte illisible"
+    },
+    {
+      "reference": "2464",
+      "size": "",
+      "price": "250 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Pastille rose en haut à droite indiquant \"2464\" et \"250 dh\""
+    }
+  ],
+  "warnings": [
+    "La pastille de prix ne précise pas explicitement quel article elle concerne; associée au produit de droite par proximité visuelle.",
+    "Aucune taille lisible sur l'image."
+  ]
+}

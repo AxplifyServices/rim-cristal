@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "3076/77",
+      "size": "",
+      "price": "195 dh",
+      "confidence_reference": 0.99,
+      "evidence": "étiquette rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Deux vases visibles mais une seule référence et un seul prix affichés.",
+    "Aucune taille indiquée sur l’image."
+  ]
+}

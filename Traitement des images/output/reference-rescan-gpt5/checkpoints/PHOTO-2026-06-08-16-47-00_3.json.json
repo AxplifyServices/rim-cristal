@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "171/90",
+      "size": "",
+      "price": "950 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette rouge en haut à gauche : '171/90' au-dessus de '950 dh'"
+    }
+  ],
+  "warnings": [
+    "La taille n’est pas indiquée distinctement ; '90' pourrait faire partie de la référence."
+  ]
+}

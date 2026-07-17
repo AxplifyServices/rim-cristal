@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "rim 55",
+      "price": "1460 dh",
+      "confidence_reference": 0.08,
+      "evidence": "Encart prix en haut à droite."
+    }
+  ],
+  "warnings": [
+    "Aucune référence commerciale lisible sur l’image (étiquette produit illisible). Seuls la taille « rim 55 » et le prix « 1460 dh » sont visibles."
+  ]
+}

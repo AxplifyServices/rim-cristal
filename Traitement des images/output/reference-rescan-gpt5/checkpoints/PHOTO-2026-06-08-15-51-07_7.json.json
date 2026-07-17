@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "5002",
+      "size": "",
+      "price": "480 dh",
+      "confidence_reference": 0.86,
+      "evidence": "Zone de texte à droite : « 型号：5002… »"
+    }
+  ],
+  "warnings": [
+    "Le libellé montre « 5002双色遥控 » ; la partie chinoise semble descriptive. Référence interprétée comme « 5002 »."
+  ]
+}

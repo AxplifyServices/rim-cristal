@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8192 m",
+      "size": "",
+      "price": "120 dh",
+      "confidence_reference": 0.92,
+      "evidence": "Étiquette rouge en haut à droite : « 8192 m » (ligne 1) au-dessus de « 120 dh » (ligne 2)."
+    }
+  ],
+  "warnings": [
+    "Le « m » pourrait indiquer une taille ; restitué tel quel dans la référence car c’est l’inscription visible."
+  ]
+}

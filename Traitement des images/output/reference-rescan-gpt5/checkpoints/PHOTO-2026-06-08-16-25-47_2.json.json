@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "7427/28/29",
+      "size": "",
+      "price": "650 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Étiquette rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Le libellé semble regrouper plusieurs variantes; tailles non indiquées sur l’image."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "2776",
+      "size": "76 cm",
+      "price": "550 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette orange en haut à droite"
+    }
+  ],
+  "warnings": []
+}

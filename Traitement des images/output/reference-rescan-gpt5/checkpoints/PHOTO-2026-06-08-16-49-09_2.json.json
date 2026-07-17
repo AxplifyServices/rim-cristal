@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2736",
+      "size": "",
+      "price": "120 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette rouge en haut-centre : '2736 120 dh'"
+    }
+  ],
+  "warnings": [
+    "Plusieurs tailles de coupes visibles mais aucune taille n’est indiquée."
+  ]
+}

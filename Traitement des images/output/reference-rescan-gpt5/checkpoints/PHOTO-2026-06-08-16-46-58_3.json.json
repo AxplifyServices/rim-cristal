@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8211",
+      "size": "111×62cm",
+      "price": "780 dh",
+      "confidence_reference": 0.99,
+      "evidence": "encadré rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Logos « RIM Crystal » ignorés (non des références)."
+  ]
+}

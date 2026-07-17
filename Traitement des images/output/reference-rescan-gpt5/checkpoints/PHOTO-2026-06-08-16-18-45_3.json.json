@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "5879",
+      "size": "",
+      "price": "145 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette jaune en haut à gauche : '5879' au-dessus de '145 dh'"
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible.",
+    "Logo/branding ignoré selon la règle 8."
+  ]
+}

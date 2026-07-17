@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8042",
+      "size": "135x65",
+      "price": "950dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré rouge en haut à droite : 8042 / 135x65 / 950dh"
+    }
+  ],
+  "warnings": []
+}

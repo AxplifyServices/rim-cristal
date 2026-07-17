@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "3348",
+      "size": "60x90",
+      "price": "230 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Bloc rouge en haut affichant '3348 60x90 230 dh'"
+    }
+  ],
+  "warnings": []
+}

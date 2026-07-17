@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "rim 63",
+      "size": "120x80cm",
+      "price": "1300 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Encadré rouge en haut à droite: 'rim 63 120x80cm'; prix en haut à gauche: '1300 dh'."
+    }
+  ],
+  "warnings": [
+    "Logo 'Rim Cristal' ignoré (pas une référence commerciale)."
+  ]
+}

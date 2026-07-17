@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "3250/51/52",
+      "size": "",
+      "price": "170 dh.",
+      "confidence_reference": 0.95,
+      "evidence": "Encadré rouge en haut à droite : “3250/51/52 170 dh.”"
+    }
+  ],
+  "warnings": [
+    "Plusieurs articles sont montrés mais une seule référence commune est lisible; aucune taille n’est indiquée."
+  ]
+}

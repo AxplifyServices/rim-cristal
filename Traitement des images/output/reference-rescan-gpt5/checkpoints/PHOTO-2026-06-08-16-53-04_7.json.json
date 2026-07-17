@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8372/3-1-2-3",
+      "size": "",
+      "price": "270 dh",
+      "confidence_reference": 0.95,
+      "evidence": "Étiquette verte en haut à droite: “8372/3-1-2-3” et “270 dh”"
+    }
+  ],
+  "warnings": []
+}

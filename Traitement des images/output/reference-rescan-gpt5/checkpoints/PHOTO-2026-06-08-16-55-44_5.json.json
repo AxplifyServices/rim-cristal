@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "ID-17",
+      "size": "",
+      "price": "2950 dh",
+      "confidence_reference": 0.98,
+      "evidence": "encart jaune en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Une petite étiquette sur la table de gauche est pr\u0003\u0019sente mais illisible ; aucune autre r\u0000e9f\u0000e9rence lisible."
+  ]
+}

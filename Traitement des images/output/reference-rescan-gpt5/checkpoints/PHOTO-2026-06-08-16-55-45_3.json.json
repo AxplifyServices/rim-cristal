@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "js 28 A",
+      "size": "",
+      "price": "850 dh",
+      "confidence_reference": 0.98,
+      "evidence": "étiquette rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible sur l'image."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "2329",
+      "size": "80*80/48*48",
+      "price": "3800 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Étiquette jaune en haut à gauche avec le texte « ref 2329 »"
+    }
+  ],
+  "warnings": [
+    "La mention « ref » est un libellé et n’a pas été incluse dans la référence extraite.",
+    "Les dimensions « 80*80/48*48 » semblent indiquer deux tailles; un seul prix est indiqué."
+  ]
+}

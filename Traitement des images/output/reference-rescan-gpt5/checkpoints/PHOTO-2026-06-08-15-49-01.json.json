@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "d 9901",
+      "size": "",
+      "price": "480 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré jaune en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille/dimension lisible dans l'image."
+  ]
+}

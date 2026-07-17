@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8160",
+      "size": "",
+      "price": "65 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Encadré vert en haut à droite avec le texte '8160' au-dessus de '65 dh'."
+    }
+  ],
+  "warnings": [
+    "Une petite étiquette sur l'objet est présente mais illisible ; aucune autre référence exploitable."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "B 4004",
+      "size": "",
+      "price": "1450 dh",
+      "confidence_reference": 0.98,
+      "evidence": "encadré en haut à droite : 'B 4004 1450 dh'"
+    }
+  ],
+  "warnings": []
+}

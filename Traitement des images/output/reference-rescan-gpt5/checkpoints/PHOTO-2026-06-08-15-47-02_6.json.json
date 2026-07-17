@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "Y097/5",
+      "size": "",
+      "price": "580dh",
+      "confidence_reference": 0.98,
+      "evidence": "Etiquette jaune en bas à droite : \"Y097/5 580dh\""
+    }
+  ],
+  "warnings": [
+    "Logo et nom de marque ignorés (règle 8). Aucune taille/dimension lisible."
+  ]
+}

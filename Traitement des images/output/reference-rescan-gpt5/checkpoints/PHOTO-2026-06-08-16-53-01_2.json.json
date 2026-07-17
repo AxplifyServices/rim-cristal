@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8175/2-1-2",
+      "size": "",
+      "price": "190dh",
+      "confidence_reference": 0.97,
+      "evidence": "Étiquette verte en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible. Deux objets visibles mais une seule référence affichée."
+  ]
+}

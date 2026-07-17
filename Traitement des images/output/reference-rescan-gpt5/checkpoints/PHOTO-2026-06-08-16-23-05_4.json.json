@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8105",
+      "size": "15x20cm",
+      "price": "50 dh",
+      "confidence_reference": 0.95,
+      "evidence": "encadré rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Logo 'RIM Cristal' et texte de marque 'SQUARE CENTER' ignorés (non-références)."
+  ]
+}

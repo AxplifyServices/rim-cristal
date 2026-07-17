@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8283/2-1-2",
+      "size": "",
+      "price": "190 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette verte en haut à droite : \"8283/2-1-2\" au-dessus de \"190 dh\""
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l’image."
+  ]
+}

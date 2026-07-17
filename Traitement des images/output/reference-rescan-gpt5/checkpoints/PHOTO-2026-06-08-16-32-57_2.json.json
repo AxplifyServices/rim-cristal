@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8094/3-1-2-3",
+      "size": "",
+      "price": "270 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rouge en haut à gauche : '8094/3-1-2-3 270 dh'"
+    }
+  ],
+  "warnings": [
+    "Aucune taille ou dimension explicitement indiquée."
+  ]
+}

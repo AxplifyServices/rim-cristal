@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8059/2-1-2",
+      "size": "",
+      "price": "170 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Bannière rouge en haut à droite : “8059/2-1-2” et “170 dh”"
+    }
+  ],
+  "warnings": [
+    "Deux vases visibles mais une seule référence et un seul prix indiqués. Aucune taille lisible."
+  ]
+}

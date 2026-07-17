@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "952",
+      "size": "70x30x220",
+      "price": "3700 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette jaune en haut à gauche : \"952\""
+    }
+  ],
+  "warnings": []
+}

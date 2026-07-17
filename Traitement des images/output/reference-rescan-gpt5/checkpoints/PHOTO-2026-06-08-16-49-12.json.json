@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "3471",
+      "size": "",
+      "price": "140 dh",
+      "confidence_reference": 0.98,
+      "evidence": "étiquette rouge '3471' en haut-gauche"
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible pour cette référence.",
+    "Autres objets visibles sans références ou prix ignorés."
+  ]
+}

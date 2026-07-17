@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "MX 25-16 A",
+      "size": "",
+      "price": "3200 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette jaune en bas à gauche"
+    }
+  ],
+  "warnings": []
+}

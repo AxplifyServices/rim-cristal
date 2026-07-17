@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "RL 9270 M",
+      "size": "",
+      "price": "550 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Texte en haut à droite : « RL 9270 M » avec le prix « 550 dh »."
+    }
+  ],
+  "warnings": []
+}

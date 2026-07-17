@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "269.",
+      "size": "120 /80",
+      "price": "950 dh",
+      "confidence_reference": 0.84,
+      "evidence": "Cartouche rouge en haut à gauche : \"269. 120 /80 950 dh\""
+    }
+  ],
+  "warnings": [
+    "Une petite étiquette en bas à droite semble contenir un code mais elle est illisible.",
+    "Logo/branding ignorés."
+  ]
+}

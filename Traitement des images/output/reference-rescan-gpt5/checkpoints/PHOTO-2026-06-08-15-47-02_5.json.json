@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "Y001/6",
+      "size": "",
+      "price": "580dh",
+      "confidence_reference": 0.97,
+      "evidence": "Encart jaune en bas à droite avec 'Y001/6' et '580dh'."
+    }
+  ],
+  "warnings": []
+}

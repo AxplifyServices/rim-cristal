@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "L006/12",
+      "size": "",
+      "price": "2300 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encart jaune en bas à gauche : “L006/12 2300 dh”"
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "3029/90×35",
+      "size": "90×35",
+      "price": "1700 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré violet en bas à gauche"
+    }
+  ],
+  "warnings": []
+}

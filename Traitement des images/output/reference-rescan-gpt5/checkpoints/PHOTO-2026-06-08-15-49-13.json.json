@@ -1,0 +1,19 @@
+{
+  "products": [
+    {
+      "reference": "25209/4",
+      "size": "4",
+      "price": "750 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré jaune en haut à droite, 1re ligne"
+    },
+    {
+      "reference": "25209/6",
+      "size": "6",
+      "price": "950 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré jaune en haut à droite, 2e ligne"
+    }
+  ],
+  "warnings": []
+}

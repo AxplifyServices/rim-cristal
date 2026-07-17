@@ -1,0 +1,16 @@
+{
+  "products": [
+    {
+      "reference": "flower 2",
+      "size": "",
+      "price": "790 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Encadré rose/violet en haut à droite avec le texte « flower 2 »."
+    }
+  ],
+  "warnings": [
+    "Aucune autre référence commerciale lisible sur l’image.",
+    "La taille n’est pas indiquée.",
+    "Texte sur la boîte en bas à droite trop petit/illisible."
+  ]
+}

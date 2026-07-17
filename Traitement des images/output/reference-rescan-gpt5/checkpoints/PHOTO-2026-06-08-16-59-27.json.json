@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "788",
+      "size": "6 chaises",
+      "price": "7500 dh",
+      "confidence_reference": 0.98,
+      "evidence": "encadré rouge en haut à droite"
+    }
+  ],
+  "warnings": []
+}

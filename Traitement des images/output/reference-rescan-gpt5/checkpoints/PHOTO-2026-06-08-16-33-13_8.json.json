@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "3294/95",
+      "size": "",
+      "price": "145 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré rouge en haut avec le texte «3294/95 145 dh»"
+    }
+  ],
+  "warnings": [
+    "Deux objets visibles mais une seule référence et un seul prix lisibles.",
+    "Aucune taille indiquée sur l’image."
+  ]
+}

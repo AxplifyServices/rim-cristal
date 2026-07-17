@@ -1,0 +1,16 @@
+{
+  "products": [
+    {
+      "reference": "A 2339",
+      "size": "",
+      "price": "3450 dh",
+      "confidence_reference": 0.99,
+      "evidence": "encadré jaune en haut à droite"
+    }
+  ],
+  "warnings": [
+    "D’autres étiquettes sont visibles sur les produits mais le texte est illisible.",
+    "Aucune taille lisible.",
+    "L’encadré ne précise pas explicitement à quel article il se rapporte."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8312",
+      "size": "",
+      "price": "550 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Etiquette verte en haut à droite : \"8312\" au-dessus de \"550 dh\""
+    }
+  ],
+  "warnings": [
+    "Deux contenants de tailles différentes sont visibles mais aucune taille ni prix par variante n'est lisible."
+  ]
+}

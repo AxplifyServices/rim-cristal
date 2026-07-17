@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "3128",
+      "size": "",
+      "price": "130 dh",
+      "confidence_reference": 0.98,
+      "evidence": "étiquette orange en haut à droite «3128 130 dh»"
+    }
+  ],
+  "warnings": []
+}

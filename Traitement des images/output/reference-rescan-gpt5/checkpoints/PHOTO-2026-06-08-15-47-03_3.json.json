@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "5585",
+      "size": "",
+      "price": "480 dh",
+      "confidence_reference": 0.95,
+      "evidence": "Étiquette jaune en haut à gauche avec 5585 (ligne 1) et 480 dh (ligne 2)."
+    }
+  ],
+  "warnings": [
+    "Nombre 35 blanc en haut ignoré car non identifiable comme référence ou prix."
+  ]
+}

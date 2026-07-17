@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "cost 005",
+      "size": "120x80",
+      "price": "1150.00 dh",
+      "confidence_reference": 0.97,
+      "evidence": "étiquette rouge en haut à droite « cost 005 »"
+    }
+  ],
+  "warnings": []
+}

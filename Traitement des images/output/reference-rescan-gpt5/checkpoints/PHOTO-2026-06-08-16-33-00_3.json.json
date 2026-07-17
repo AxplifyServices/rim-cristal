@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "2484/3-1-2-3",
+      "size": "",
+      "price": "195 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette rouge au centre : « 2484/3-1-2-3 » au-dessus de « 195 dh »"
+    }
+  ],
+  "warnings": []
+}

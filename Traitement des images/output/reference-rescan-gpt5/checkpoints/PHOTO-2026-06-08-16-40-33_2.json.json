@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "3901",
+      "size": "",
+      "price": "95 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Cartouche rouge en haut à droite : '3901' au-dessus de '95 dh'."
+    }
+  ],
+  "warnings": []
+}

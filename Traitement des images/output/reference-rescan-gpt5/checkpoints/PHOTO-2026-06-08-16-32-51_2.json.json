@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "3751/52/53",
+      "size": "",
+      "price": "295 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette rouge en haut à droite: '3751/52/53 295 dh'"
+    }
+  ],
+  "warnings": [
+    "La référence semble regrouper plusieurs variantes (3751, 3752, 3753) mais aucune taille distincte n’est lisible."
+  ]
+}

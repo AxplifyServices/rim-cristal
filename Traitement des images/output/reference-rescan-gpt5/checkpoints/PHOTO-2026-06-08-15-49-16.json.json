@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "P 8078/60",
+      "size": "60",
+      "price": "850 dh",
+      "confidence_reference": 0.99,
+      "evidence": "En haut à droite, texte 'P 8078/60' au-dessus de '850 dh'."
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "L007/12",
+      "size": "",
+      "price": "2300 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette jaune en bas à gauche « L007/12 2300 dh »"
+    }
+  ],
+  "warnings": [
+    "Logo de marque ignoré (règle 8)."
+  ]
+}

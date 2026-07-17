@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "T 2688",
+      "size": "",
+      "price": "320dh",
+      "confidence_reference": 0.98,
+      "evidence": "encadré blanc en haut à gauche : \"T 2688\" au-dessus de \"320dh\""
+    }
+  ],
+  "warnings": []
+}

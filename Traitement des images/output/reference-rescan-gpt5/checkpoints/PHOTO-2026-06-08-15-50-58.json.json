@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "",
+      "price": "589 f / 110 dh",
+      "confidence_reference": 0.1,
+      "evidence": "Aucune référence lisible; encart prix en haut à droite."
+    }
+  ],
+  "warnings": [
+    "Aucune référence commerciale visible sur l'image; seul le prix est affiché."
+  ]
+}

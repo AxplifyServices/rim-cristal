@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "rim002",
+      "size": "",
+      "price": "1480 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette en haut à gauche : 'rim002' au-dessus de '1480 dh'."
+    }
+  ],
+  "warnings": []
+}

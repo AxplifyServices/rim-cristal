@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "D 9710/3",
+      "size": "",
+      "price": "220 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Texte noir en haut à droite : « D 9710/3 » (prix juste dessous « 220 dh »)."
+    }
+  ],
+  "warnings": []
+}

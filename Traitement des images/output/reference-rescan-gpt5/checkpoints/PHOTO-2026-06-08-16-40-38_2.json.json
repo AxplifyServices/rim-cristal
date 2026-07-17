@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2780",
+      "size": "",
+      "price": "320 dh",
+      "confidence_reference": 0.85,
+      "evidence": "Étiquette orange en haut à droite : “2780” au-dessus de “320 dh”"
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible sur l’image."
+  ]
+}

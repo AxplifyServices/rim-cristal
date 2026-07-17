@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "",
+      "size": "d 205",
+      "price": "380 dh",
+      "confidence_reference": 0.1,
+      "evidence": "Aucune référence visible; encadré jaune en bas à droite « d 205 380 dh »"
+    }
+  ],
+  "warnings": [
+    "Aucune référence commerciale lisible sur l'image.",
+    "Logo/marque ignorés conformément à la règle 8."
+  ]
+}

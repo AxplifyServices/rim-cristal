@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "2789/3-1-2-3",
+      "size": "",
+      "price": "230 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Encart rouge en haut à gauche affichant \"2789/3-1-2-3\" et \"230 dh\""
+    }
+  ],
+  "warnings": []
+}

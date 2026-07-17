@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "3349",
+      "size": "50 cm",
+      "price": "220 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré jaune en haut à droite : '3349 50 cm 220 dh'"
+    }
+  ],
+  "warnings": []
+}

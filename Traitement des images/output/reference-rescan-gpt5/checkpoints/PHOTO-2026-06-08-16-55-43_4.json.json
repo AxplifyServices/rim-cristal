@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "SC 150",
+      "size": "120*60*45",
+      "price": "2200 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré bleu en haut à gauche : 'SC 150'"
+    }
+  ],
+  "warnings": []
+}

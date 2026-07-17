@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "7295/96",
+      "size": "",
+      "price": "85 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible. Deux objets visibles mais une seule référence/prix indiqués."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "7029",
+      "size": "",
+      "price": "2800 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Étiquette jaune en haut à droite : \"7029\" au-dessus de \"2800 dh\"."
+    }
+  ],
+  "warnings": [
+    "Plusieurs articles visibles, une seule référence/prix affichés.",
+    "Aucune taille visible."
+  ]
+}

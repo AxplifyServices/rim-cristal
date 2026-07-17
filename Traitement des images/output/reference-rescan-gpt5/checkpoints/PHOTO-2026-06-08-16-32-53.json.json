@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2938/3-1-2-3",
+      "size": "",
+      "price": "550 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Etiquette rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Tailles non précisées dans l'image"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "555",
+      "size": "100x100cm",
+      "price": "1300 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Encadré rouge en haut à droite : '555' au-dessus de '100x100cm'."
+    }
+  ],
+  "warnings": [
+    "Logo 'Rim Cristal' ignoré (règle 8)."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "12375 LED",
+      "size": "",
+      "price": "285 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Bas à droite : 12375 LED"
+    }
+  ],
+  "warnings": []
+}

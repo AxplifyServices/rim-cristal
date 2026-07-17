@@ -1,0 +1,26 @@
+{
+  "products": [
+    {
+      "reference": "2549/3-3",
+      "size": "",
+      "price": "195 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rouge au-dessus du modèle gauche : \"2549/3-3 195 dh\""
+    },
+    {
+      "reference": "2549/3-2",
+      "size": "",
+      "price": "165 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rouge au-dessus du modèle centre : \"2549/3-2 165 dh\""
+    },
+    {
+      "reference": "2549/3-1",
+      "size": "",
+      "price": "135 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rouge au-dessus du modèle droite : \"2549/3-1 135 dh\""
+    }
+  ],
+  "warnings": []
+}

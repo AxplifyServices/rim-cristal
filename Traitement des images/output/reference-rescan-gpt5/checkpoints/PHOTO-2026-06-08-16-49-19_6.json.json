@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "3439/40",
+      "size": "",
+      "price": "270 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Cartouche rouge en haut à droite : '3439/40 270 dh'."
+    }
+  ],
+  "warnings": []
+}

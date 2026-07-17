@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8226.",
+      "size": "38x102x17 cm",
+      "price": "680 dh",
+      "confidence_reference": 0.98,
+      "evidence": "encadré rouge en bas à gauche"
+    }
+  ],
+  "warnings": []
+}

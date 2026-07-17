@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "3286",
+      "size": "",
+      "price": "195 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rouge au centre affichant « 3286 » au-dessus de « 195 dh »."
+    }
+  ],
+  "warnings": [
+    "L’étiquette rouge n’indique pas clairement quel article précis elle concerne. Aucune autre référence lisible sur l’image."
+  ]
+}

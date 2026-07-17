@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "3780",
+      "size": "125x50 cm",
+      "price": "480 dh",
+      "confidence_reference": 0.95,
+      "evidence": "Encart rouge en haut à gauche: '3780' au-dessus de '125x50 cm'; prix '480 dh' en haut à droite."
+    }
+  ],
+  "warnings": []
+}

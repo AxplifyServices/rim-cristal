@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "2765/66",
+      "size": "",
+      "price": "90 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré orange en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Deux figurines visibles mais une seule référence/prix affichés.",
+    "Aucune taille indiquée sur l’image."
+  ]
+}

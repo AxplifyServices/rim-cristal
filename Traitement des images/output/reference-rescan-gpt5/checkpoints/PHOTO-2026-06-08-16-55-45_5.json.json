@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "cj 1208",
+      "size": "",
+      "price": "3950 dh",
+      "confidence_reference": 0.86,
+      "evidence": "étiquette jaune en bas à gauche"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l'image."
+  ]
+}

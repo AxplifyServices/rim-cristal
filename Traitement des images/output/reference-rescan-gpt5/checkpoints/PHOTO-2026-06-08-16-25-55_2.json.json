@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "2724/2-1-2",
+      "size": "",
+      "price": "650 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré rouge en haut à gauche : « 2724/2-1-2 »"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible.",
+    "Deux vases visibles mais une seule référence et un seul prix affichés."
+  ]
+}

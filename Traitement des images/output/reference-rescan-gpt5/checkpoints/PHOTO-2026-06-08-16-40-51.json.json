@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "3287",
+      "size": "",
+      "price": "165 dh",
+      "confidence_reference": 0.95,
+      "evidence": "Étiquette rouge « 3287 165 dh » au centre"
+    }
+  ],
+  "warnings": [
+    "Plusieurs articles visibles mais une seule référence lisible. Aucune taille indiquée."
+  ]
+}

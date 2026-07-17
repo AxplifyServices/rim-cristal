@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "3730/31/32",
+      "size": "",
+      "price": "195 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Étiquette rouge en haut à droite : \"3730/31/32 195 dh\""
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible. La chaîne semble regrouper plusieurs variantes, non détaillées individuellement sur l'image."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "c922",
+      "size": "1+4",
+      "price": "3450 dh",
+      "confidence_reference": 0.96,
+      "evidence": "Encadré blanc en haut à droite : 'c922' au-dessus de '1+4' et '3450 dh'."
+    }
+  ],
+  "warnings": [
+    "Logos et noms de boutique ignorés ('Rim Cristal')."
+  ]
+}

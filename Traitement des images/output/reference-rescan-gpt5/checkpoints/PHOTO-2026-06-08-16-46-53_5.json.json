@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8120",
+      "size": "70/50cm",
+      "price": "350 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré rouge en haut à gauche : '8120 70/50cm 350 dh'"
+    }
+  ],
+  "warnings": []
+}

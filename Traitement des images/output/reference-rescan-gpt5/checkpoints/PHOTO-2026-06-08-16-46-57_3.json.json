@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "8229",
+      "size": "145×63",
+      "price": "850 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré rouge en bas à droite : '8229'"
+    }
+  ],
+  "warnings": []
+}

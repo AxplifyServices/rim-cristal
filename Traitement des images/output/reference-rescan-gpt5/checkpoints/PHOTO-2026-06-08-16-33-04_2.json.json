@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "2829",
+      "size": "",
+      "price": "195 dh",
+      "confidence_reference": 0.95,
+      "evidence": "étiquette rouge en haut indiquant \"2829\" au-dessus de \"195 dh\""
+    }
+  ],
+  "warnings": [
+    "Deux carafes de tailles différentes visibles mais aucune taille lisible.",
+    "Une seule étiquette prix/référence est visible ; la correspondance par variante n’est pas précisée."
+  ]
+}

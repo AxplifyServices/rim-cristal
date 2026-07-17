@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "C 932",
+      "size": "",
+      "price": "2450 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Étiquette jaune en haut à droite: « C 932 2450 dh »"
+    }
+  ],
+  "warnings": []
+}

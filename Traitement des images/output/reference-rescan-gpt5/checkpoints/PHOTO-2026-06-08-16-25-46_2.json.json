@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "7450/51/52",
+      "size": "",
+      "price": "850 dh",
+      "confidence_reference": 0.98,
+      "evidence": "encadré rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Plusieurs tailles visibles sur la photo mais aucune taille indiquée; la référence est groupée '7450/51/52'."
+  ]
+}

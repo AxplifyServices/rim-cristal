@@ -1,0 +1,40 @@
+{
+  "products": [
+    {
+      "reference": "7003/40",
+      "size": "40",
+      "price": "480 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Bloc violet en bas à gauche, ligne '7003/40  480 dh'."
+    },
+    {
+      "reference": "7003/60",
+      "size": "60",
+      "price": "650 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Bloc violet en bas à gauche, ligne '7003/60  650 dh'."
+    },
+    {
+      "reference": "7003/80",
+      "size": "80",
+      "price": "1050 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Bloc violet en bas à gauche, ligne '7003/80  1050 dh'."
+    },
+    {
+      "reference": "7003/100",
+      "size": "100",
+      "price": "1350 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Bloc violet en bas à gauche, ligne '7003/100  1350 dh'."
+    },
+    {
+      "reference": "7003/120L",
+      "size": "120L",
+      "price": "1280 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Bloc violet en bas à gauche, ligne '7003/120L  1280 dh'."
+    }
+  ],
+  "warnings": []
+}

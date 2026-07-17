@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "2101.",
+      "size": "135 cm",
+      "price": "9800 dh.",
+      "confidence_reference": 0.96,
+      "evidence": "Texte en haut à gauche : « 2101. », « Size 135 cm », « 9800 dh. »"
+    }
+  ],
+  "warnings": []
+}

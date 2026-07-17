@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "868 usb",
+      "size": "",
+      "price": "195 dh",
+      "confidence_reference": 0.92,
+      "evidence": "Étiquette jaune en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l’image"
+  ]
+}

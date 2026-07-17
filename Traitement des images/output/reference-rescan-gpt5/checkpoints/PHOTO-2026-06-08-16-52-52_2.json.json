@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "8268/3-3",
+      "size": "",
+      "price": "250 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette verte en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible dans l’image."
+  ]
+}

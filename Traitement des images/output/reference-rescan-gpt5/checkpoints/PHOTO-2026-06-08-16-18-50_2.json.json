@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "2817/3-1-2-3",
+      "size": "",
+      "price": "280 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Cartouche rose en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible sur l'image.",
+    "Plusieurs vases visibles, une seule référence affichée."
+  ]
+}

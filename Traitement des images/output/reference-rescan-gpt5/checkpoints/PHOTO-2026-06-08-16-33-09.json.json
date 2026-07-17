@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2626/2-1-2",
+      "size": "",
+      "price": "130 dh.",
+      "confidence_reference": 0.98,
+      "evidence": "étiquette rouge en haut à droite"
+    }
+  ],
+  "warnings": [
+    "Deux objets visibles mais une seule référence/prix affichés ; aucune taille indiquée."
+  ]
+}

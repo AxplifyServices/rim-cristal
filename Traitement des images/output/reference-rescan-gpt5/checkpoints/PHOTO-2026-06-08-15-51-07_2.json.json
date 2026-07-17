@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "RT 9272 -C",
+      "size": "H 53cm/30cm",
+      "price": "650 dh",
+      "confidence_reference": 0.98,
+      "evidence": "En bas à droite : « RT 9272 -C »"
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "RT 9227_A",
+      "size": "H38 cm/25cm",
+      "price": "550 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Texte en bas à droite : « RT 9227_A »"
+    }
+  ],
+  "warnings": []
+}

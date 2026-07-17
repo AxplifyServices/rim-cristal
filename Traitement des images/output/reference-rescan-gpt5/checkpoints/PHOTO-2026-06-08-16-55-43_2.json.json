@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "SS 016",
+      "size": "74w*96d*108h",
+      "price": "2800 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré bleu en haut à droite"
+    }
+  ],
+  "warnings": []
+}

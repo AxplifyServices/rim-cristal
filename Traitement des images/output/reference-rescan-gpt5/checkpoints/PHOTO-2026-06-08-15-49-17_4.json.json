@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "D 9696/6 bk",
+      "size": "",
+      "price": "380 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Texte en haut à droite : « D 9696/6 bk » au-dessus de « 380 dh »"
+    }
+  ],
+  "warnings": []
+}

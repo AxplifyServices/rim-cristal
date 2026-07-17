@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "reference": "3290",
+      "size": "",
+      "price": "135 dh",
+      "confidence_reference": 0.82,
+      "evidence": "Bloc rouge en haut à droite: '3290' au-dessus de '135 dh'"
+    }
+  ],
+  "warnings": [
+    "Aucune taille visible.",
+    "Texte sur l’étiquette verte non lisible."
+  ]
+}

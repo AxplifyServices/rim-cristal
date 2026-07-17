@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "D 9795/10",
+      "size": "",
+      "price": "580 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Texte en haut à droite : 'D 9795/10'"
+    }
+  ],
+  "warnings": []
+}

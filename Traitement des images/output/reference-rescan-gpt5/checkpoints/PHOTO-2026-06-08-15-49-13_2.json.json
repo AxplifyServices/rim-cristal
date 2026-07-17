@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "D9806/6+4",
+      "size": "",
+      "price": "580 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Texte en haut à droite : « D9806/6+4 » au-dessus de « 580 dh »."
+    }
+  ],
+  "warnings": []
+}

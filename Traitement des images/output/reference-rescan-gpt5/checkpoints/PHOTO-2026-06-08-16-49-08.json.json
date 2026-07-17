@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "2707/08",
+      "size": "",
+      "price": "75 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Bloc prix rouge en haut à droite : '2707/08' au-dessus de '75 dh'"
+    }
+  ],
+  "warnings": [
+    "Aucune taille lisible sur l'image."
+  ]
+}

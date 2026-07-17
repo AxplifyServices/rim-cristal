@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "ref 2672",
+      "size": "85*85/45*45",
+      "price": "2950 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Encadré jaune en haut à droite : « ref 2672 »"
+    }
+  ],
+  "warnings": [
+    "Deux tailles indiquées « 85*85/45*45 » pour une seule référence ; un seul prix affiché."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "3346",
+      "size": "50*70",
+      "price": "150 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette rouge centrée en bas avec '3346' au-dessus de '50*70' et '150 dh'."
+    }
+  ],
+  "warnings": []
+}

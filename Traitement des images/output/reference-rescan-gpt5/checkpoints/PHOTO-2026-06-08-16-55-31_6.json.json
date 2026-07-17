@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "reference": "SC 149",
+      "size": "75*50",
+      "price": "3200 dh.",
+      "confidence_reference": 0.96,
+      "evidence": "Haut droite: 'SC 149'"
+    }
+  ],
+  "warnings": [
+    "Deux tables visibles mais une seule référence/tailles/prix affichés."
+  ]
+}

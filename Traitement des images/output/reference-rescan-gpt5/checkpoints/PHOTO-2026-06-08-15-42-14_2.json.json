@@ -1,0 +1,19 @@
+{
+  "products": [
+    {
+      "reference": "SR 4013/60",
+      "size": "60",
+      "price": "1850 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Cartouche rouge en bas à gauche, 1re ligne"
+    },
+    {
+      "reference": "SR 4013/80",
+      "size": "80",
+      "price": "2850dh",
+      "confidence_reference": 0.99,
+      "evidence": "Cartouche rouge en bas à gauche, 2e ligne"
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "2026 F",
+      "size": "",
+      "price": "95 dh",
+      "confidence_reference": 0.98,
+      "evidence": "Texte en haut à droite : \"2026 F\""
+    }
+  ],
+  "warnings": []
+}

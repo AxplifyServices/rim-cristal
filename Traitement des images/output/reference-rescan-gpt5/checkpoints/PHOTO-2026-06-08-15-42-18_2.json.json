@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "9028/40",
+      "size": "40",
+      "price": "480dh",
+      "confidence_reference": 0.99,
+      "evidence": "Étiquette violette en bas à gauche : '9028/40 480dh'."
+    }
+  ],
+  "warnings": []
+}

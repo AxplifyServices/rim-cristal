@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "2933/2-1-2",
+      "size": "",
+      "price": "185 dh",
+      "confidence_reference": 0.99,
+      "evidence": "Encadré rouge en haut à droite : 2933/2-1-2 avec prix 185 dh."
+    }
+  ],
+  "warnings": []
+}

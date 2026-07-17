@@ -1,0 +1,12 @@
+{
+  "products": [
+    {
+      "reference": "B 4026",
+      "size": "",
+      "price": "1450 dh",
+      "confidence_reference": 0.97,
+      "evidence": "Étiquette blanche en bas à gauche : « B 4026 » au-dessus de « 1450 dh »."
+    }
+  ],
+  "warnings": []
+}
