@@ -32,4 +32,4 @@ Thumbs.db
 
 # Prisma generated/cache
 backend/node_modules/.prisma/
-/backend/uploads/products/
+
