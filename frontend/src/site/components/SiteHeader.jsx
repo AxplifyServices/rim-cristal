@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import {
   usePathname,
@@ -8,14 +9,19 @@ import {
 } from 'next/navigation'
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react'
+
 import {
   PRODUCT_SECTIONS,
 } from '../constants/productSections'
 import { useCart } from '../context/CartContext'
 import { useSiteI18n } from '../i18n/SiteI18nProvider'
+import {
+  getProductFilters,
+} from '../lib/products'
 
 function SearchIcon() {
   return (
@@ -30,23 +36,6 @@ function SearchIcon() {
       />
 
       <path d="m20 20-3.6-3.6" />
-    </svg>
-  )
-}
-
-function UserIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <circle
-        cx="12"
-        cy="8"
-        r="4"
-      />
-
-      <path d="M4.8 21a7.2 7.2 0 0 1 14.4 0" />
     </svg>
   )
 }
@@ -75,6 +64,76 @@ function BagIcon() {
   )
 }
 
+function MenuIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+    </svg>
+  )
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path d="m9 5 7 7-7 7" />
+    </svg>
+  )
+}
+
+function CloseIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path d="M6 6 18 18" />
+      <path d="M18 6 6 18" />
+    </svg>
+  )
+}
+
+function buildShopHref({
+  rubrique,
+  categorie,
+  famille,
+}) {
+  const params =
+    new URLSearchParams()
+
+  if (rubrique) {
+    params.set(
+      'rubrique',
+      rubrique
+    )
+  }
+
+  if (categorie) {
+    params.set(
+      'categorie',
+      categorie
+    )
+  }
+
+  if (famille) {
+    params.set(
+      'famille',
+      famille
+    )
+  }
+
+  params.set('page', '1')
+
+  return `/shop?${params.toString()}`
+}
+
 export default function SiteHeader() {
   const pathname =
     usePathname()
@@ -88,8 +147,18 @@ export default function SiteHeader() {
   const searchInputRef =
     useRef(null)
 
-  const [menuOpen, setMenuOpen] =
-    useState(false)
+  const requestIdRef =
+    useRef(0)
+
+  const [
+    catalogueOpen,
+    setCatalogueOpen,
+  ] = useState(false)
+
+  const [
+    mobileMenuOpen,
+    setMobileMenuOpen,
+  ] = useState(false)
 
   const [
     searchOpen,
@@ -101,6 +170,36 @@ export default function SiteHeader() {
     setSearchValue,
   ] = useState('')
 
+  const [
+    selectedRubrique,
+    setSelectedRubrique,
+  ] = useState(
+    PRODUCT_SECTIONS[0]?.value || ''
+  )
+
+  const [
+    selectedCategory,
+    setSelectedCategory,
+  ] = useState('')
+
+  const [
+    catalogueData,
+    setCatalogueData,
+  ] = useState({
+    categories: [],
+    families: [],
+  })
+
+  const [
+    catalogueLoading,
+    setCatalogueLoading,
+  ] = useState(false)
+
+  const [
+    catalogueError,
+    setCatalogueError,
+  ] = useState('')
+
   const { count } = useCart()
 
   const {
@@ -109,24 +208,196 @@ export default function SiteHeader() {
     t,
   } = useSiteI18n()
 
-  const selectedSection =
+  const selectedSectionFromUrl =
     searchParams.get(
       'rubrique'
     ) || ''
 
+  const activeSection =
+    useMemo(() => {
+      return (
+        PRODUCT_SECTIONS.find(
+          section =>
+            section.value ===
+            selectedRubrique
+        ) ||
+        PRODUCT_SECTIONS[0] ||
+        null
+      )
+    }, [selectedRubrique])
+
   function closeAllPanels() {
-    setMenuOpen(false)
+    setCatalogueOpen(false)
+    setMobileMenuOpen(false)
     setSearchOpen(false)
   }
 
-  function isSectionActive(
-    sectionValue
-  ) {
-    return (
-      pathname === '/shop' &&
-      selectedSection ===
-        sectionValue
+  async function loadCatalogue({
+    rubrique,
+    categorie = '',
+  }) {
+    if (!rubrique) {
+      setCatalogueData({
+        categories: [],
+        families: [],
+      })
+
+      return
+    }
+
+    const currentRequestId =
+      requestIdRef.current + 1
+
+    requestIdRef.current =
+      currentRequestId
+
+    setCatalogueLoading(true)
+    setCatalogueError('')
+
+    try {
+      const result =
+        await getProductFilters({
+          rubrique: [rubrique],
+
+          categorie: categorie
+            ? [categorie]
+            : [],
+        })
+
+      if (
+        requestIdRef.current !==
+        currentRequestId
+      ) {
+        return
+      }
+
+      setCatalogueData({
+        categories:
+          Array.isArray(
+            result.categories
+          )
+            ? result.categories
+            : [],
+
+        families:
+          Array.isArray(
+            result.families
+          )
+            ? result.families
+            : [],
+      })
+    } catch (error) {
+      if (
+        requestIdRef.current !==
+        currentRequestId
+      ) {
+        return
+      }
+
+      console.error(
+        'Erreur chargement navigation catalogue :',
+        error
+      )
+
+      setCatalogueData({
+        categories: [],
+        families: [],
+      })
+
+      setCatalogueError(
+        t(
+          'nav.catalogueLoadError'
+        )
+      )
+    } finally {
+      if (
+        requestIdRef.current ===
+        currentRequestId
+      ) {
+        setCatalogueLoading(false)
+      }
+    }
+  }
+
+  function openCatalogue() {
+    setCatalogueOpen(true)
+    setMobileMenuOpen(false)
+    setSearchOpen(false)
+
+    const rubrique =
+      selectedSectionFromUrl &&
+      PRODUCT_SECTIONS.some(
+        section =>
+          section.value ===
+          selectedSectionFromUrl
+      )
+        ? selectedSectionFromUrl
+        : selectedRubrique ||
+          PRODUCT_SECTIONS[0]?.value ||
+          ''
+
+    setSelectedRubrique(
+      rubrique
     )
+
+    setSelectedCategory('')
+
+    setCatalogueData({
+      categories: [],
+      families: [],
+    })
+
+    loadCatalogue({
+      rubrique,
+    })
+  }
+
+  function toggleCatalogue() {
+    if (catalogueOpen) {
+      setCatalogueOpen(false)
+      return
+    }
+
+    openCatalogue()
+  }
+
+  function selectRubrique(
+    rubrique
+  ) {
+    setSelectedRubrique(
+      rubrique
+    )
+
+    setSelectedCategory('')
+
+    setCatalogueData({
+      categories: [],
+      families: [],
+    })
+
+    loadCatalogue({
+      rubrique,
+    })
+  }
+
+  function selectCategory(
+    categorie
+  ) {
+    setSelectedCategory(
+      categorie
+    )
+
+    setCatalogueData(current => ({
+      ...current,
+      families: [],
+    }))
+
+    loadCatalogue({
+      rubrique:
+        selectedRubrique,
+
+      categorie,
+    })
   }
 
   function submitSearch(event) {
@@ -153,14 +424,16 @@ export default function SiteHeader() {
     closeAllPanels()
   }, [
     pathname,
-    selectedSection,
+    selectedSectionFromUrl,
   ])
 
   useEffect(() => {
-    if (
-      !menuOpen &&
-      !searchOpen
-    ) {
+    const panelIsOpen =
+      catalogueOpen ||
+      mobileMenuOpen ||
+      searchOpen
+
+    if (!panelIsOpen) {
       return undefined
     }
 
@@ -197,7 +470,8 @@ export default function SiteHeader() {
       )
     }
   }, [
-    menuOpen,
+    catalogueOpen,
+    mobileMenuOpen,
     searchOpen,
   ])
 
@@ -216,100 +490,51 @@ export default function SiteHeader() {
     <>
       <header className="site-header">
         <div className="site-header-inner">
-          <button
-            type="button"
-            className={
-              menuOpen
-                ? 'site-menu-button is-open'
-                : 'site-menu-button'
-            }
-            onClick={() => {
-              setMenuOpen(
-                current =>
-                  !current
-              )
-
-              setSearchOpen(false)
-            }}
-            aria-label={
-              menuOpen
-                ? t(
-                    'nav.closeMenu'
-                  )
-                : t(
-                    'nav.openMenu'
-                  )
-            }
-            aria-expanded={
-              menuOpen
-            }
-            aria-controls="site-mobile-navigation"
-          >
-            <span />
-            <span />
-            <span />
-          </button>
-
           <Link
             href="/"
             className="site-brand"
             onClick={
               closeAllPanels
             }
+            aria-label="CasaLuxuryDecor"
           >
-            <span className="site-brand-mark">
-              H
-            </span>
+            <Image
+              src="/icon.png"
+              alt="Logo CasaLuxuryDecor"
+              width={92}
+              height={81}
+              priority
+              className="site-brand-logo"
+            />
 
-            <span className="site-brand-copy">
-              <strong>
-                CasaLuxuryDecor
-              </strong>
-
-              <small>
-                Maison d’artiste
-              </small>
-            </span>
+            <strong className="site-brand-name">
+              CasaLuxuryDecor
+            </strong>
           </Link>
 
-          <nav
-            className="site-desktop-navigation"
-            aria-label={t(
-              'nav.mainNavigation'
-            )}
+          <button
+            type="button"
+            className={
+              catalogueOpen
+                ? 'site-catalogue-trigger is-active'
+                : 'site-catalogue-trigger'
+            }
+            onClick={
+              toggleCatalogue
+            }
+            aria-expanded={
+              catalogueOpen
+            }
+            aria-controls="site-catalogue-navigation"
           >
-            {PRODUCT_SECTIONS.map(
-              section => (
-                <Link
-                  key={
-                    section.value
-                  }
-                  href={{
-                    pathname:
-                      '/shop',
+            <MenuIcon />
 
-                    query: {
-                      rubrique:
-                        section.value,
-
-                      page: '1',
-                    },
-                  }}
-                  className={
-                    isSectionActive(
-                      section.value
-                    )
-                      ? 'site-navigation-link is-active'
-                      : 'site-navigation-link'
-                  }
-                >
-                  {t(
-                    section.translationKey
-                  )}
-                </Link>
-              )
-            )}
-          </nav>
+            <span>
+              {t(
+                'nav.catalogue'
+              )}
+            </span>
+          </button>
 
           <div className="site-header-actions">
             <button
@@ -321,7 +546,8 @@ export default function SiteHeader() {
                     !current
                 )
 
-                setMenuOpen(false)
+                setCatalogueOpen(false)
+                setMobileMenuOpen(false)
               }}
               aria-label={t(
                 'nav.search'
@@ -364,16 +590,6 @@ export default function SiteHeader() {
               </select>
             </label>
 
-            <Link
-              href="/admin/login"
-              className="site-header-icon-link site-account-link"
-              aria-label={t(
-                'nav.account'
-              )}
-            >
-              <UserIcon />
-            </Link>
-
             <button
               type="button"
               className="site-header-icon-link site-favorites-button"
@@ -404,13 +620,50 @@ export default function SiteHeader() {
                 </span>
               )}
             </Link>
+
+            <button
+              type="button"
+              className={
+                mobileMenuOpen
+                  ? 'site-mobile-menu-trigger is-active'
+                  : 'site-mobile-menu-trigger'
+              }
+              onClick={() => {
+                setMobileMenuOpen(
+                  current =>
+                    !current
+                )
+
+                setCatalogueOpen(false)
+                setSearchOpen(false)
+              }}
+              aria-label={
+                mobileMenuOpen
+                  ? t(
+                      'nav.closeMenu'
+                    )
+                  : t(
+                      'nav.openMenu'
+                    )
+              }
+              aria-expanded={
+                mobileMenuOpen
+              }
+            >
+              {mobileMenuOpen ? (
+                <CloseIcon />
+              ) : (
+                <MenuIcon />
+              )}
+            </button>
           </div>
         </div>
       </header>
 
       <div
         className={
-          menuOpen ||
+          catalogueOpen ||
+          mobileMenuOpen ||
           searchOpen
             ? 'site-header-backdrop is-visible'
             : 'site-header-backdrop'
@@ -421,15 +674,248 @@ export default function SiteHeader() {
         aria-hidden="true"
       />
 
-      <aside
-        id="site-mobile-navigation"
+      <section
+        id="site-catalogue-navigation"
         className={
-          menuOpen
+          catalogueOpen
+            ? 'site-catalogue-navigation is-open'
+            : 'site-catalogue-navigation'
+        }
+        aria-hidden={
+          !catalogueOpen
+        }
+      >
+        <header className="site-catalogue-navigation-header">
+          <div>
+            <strong>
+              {t(
+                'nav.catalogue'
+              )}
+            </strong>
+
+            <span>
+              {t(
+                'nav.catalogueDescription'
+              )}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={
+              closeAllPanels
+            }
+            aria-label={t(
+              'nav.closeMenu'
+            )}
+          >
+            <CloseIcon />
+          </button>
+        </header>
+
+        <div className="site-catalogue-navigation-body">
+          <nav
+            className="site-catalogue-rubriques"
+            aria-label={t(
+              'nav.sections'
+            )}
+          >
+            {PRODUCT_SECTIONS.map(
+              section => (
+                <button
+                  key={
+                    section.value
+                  }
+                  type="button"
+                  className={
+                    selectedRubrique ===
+                    section.value
+                      ? 'is-active'
+                      : ''
+                  }
+                  onClick={() => {
+                    selectRubrique(
+                      section.value
+                    )
+                  }}
+                >
+                  <span>
+                    {t(
+                      section.translationKey
+                    )}
+                  </span>
+
+                  <ChevronRightIcon />
+                </button>
+              )
+            )}
+          </nav>
+
+          <div
+            className={
+              selectedCategory
+                ? 'site-catalogue-content has-family-column'
+                : 'site-catalogue-content'
+            }
+          >
+            <div className="site-catalogue-column">
+              <div className="site-catalogue-column-heading">
+                <h2>
+                  {activeSection
+                    ? t(
+                        activeSection.translationKey
+                      )
+                    : t(
+                        'nav.categories'
+                      )}
+                </h2>
+
+                <Link
+                  href={buildShopHref({
+                    rubrique:
+                      selectedRubrique,
+                  })}
+                  onClick={
+                    closeAllPanels
+                  }
+                >
+                  {t(
+                    'nav.viewAll'
+                  )}
+                </Link>
+              </div>
+
+              {catalogueLoading ? (
+                <p className="site-catalogue-state">
+                  {t(
+                    'common.loading'
+                  )}
+                </p>
+              ) : catalogueError ? (
+                <p className="site-catalogue-state is-error">
+                  {catalogueError}
+                </p>
+              ) : catalogueData
+                  .categories
+                  .length === 0 ? (
+                <p className="site-catalogue-state">
+                  {t(
+                    'nav.noCategories'
+                  )}
+                </p>
+              ) : (
+                <div className="site-catalogue-links">
+                  {catalogueData.categories.map(
+                    categorie => (
+                      <button
+                        key={
+                          categorie
+                        }
+                        type="button"
+                        className={
+                          selectedCategory ===
+                          categorie
+                            ? 'is-active'
+                            : ''
+                        }
+                        onClick={() => {
+                          selectCategory(
+                            categorie
+                          )
+                        }}
+                      >
+                        <span>
+                          {categorie}
+                        </span>
+
+                        <ChevronRightIcon />
+                      </button>
+                    )
+                  )}
+                </div>
+              )}
+            </div>
+
+            {selectedCategory && (
+              <div className="site-catalogue-column site-catalogue-family-column">
+                <div className="site-catalogue-column-heading">
+                  <h2>
+                    {selectedCategory}
+                  </h2>
+
+                  <Link
+                    href={buildShopHref({
+                      rubrique:
+                        selectedRubrique,
+
+                      categorie:
+                        selectedCategory,
+                    })}
+                    onClick={
+                      closeAllPanels
+                    }
+                  >
+                    {t(
+                      'nav.viewCategory'
+                    )}
+                  </Link>
+                </div>
+
+                {catalogueLoading ? (
+                  <p className="site-catalogue-state">
+                    {t(
+                      'common.loading'
+                    )}
+                  </p>
+                ) : catalogueData
+                    .families
+                    .length === 0 ? (
+                  <p className="site-catalogue-state">
+                    {t(
+                      'nav.noFamilies'
+                    )}
+                  </p>
+                ) : (
+                  <div className="site-catalogue-family-grid">
+                    {catalogueData.families.map(
+                      famille => (
+                        <Link
+                          key={
+                            famille
+                          }
+                          href={buildShopHref({
+                            rubrique:
+                              selectedRubrique,
+
+                            categorie:
+                              selectedCategory,
+
+                            famille,
+                          })}
+                          onClick={
+                            closeAllPanels
+                          }
+                        >
+                          {famille}
+                        </Link>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <aside
+        className={
+          mobileMenuOpen
             ? 'site-mobile-navigation is-open'
             : 'site-mobile-navigation'
         }
         aria-hidden={
-          !menuOpen
+          !mobileMenuOpen
         }
       >
         <div className="site-mobile-navigation-header">
@@ -446,7 +932,7 @@ export default function SiteHeader() {
               'nav.closeMenu'
             )}
           >
-            ×
+            <CloseIcon />
           </button>
         </div>
 
@@ -472,12 +958,7 @@ export default function SiteHeader() {
           />
         </form>
 
-        <nav
-          className="site-mobile-navigation-links"
-          aria-label={t(
-            'nav.mainNavigation'
-          )}
-        >
+        <nav className="site-mobile-navigation-links">
           <Link
             href="/"
             onClick={
@@ -487,33 +968,30 @@ export default function SiteHeader() {
             {t('nav.home')}
           </Link>
 
-          {PRODUCT_SECTIONS.map(
-            section => (
-              <Link
-                key={
-                  section.value
-                }
-                href={{
-                  pathname:
-                    '/shop',
+          <button
+            type="button"
+            onClick={() => {
+              setMobileMenuOpen(false)
+              openCatalogue()
+            }}
+          >
+            <span>
+              {t(
+                'nav.catalogue'
+              )}
+            </span>
 
-                  query: {
-                    rubrique:
-                      section.value,
+            <ChevronRightIcon />
+          </button>
 
-                    page: '1',
-                  },
-                }}
-                onClick={
-                  closeAllPanels
-                }
-              >
-                {t(
-                  section.translationKey
-                )}
-              </Link>
-            )
-          )}
+          <Link
+            href="/shop"
+            onClick={
+              closeAllPanels
+            }
+          >
+            {t('nav.shop')}
+          </Link>
 
           <Link
             href="/contact"
@@ -523,18 +1001,6 @@ export default function SiteHeader() {
           >
             {t('nav.contact')}
           </Link>
-        </nav>
-
-        <div className="site-mobile-navigation-footer">
-          <Link
-            href="/admin/login"
-            onClick={
-              closeAllPanels
-            }
-          >
-            <UserIcon />
-            {t('nav.account')}
-          </Link>
 
           <Link
             href="/cart"
@@ -542,7 +1008,6 @@ export default function SiteHeader() {
               closeAllPanels
             }
           >
-            <BagIcon />
             {t('nav.cart')}
 
             {count > 0 && (
@@ -551,7 +1016,7 @@ export default function SiteHeader() {
               </span>
             )}
           </Link>
-        </div>
+        </nav>
       </aside>
 
       <section
@@ -602,7 +1067,7 @@ export default function SiteHeader() {
               'nav.closeSearch'
             )}
           >
-            ×
+            <CloseIcon />
           </button>
         </form>
       </section>

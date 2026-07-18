@@ -2,29 +2,30 @@ import { Suspense } from 'react'
 import SiteAgentation from './SiteAgentation'
 import SiteFooter from './SiteFooter'
 import SiteHeader from './SiteHeader'
+import Image from 'next/image'
+import Link from 'next/link'
 
 function HeaderFallback() {
   return (
     <header className="site-header">
       <div className="site-header-inner">
-        <div
+        <Link
+          href="/"
           className="site-brand"
-          aria-hidden="true"
         >
-          <span className="site-brand-mark">
-            H
-          </span>
+          <Image
+            src="/icon.png"
+            alt="Logo CasaLuxuryDecor"
+            width={92}
+            height={81}
+            priority
+            className="site-brand-logo"
+          />
 
-          <span className="site-brand-copy">
-            <strong>
-              CasaLuxuryDecor
-            </strong>
-
-            <small>
-              Maison d’artiste
-            </small>
-          </span>
-        </div>
+          <strong className="site-brand-name">
+            CasaLuxuryDecor
+          </strong>
+        </Link>
       </div>
     </header>
   )

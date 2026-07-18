@@ -15,7 +15,18 @@
 "language": "Langue",
 "account": "Mon compte",
 "favorites": "Mes favoris",
-"menu": "Menu"
+"menu": "Menu",
+"catalogue": "Catalogue",
+"catalogueDescription": "Explorez les rubriques, catégories et familles de produits.",
+"sections": "Rubriques",
+"categories": "Catégories",
+"families": "Familles",
+"viewAll": "Voir toute la rubrique",
+"viewCategory": "Voir toute la catégorie",
+"selectCategory": "Sélectionnez une catégorie pour afficher ses familles.",
+"noCategories": "Aucune catégorie disponible dans cette rubrique.",
+"noFamilies": "Aucune famille disponible dans cette catégorie.",
+"catalogueLoadError": "Le catalogue ne peut pas être chargé pour le moment."
   },
   "sections": {
     "furniture": "Mobilier",

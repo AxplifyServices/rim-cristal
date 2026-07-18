@@ -15,7 +15,18 @@
 "language": "Language",
 "account": "My account",
 "favorites": "My favourites",
-"menu": "Menu"
+"menu": "Menu",
+"catalogue": "Catalogue",
+"catalogueDescription": "Explore product sections, categories and families.",
+"sections": "Sections",
+"categories": "Categories",
+"families": "Families",
+"viewAll": "View the whole section",
+"viewCategory": "View the whole category",
+"selectCategory": "Select a category to display its product families.",
+"noCategories": "No category is available in this section.",
+"noFamilies": "No family is available in this category.",
+"catalogueLoadError": "The catalogue cannot be loaded at the moment."
 },
 "sections": {
   "furniture": "Furniture",

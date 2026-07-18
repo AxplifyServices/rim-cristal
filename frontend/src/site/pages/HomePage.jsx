@@ -148,51 +148,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="benefits-section">
-        <div className="container benefits-grid">
-          <article>
-            <h2>
-              {t(
-                'home.benefit1Title'
-              )}
-            </h2>
 
-            <p>
-              {t(
-                'home.benefit1Text'
-              )}
-            </p>
-          </article>
-
-          <article>
-            <h2>
-              {t(
-                'home.benefit2Title'
-              )}
-            </h2>
-
-            <p>
-              {t(
-                'home.benefit2Text'
-              )}
-            </p>
-          </article>
-
-          <article>
-            <h2>
-              {t(
-                'home.benefit3Title'
-              )}
-            </h2>
-
-            <p>
-              {t(
-                'home.benefit3Text'
-              )}
-            </p>
-          </article>
-        </div>
-      </section>
     </SiteLayout>
   )
 }
