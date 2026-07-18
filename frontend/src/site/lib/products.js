@@ -300,10 +300,17 @@ const images = [
       toBoolean(
         product.is_active,
         true
-      ) &&
+      ),
+
+    inStock:
       Number(
         product.stock || 0
       ) > 0,
+
+    isOutOfStock:
+      Number(
+        product.stock || 0
+      ) <= 0,
   }
 }
 

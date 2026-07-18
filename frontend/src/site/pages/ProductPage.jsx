@@ -298,10 +298,15 @@ function handleTouchEnd(event) {
     product.hasColorVariants &&
     product.colors.length > 0
 
+  const isOutOfStock =
+    Number(product.stock || 0) <= 0
+
+  const showStockCounter =
+    Number(product.stock || 0) >= 10
+
   const canAddToCart =
-    product.stock > 0 &&
-    (!colorChoiceRequired ||
-      Boolean(selectedColor))
+    !colorChoiceRequired ||
+    Boolean(selectedColor)
 
   const whatsappMessageParts = [
     t('product.whatsappMessage'),
@@ -440,6 +445,40 @@ function handleTouchEnd(event) {
                   'common.currency'
                 )}
               </div>
+
+              <div
+                className={
+                  isOutOfStock
+                    ? 'product-stock-notice is-out'
+                    : 'product-stock-notice is-available'
+                }
+              >
+                <strong>
+                  {isOutOfStock
+                    ? t(
+                        'product.outOfStock'
+                      )
+                    : showStockCounter
+                      ? t(
+                          'product.stockRemaining',
+                          {
+                            count:
+                              product.stock,
+                          }
+                        )
+                      : t(
+                          'product.inStock'
+                        )}
+                </strong>
+
+                {isOutOfStock && (
+                  <p>
+                    {t(
+                      'product.backorderDetailMessage'
+                    )}
+                  </p>
+                )}
+              </div>              
 
               <dl className="product-specs">
                 {product.reference && (
@@ -605,25 +644,29 @@ function handleTouchEnd(event) {
                       type="number"
                       min="1"
                       max={
-                        product.stock
+                        isOutOfStock
+                          ? undefined
+                          : product.stock
                       }
                       value={quantity}
                       onChange={event => {
                         const requestedQuantity =
-                          Number(
-                            event
-                              .target
-                              .value
-                          ) || 1
+                          Math.max(
+                            1,
+                            Number(
+                              event
+                                .target
+                                .value
+                            ) || 1
+                          )
 
                         setQuantity(
-                          Math.min(
-                            Math.max(
-                              1,
-                              requestedQuantity
-                            ),
-                            product.stock
-                          )
+                          isOutOfStock
+                            ? requestedQuantity
+                            : Math.min(
+                                requestedQuantity,
+                                product.stock
+                              )
                         )
                       }}
                     />
@@ -631,17 +674,21 @@ function handleTouchEnd(event) {
                     <button
                       type="button"
                       disabled={
+                        !isOutOfStock &&
                         quantity >=
-                        product.stock
+                          product.stock
                       }
                       onClick={() => {
                         setQuantity(
                           current =>
-                            Math.min(
-                              current +
-                                1,
-                              product.stock
-                            )
+                            isOutOfStock
+                              ? current +
+                                1
+                              : Math.min(
+                                  current +
+                                    1,
+                                  product.stock
+                                )
                         )
                       }}
                     >
@@ -660,16 +707,22 @@ function handleTouchEnd(event) {
                     add(
                       {
                         ...product,
+
                         selectedColor:
                           selectedColor ||
                           null,
+
+                        isBackorder:
+                          isOutOfStock,
                       },
                       quantity
                     )
                   }}
                 >
                   {t(
-                    'common.addToCart'
+                    isOutOfStock
+                      ? 'product.orderProduct'
+                      : 'common.addToCart'
                   )}
                 </button>
               </div>

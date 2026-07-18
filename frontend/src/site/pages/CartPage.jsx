@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+
 import SiteLayout from '../components/SiteLayout'
 import { useCart } from '../context/CartContext'
 import { useSiteI18n } from '../i18n/SiteI18nProvider'
@@ -18,12 +19,22 @@ export default function CartPage() {
   const { locale, t } =
     useSiteI18n()
 
+  const containsBackorder =
+    items.some(
+      item =>
+        Boolean(
+          item.isBackorder
+        )
+    )
+
   return (
     <SiteLayout>
       <section className="page-hero compact">
         <div className="container">
           <h1>
-            {t('cart.title')}
+            {t(
+              'cart.title'
+            )}
           </h1>
         </div>
       </section>
@@ -33,7 +44,9 @@ export default function CartPage() {
           {items.length === 0 ? (
             <div className="empty-cart">
               <h2>
-                {t('cart.empty')}
+                {t(
+                  'cart.empty'
+                )}
               </h2>
 
               <p>
@@ -52,158 +65,218 @@ export default function CartPage() {
               </Link>
             </div>
           ) : (
-            <div className="cart-layout">
-              <div className="cart-items">
-                {items.map(item => (
-                  <article
-                    key={
-                      item.cartItemKey
-                    }
-                    className="cart-item"
-                  >
-                    <Link
-                      href={`/product/${item.slug}`}
-                      className="cart-item-image"
-                    >
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                      />
-                    </Link>
+            <>
+              {containsBackorder && (
+                <div className="cart-backorder-notice">
+                  <strong>
+                    {t(
+                      'cart.backorderTitle'
+                    )}
+                  </strong>
 
-                    <div className="cart-item-content">
-                      <Link
-                        href={`/product/${item.slug}`}
-                        className="cart-item-name"
+                  <p>
+                    {t(
+                      'cart.backorderNotice'
+                    )}
+                  </p>
+                </div>
+              )}
+
+              <div className="cart-layout">
+                <div className="cart-items">
+                  {items.map(
+                    item => (
+                      <article
+                        key={
+                          item.cartItemKey
+                        }
+                        className={
+                          item.isBackorder
+                            ? 'cart-item is-backorder'
+                            : 'cart-item'
+                        }
                       >
-                        {item.name}
-                      </Link>
-
-                      {item.reference && (
-                        <p>
-                          {
-                            item.reference
-                          }
-                        </p>
-                      )}
-
-                      {item.selectedColor && (
-                        <p>
-                          <strong>
-                            {t(
-                              'cart.color'
-                            )}
-                            :
-                          </strong>{' '}
-                          {
-                            item.selectedColor
-                          }
-                        </p>
-                      )}
-
-                      <strong>
-                        {formatPrice(
-                          item.price,
-                          locale
-                        )}{' '}
-                        {t(
-                          'common.currency'
-                        )}
-                      </strong>
-
-                      <div className="cart-item-actions">
-                        <div className="cart-quantity">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              update(
-                                item.cartItemKey,
-                                item.quantity -
-                                  1
-                              )
-                            }}
-                          >
-                            −
-                          </button>
-
-                          <span>
-                            {
-                              item.quantity
-                            }
-                          </span>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              update(
-                                item.cartItemKey,
-                                item.quantity +
-                                  1
-                              )
-                            }}
-                          >
-                            +
-                          </button>
-                        </div>
-
-                        <button
-                          type="button"
-                          className="remove-button"
-                          onClick={() => {
-                            remove(
-                              item.cartItemKey
-                            )
-                          }}
+                        <Link
+                          href={`/product/${item.slug}`}
+                          className="cart-item-image"
                         >
-                          {t(
-                            'cart.remove'
+                          <img
+                            src={
+                              item.image
+                            }
+                            alt={
+                              item.name
+                            }
+                          />
+
+                          {item.isBackorder && (
+                            <span className="cart-item-stock-badge">
+                              {t(
+                                'product.outOfStock'
+                              )}
+                            </span>
                           )}
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
+                        </Link>
 
-              <aside className="cart-summary">
-                <h2>
-                  {t(
-                    'cart.subtotal'
-                  )}
-                </h2>
+                        <div className="cart-item-content">
+                          <Link
+                            href={`/product/${item.slug}`}
+                            className="cart-item-name"
+                          >
+                            {
+                              item.name
+                            }
+                          </Link>
 
-                <div className="summary-price">
-                  {formatPrice(
-                    subtotal,
-                    locale
-                  )}{' '}
-                  {t(
-                    'common.currency'
+                          {item.reference && (
+                            <p>
+                              {
+                                item.reference
+                              }
+                            </p>
+                          )}
+
+                          {item.selectedColor && (
+                            <p>
+                              <strong>
+                                {t(
+                                  'cart.color'
+                                )}
+                                :
+                              </strong>{' '}
+                              {
+                                item.selectedColor
+                              }
+                            </p>
+                          )}
+
+                          {item.isBackorder && (
+                            <p className="cart-item-backorder-message">
+                              {t(
+                                'cart.backorderItem'
+                              )}
+                            </p>
+                          )}
+
+                          <strong>
+                            {formatPrice(
+                              item.price,
+                              locale
+                            )}{' '}
+                            {t(
+                              'common.currency'
+                            )}
+                          </strong>
+
+                          <div className="cart-item-actions">
+                            <div className="cart-quantity">
+                              <button
+                                type="button"
+                                aria-label={t(
+                                  'cart.decreaseQuantity'
+                                )}
+                                onClick={() => {
+                                  update(
+                                    item.cartItemKey,
+                                    item.quantity -
+                                      1
+                                  )
+                                }}
+                              >
+                                −
+                              </button>
+
+                              <span>
+                                {
+                                  item.quantity
+                                }
+                              </span>
+
+                              <button
+                                type="button"
+                                aria-label={t(
+                                  'cart.increaseQuantity'
+                                )}
+                                onClick={() => {
+                                  update(
+                                    item.cartItemKey,
+                                    item.quantity +
+                                      1
+                                  )
+                                }}
+                              >
+                                +
+                              </button>
+                            </div>
+
+                            <button
+                              type="button"
+                              className="remove-button"
+                              onClick={() => {
+                                remove(
+                                  item.cartItemKey
+                                )
+                              }}
+                            >
+                              {t(
+                                'cart.remove'
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </article>
+                    )
                   )}
                 </div>
 
-                <p>
-                  {t('cart.notice')}
-                </p>
+                <aside className="cart-summary">
+                  <h2>
+                    {t(
+                      'cart.subtotal'
+                    )}
+                  </h2>
 
-<Link
-  href="/checkout"
-  className="primary-button full-width"
->
-                  {t(
-                    'cart.checkout'
-                  )}
-                </Link>
+                  <div className="summary-price">
+                    {formatPrice(
+                      subtotal,
+                      locale
+                    )}{' '}
+                    {t(
+                      'common.currency'
+                    )}
+                  </div>
 
-                <button
-                  type="button"
-                  className="secondary-button full-width"
-                  onClick={clear}
-                >
-                  {t('cart.clear')}
-                </button>
-              </aside>
-            </div>
+                  <p>
+                    {containsBackorder
+                      ? t(
+                          'cart.backorderSummary'
+                        )
+                      : t(
+                          'cart.notice'
+                        )}
+                  </p>
+
+                  <Link
+                    href="/checkout"
+                    className="primary-button full-width"
+                  >
+                    {t(
+                      'cart.checkout'
+                    )}
+                  </Link>
+
+                  <button
+                    type="button"
+                    className="secondary-button full-width"
+                    onClick={clear}
+                  >
+                    {t(
+                      'cart.clear'
+                    )}
+                  </button>
+                </aside>
+              </div>
+            </>
           )}
         </div>
       </section>

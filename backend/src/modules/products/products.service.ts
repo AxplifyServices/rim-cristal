@@ -615,9 +615,6 @@ private async generateReference() {
     return {
       is_active: true,
       is_available_on_site: true,
-      stock: {
-        gt: 0,
-      },
     };
   }
 
@@ -815,10 +812,8 @@ if (!includeInactive) {
 }
 
 if (isPublicCatalog) {
-  where.is_available_on_site = true;
-  where.stock = {
-    gt: 0,
-  };
+  where.is_available_on_site =
+    true;
 }
 
     const categories =
@@ -1026,9 +1021,6 @@ async findBySlug(
         is_active: true,
         is_available_on_site:
           true,
-        stock: {
-          gt: 0,
-        },
       },
 
       include:

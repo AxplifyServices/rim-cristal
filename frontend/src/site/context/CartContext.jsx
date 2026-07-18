@@ -53,6 +53,11 @@ export function CartProvider({
               item.selectedColor ||
               null,
 
+            isBackorder:
+              Boolean(
+                item.isBackorder
+              ),              
+
             cartItemKey:
               item.cartItemKey ||
               createCartItemKey(
@@ -158,6 +163,11 @@ export function CartProvider({
                 product.image,
 
               selectedColor,
+
+              isBackorder:
+                Boolean(
+                  product.isBackorder
+                ),
 
               quantity,
             },

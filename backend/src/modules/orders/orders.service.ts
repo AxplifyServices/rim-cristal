@@ -1036,9 +1036,14 @@ private async createOrder({
                 0,
             );
 
-      if (
+      const isBackorder =
         availableStock <
-        item.quantity
+        item.quantity;
+
+      if (
+        isBackorder &&
+        context.orderOrigin !==
+          'website'
       ) {
         throw new BadRequestException(
           `Insufficient stock for ${item.product.name} - ${
@@ -1112,11 +1117,22 @@ private async createOrder({
         quantity:
           item.quantity,
 
+        is_backorder:
+          isBackorder,          
+
         line_total:
           unitPrice *
           item.quantity,
+
+          
       };
     });
+
+  const requiresStockConfirmation =
+    computedItems.some(
+      item =>
+        item.is_backorder,
+    );    
 
   const subtotal =
     computedItems.reduce(
@@ -1226,6 +1242,13 @@ private async createOrder({
           for (
             const item of computedItems
           ) {
+
+            if (
+              item.is_backorder
+            ) {
+              continue;
+            }
+
             const updated =
               await tx
                 .product_size_variants
@@ -1406,8 +1429,16 @@ private async createOrder({
               stock_source_type:
                 context.stockSourceType,
 
+              requires_stock_confirmation:
+                requiresStockConfirmation,                
+
               stock_deducted_at:
-                new Date(),
+                computedItems.some(
+                  item =>
+                    !item.is_backorder
+                )
+                  ? new Date()
+                  : null,
 
               stock_restored_at:
                 null,
@@ -1438,6 +1469,13 @@ private async createOrder({
         for (
           const item of computedItems
         ) {
+
+          if (
+            item.is_backorder
+          ) {
+            continue;
+          }          
+
           if (
             context.stockSourceType ===
             'global'
@@ -1586,7 +1624,9 @@ private async createOrder({
                 'pending',
 
               note:
-                context.historyNote,
+                requiresStockConfirmation
+                  ? `${context.historyNote} - Une ou plusieurs lignes nécessitent une confirmation de disponibilité`
+                  : context.historyNote,
 
               created_by_user_id:
                 context.createdByUserId,
@@ -1898,6 +1938,17 @@ if (mustRestoreStock) {
   for (
     const item of currentOrder.order_items
   ) {
+    /*
+     * Une ligne en rupture n'a jamais
+     * décrémenté le stock.
+     * Elle ne doit donc jamais être restaurée.
+     */
+    if (
+      item.is_backorder
+    ) {
+      continue;
+    }
+
     if (!item.product_id) {
       continue;
     }
