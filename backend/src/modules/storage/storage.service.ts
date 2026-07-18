@@ -161,6 +161,113 @@ export class StorageService implements OnModuleInit {
     }
   }
 
+async uploadHomepageBrochureImage(
+  file: Express.Multer.File,
+): Promise<{
+  objectKey: string;
+  url: string;
+  contentType: string;
+  size: number;
+}> {
+  if (!file) {
+    throw new BadRequestException(
+      'Aucun fichier image reçu.',
+    );
+  }
+
+  if (!file.buffer || file.buffer.length === 0) {
+    throw new BadRequestException(
+      'Le fichier image est vide.',
+    );
+  }
+
+  if (file.buffer.length > 10 * 1024 * 1024) {
+    throw new BadRequestException(
+      'L’image ne doit pas dépasser 10 Mo.',
+    );
+  }
+
+  const detectedImage = this.detectImageType(
+    file.buffer,
+  );
+
+  if (!detectedImage) {
+    throw new BadRequestException(
+      'Format non autorisé. Formats acceptés : JPG, PNG, WEBP et AVIF.',
+    );
+  }
+
+  /**
+   * Les GIF restent acceptés pour les produits existants,
+   * mais ils sont volontairement refusés pour les brochures.
+   */
+  if (detectedImage.extension === 'gif') {
+    throw new BadRequestException(
+      'Les images GIF ne sont pas autorisées pour les brochures.',
+    );
+  }
+
+  const now = new Date();
+
+  const year = String(
+    now.getUTCFullYear(),
+  );
+
+  const month = String(
+    now.getUTCMonth() + 1,
+  ).padStart(2, '0');
+
+  const objectKey = [
+    'homepage',
+    'brochures',
+    year,
+    month,
+    `${randomUUID()}.${detectedImage.extension}`,
+  ].join('/');
+
+  try {
+    await this.client.putObject(
+      this.bucketName,
+      objectKey,
+      file.buffer,
+      file.buffer.length,
+      {
+        'Content-Type':
+          detectedImage.contentType,
+
+        'Cache-Control':
+          'public, max-age=31536000, immutable',
+
+        'X-Amz-Meta-Original-Name':
+          this.sanitizeMetadataValue(
+            file.originalname,
+          ),
+      },
+    );
+
+    return {
+      objectKey,
+      url: `${this.publicUrl}/${objectKey}`,
+      contentType:
+        detectedImage.contentType,
+      size: file.buffer.length,
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    this.logger.error(
+      `Échec de l’upload MinIO pour ${objectKey} : ${message}`,
+    );
+
+    throw new InternalServerErrorException(
+      'Impossible de stocker l’image de la brochure.',
+    );
+  }
+}
+
   async removeObjectFromUrl(url: string | null | undefined): Promise<void> {
     const objectKey = this.extractObjectKey(url);
 

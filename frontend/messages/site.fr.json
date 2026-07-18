@@ -7,7 +7,15 @@
     "cart": "Panier",
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
-    "mainNavigation": "Navigation principale"
+    "mainNavigation": "Navigation principale",
+    "search": "Rechercher",
+"searchPlaceholder": "Rechercher un produit...",
+"searchAction": "Rechercher",
+"closeSearch": "Fermer la recherche",
+"language": "Langue",
+"account": "Mon compte",
+"favorites": "Mes favoris",
+"menu": "Menu"
   },
   "sections": {
     "furniture": "Mobilier",
@@ -44,7 +52,13 @@
     "previousSlide": "Image précédente",
 "nextSlide": "Image suivante",
 "goToSlide": "Afficher l’image {number}",
-"noBestsellers": "Aucune meilleure vente n’est disponible pour le moment."
+"noBestsellers": "Aucune meilleure vente n’est disponible pour le moment.",
+"brochuresTitle": "Brochures Casa Luxury Decor",
+"brochuresLoadError": "Les brochures ne peuvent pas être chargées pour le moment.",
+"noBrochures": "Les nouvelles brochures seront bientôt disponibles.",
+"brochurePosition": "Brochure {current} sur {total}",
+"brochureNavigation": "Navigation entre les brochures",
+"openBrochure": "Découvrir"
   },
   "shop": {
     "title": "La boutique",

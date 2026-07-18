@@ -7,7 +7,15 @@
   "closeMenu": "Close menu",
   "mainNavigation": "Main navigation",
   "shop": "Shop",
-"contact": "Contact"
+"contact": "Contact",
+"search": "Search",
+"searchPlaceholder": "Search for a product...",
+"searchAction": "Search",
+"closeSearch": "Close search",
+"language": "Language",
+"account": "My account",
+"favorites": "My favourites",
+"menu": "Menu"
 },
 "sections": {
   "furniture": "Furniture",
@@ -44,7 +52,13 @@
     "previousSlide": "Previous image",
 "nextSlide": "Next image",
 "goToSlide": "Show image {number}",
-"noBestsellers": "No bestseller is currently available."
+"noBestsellers": "No bestseller is currently available.",
+"brochuresTitle": "Casa Luxury Decor brochures",
+"brochuresLoadError": "The brochures cannot be loaded at the moment.",
+"noBrochures": "New brochures will be available soon.",
+"brochurePosition": "Brochure {current} of {total}",
+"brochureNavigation": "Brochure navigation",
+"openBrochure": "Discover"
   },
 "shop": {
   "title": "The shop",

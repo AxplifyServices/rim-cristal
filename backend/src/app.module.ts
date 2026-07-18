@@ -4,6 +4,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
+import { HomepageBrochuresModule } from './modules/homepage-brochures/homepage-brochures.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PointOfSaleModule } from './modules/point-of-sale/point-of-sale.module';
 import { ProductsModule } from './modules/products/products.module';
@@ -15,8 +16,10 @@ import { PrismaModule } from './prisma/prisma.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
     PrismaModule,
     StorageModule,
+
     ProductsModule,
     AuthModule,
     OrdersModule,
@@ -24,6 +27,7 @@ import { PrismaModule } from './prisma/prisma.module';
     AdminModule,
     PointOfSaleModule,
     ContactsModule,
+    HomepageBrochuresModule,
   ],
 })
 export class AppModule {}

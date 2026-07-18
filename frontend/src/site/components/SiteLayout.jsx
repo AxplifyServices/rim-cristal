@@ -6,12 +6,24 @@ import SiteHeader from './SiteHeader'
 function HeaderFallback() {
   return (
     <header className="site-header">
-      <div className="container header-row">
+      <div className="site-header-inner">
         <div
-          className="brand"
+          className="site-brand"
           aria-hidden="true"
         >
-          Kaystia Home
+          <span className="site-brand-mark">
+            H
+          </span>
+
+          <span className="site-brand-copy">
+            <strong>
+              CasaLuxuryDecor
+            </strong>
+
+            <small>
+              Maison d’artiste
+            </small>
+          </span>
         </div>
       </div>
     </header>
