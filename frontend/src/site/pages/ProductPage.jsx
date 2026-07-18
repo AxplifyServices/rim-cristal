@@ -301,8 +301,9 @@ function handleTouchEnd(event) {
   const isOutOfStock =
     Number(product.stock || 0) <= 0
 
-  const showStockCounter =
-    Number(product.stock || 0) >= 10
+const showStockCounter =
+  Number(product.stock || 0) > 0 &&
+  Number(product.stock || 0) <= 10
 
   const canAddToCart =
     !colorChoiceRequired ||

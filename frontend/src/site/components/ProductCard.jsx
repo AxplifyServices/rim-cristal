@@ -31,9 +31,10 @@ export default function ProductCard({
   const isOutOfStock =
     stock <= 0
 
-  const showStockCounter =
-    stock >=
-    STOCK_COUNTER_THRESHOLD
+const showStockCounter =
+  stock > 0 &&
+  stock <=
+  STOCK_COUNTER_THRESHOLD
 
   const requiresConfiguration =
     Boolean(
