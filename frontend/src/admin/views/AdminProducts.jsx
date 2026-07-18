@@ -5,6 +5,7 @@ import {
   useMemo,
   useState,
 } from 'react'
+
 import AdminShell from '../components/AdminShell'
 import { useAdminI18n } from '../i18n/AdminI18nProvider'
 import { getAdminUser } from '../lib/adminAuth'
@@ -102,44 +103,64 @@ const COLOR_OPTIONS = [
   'Multicolore',
 ]
 
-const emptyForm = {
-  name: '',
-  marque: '',
-  rubrique: '',
-  categorie: '',
-  famille: '',
-  description: '',
+function createEmptySizeVariant({
+  isPrimary = false,
+} = {}) {
+  return {
+    id: null,
+    label: '',
+    reference: '',
+    width_cm: '',
+    depth_cm: '',
+    height_cm: '',
+    price: '',
+    price_wholesale: 0,
+    wholesale_min_qty: 1,
+    stock: 0,
+    is_primary: isPrimary,
+    is_active: true,
+  }
+}
 
-  url_image1: '',
-  url_image2: '',
-  url_image3: '',
-  url_image4: '',
-  url_image5: '',
+function createEmptyForm() {
+  return {
+    name: '',
+    marque: '',
+    rubrique: '',
+    categorie: '',
+    famille: '',
+    description: '',
 
-  price: '',
-  price_wholesale: 0,
-  wholesale_min_qty: 1,
+    url_image1: '',
+    url_image2: '',
+    url_image3: '',
+    url_image4: '',
+    url_image5: '',
 
-  stock: 0,
-  weight: '',
+    weight: '',
 
-  width_cm: '',
-  depth_cm: '',
-  height_cm: '',
+    has_size_variants: false,
 
-  has_color_variants: false,
-  colors: [],
+    size_variants: [
+      createEmptySizeVariant({
+        isPrimary: true,
+      }),
+    ],
 
-  badge: '',
-  is_active: true,
-  is_available_on_site: true,
-  is_bestseller: false,
+    has_color_variants: false,
+    colors: [],
 
-  care_instructions: '',
-  origin_country: '',
-  collection_name: '',
-  seo_title: '',
-  seo_description: '',
+    badge: '',
+    is_active: true,
+    is_available_on_site: true,
+    is_bestseller: false,
+
+    care_instructions: '',
+    origin_country: '',
+    collection_name: '',
+    seo_title: '',
+    seo_description: '',
+  }
 }
 
 function normalizeArray(value) {
@@ -185,8 +206,132 @@ function nullableNumber(value) {
     : null
 }
 
+function nonNegativeNumber(
+  value,
+  fallback = 0
+) {
+  const number = Number(value)
+
+  if (
+    !Number.isFinite(number) ||
+    number < 0
+  ) {
+    return fallback
+  }
+
+  return number
+}
+
+function positiveInteger(
+  value,
+  fallback = 1
+) {
+  const number = Number(value)
+
+  if (
+    !Number.isInteger(number) ||
+    number < 1
+  ) {
+    return fallback
+  }
+
+  return number
+}
+
+function nonNegativeInteger(
+  value,
+  fallback = 0
+) {
+  const number = Number(value)
+
+  if (
+    !Number.isInteger(number) ||
+    number < 0
+  ) {
+    return fallback
+  }
+
+  return number
+}
+
+function formatDimensionValue(value) {
+  if (
+    value === '' ||
+    value === null ||
+    value === undefined
+  ) {
+    return ''
+  }
+
+  const number = Number(value)
+
+  if (!Number.isFinite(number)) {
+    return ''
+  }
+
+  return Number.isInteger(number)
+    ? String(number)
+    : String(number).replace(
+        '.',
+        ','
+      )
+}
+
+function buildSizeLabel(variant) {
+  const dimensions = [
+    variant.width_cm,
+    variant.depth_cm,
+    variant.height_cm,
+  ]
+    .map(formatDimensionValue)
+    .filter(Boolean)
+
+  if (dimensions.length === 0) {
+    return 'Taille standard'
+  }
+
+  return `${dimensions.join(
+    ' × '
+  )} cm`
+}
+
+function getPrimaryVariant(product) {
+  const variants = Array.isArray(
+    product.product_size_variants
+  )
+    ? product.product_size_variants
+    : []
+
+  return (
+    variants.find(
+      variant =>
+        variant.is_primary
+    ) ||
+    variants[0] ||
+    null
+  )
+}
+
+function getProductSizesCount(product) {
+  if (
+    !Array.isArray(
+      product.product_size_variants
+    )
+  ) {
+    return 0
+  }
+
+  return product.product_size_variants
+    .filter(
+      variant =>
+        variant.is_active !== false
+    )
+    .length
+}
+
 export default function AdminProducts() {
-  const { t, locale } = useAdminI18n()
+  const { t, locale } =
+    useAdminI18n()
 
   const [user, setUser] =
     useState(null)
@@ -212,7 +357,9 @@ export default function AdminProducts() {
   ] = useState(null)
 
   const [form, setForm] =
-    useState(emptyForm)
+    useState(() =>
+      createEmptyForm()
+    )
 
   const isAdmin =
     user?.role === 'admin'
@@ -222,7 +369,10 @@ export default function AdminProducts() {
       return [
         ...new Set(
           products
-            .map(product => product[field])
+            .map(
+              product =>
+                product[field]
+            )
             .filter(Boolean)
         ),
       ].sort((a, b) =>
@@ -250,7 +400,8 @@ export default function AdminProducts() {
         locale || 'fr'
 
       const displayNames =
-        typeof Intl !== 'undefined' &&
+        typeof Intl !==
+          'undefined' &&
         Intl.DisplayNames
           ? new Intl.DisplayNames(
               [safeLocale],
@@ -263,6 +414,7 @@ export default function AdminProducts() {
       return COUNTRY_CODES.map(
         code => ({
           value: code,
+
           label:
             displayNames?.of(code) ||
             code,
@@ -297,8 +449,13 @@ export default function AdminProducts() {
           Array.isArray(data)
             ? data.map(row => ({
                 ...row.products,
+
                 pos_quantity:
                   row.quantity,
+
+                selected_size_variant:
+                  row.product_size_variants ||
+                  null,
               }))
             : []
         )
@@ -317,7 +474,9 @@ export default function AdminProducts() {
           : []
       )
     } catch (loadError) {
-      setError(loadError.message)
+      setError(
+        loadError.message
+      )
     } finally {
       setLoading(false)
     }
@@ -333,7 +492,8 @@ export default function AdminProducts() {
     }
 
     const previousOverflow =
-      document.body.style.overflow
+      document.body.style
+        .overflow
 
     document.body.style.overflow =
       'hidden'
@@ -350,7 +510,9 @@ export default function AdminProducts() {
     }
 
     function handleKeyDown(event) {
-      if (event.key === 'Escape') {
+      if (
+        event.key === 'Escape'
+      ) {
         closeForm()
       }
     }
@@ -366,13 +528,176 @@ export default function AdminProducts() {
         handleKeyDown
       )
     }
-  }, [formOpen])
+  }, [formOpen, saving])
 
   function productToForm(product) {
     const hasColorVariants =
       Boolean(
         product.has_color_variants
       )
+
+    const backendVariants =
+      Array.isArray(
+        product.product_size_variants
+      )
+        ? product.product_size_variants
+        : []
+
+    const sortedVariants = [
+      ...backendVariants,
+    ].sort(
+      (
+        first,
+        second
+      ) => {
+        if (
+          Boolean(
+            first.is_primary
+          ) !==
+          Boolean(
+            second.is_primary
+          )
+        ) {
+          return first.is_primary
+            ? -1
+            : 1
+        }
+
+        const orderDifference =
+          Number(
+            first.display_order ||
+              0
+          ) -
+          Number(
+            second.display_order ||
+              0
+          )
+
+        if (
+          orderDifference !== 0
+        ) {
+          return orderDifference
+        }
+
+        return String(
+          first.id
+        ).localeCompare(
+          String(second.id)
+        )
+      }
+    )
+
+    const sizeVariants =
+      sortedVariants.length > 0
+        ? sortedVariants.map(
+            (
+              variant,
+              index
+            ) => ({
+              id:
+                variant.id !==
+                  undefined &&
+                variant.id !==
+                  null
+                  ? String(
+                      variant.id
+                    )
+                  : null,
+
+              label:
+                variant.label ||
+                '',
+
+              reference:
+                variant.reference ||
+                '',
+
+              width_cm:
+                variant.width_cm ??
+                '',
+
+              depth_cm:
+                variant.depth_cm ??
+                '',
+
+              height_cm:
+                variant.height_cm ??
+                '',
+
+              price:
+                variant.price ??
+                '',
+
+              price_wholesale:
+                variant.price_wholesale ??
+                0,
+
+              wholesale_min_qty:
+                variant.wholesale_min_qty ??
+                1,
+
+              stock:
+                variant.stock ??
+                0,
+
+              is_primary:
+                index === 0,
+
+              is_active:
+                variant.is_active !==
+                false,
+            })
+          )
+        : [
+            {
+              ...createEmptySizeVariant(
+                {
+                  isPrimary:
+                    true,
+                }
+              ),
+
+              label:
+                buildSizeLabel({
+                  width_cm:
+                    product.width_cm,
+
+                  depth_cm:
+                    product.depth_cm,
+
+                  height_cm:
+                    product.height_cm,
+                }),
+
+              width_cm:
+                product.width_cm ??
+                '',
+
+              depth_cm:
+                product.depth_cm ??
+                '',
+
+              height_cm:
+                product.height_cm ??
+                '',
+
+              price:
+                product.price ??
+                '',
+
+              price_wholesale:
+                product.price_wholesale ??
+                0,
+
+              wholesale_min_qty:
+                product.wholesale_min_qty ??
+                1,
+
+              stock:
+                product.stock ??
+                0,
+            },
+          ]
 
     return {
       name:
@@ -408,31 +733,17 @@ export default function AdminProducts() {
       url_image5:
         product.url_image5 || '',
 
-      price:
-        product.price ?? '',
-
-      price_wholesale:
-        product.price_wholesale ??
-        0,
-
-      wholesale_min_qty:
-        product.wholesale_min_qty ??
-        1,
-
-      stock:
-        product.stock ?? 0,
-
       weight:
         product.weight ?? '',
 
-      width_cm:
-        product.width_cm ?? '',
+      has_size_variants:
+        Boolean(
+          product.has_size_variants
+        ) &&
+        sizeVariants.length > 1,
 
-      depth_cm:
-        product.depth_cm ?? '',
-
-      height_cm:
-        product.height_cm ?? '',
+      size_variants:
+        sizeVariants,
 
       has_color_variants:
         hasColorVariants,
@@ -448,7 +759,8 @@ export default function AdminProducts() {
         product.badge || '',
 
       is_active:
-        product.is_active !== false,
+        product.is_active !==
+        false,
 
       is_available_on_site:
         product.is_available_on_site !==
@@ -464,14 +776,16 @@ export default function AdminProducts() {
         '',
 
       origin_country:
-        product.origin_country || '',
+        product.origin_country ||
+        '',
 
       collection_name:
         product.collection_name ||
         '',
 
       seo_title:
-        product.seo_title || '',
+        product.seo_title ||
+        '',
 
       seo_description:
         product.seo_description ||
@@ -479,11 +793,281 @@ export default function AdminProducts() {
     }
   }
 
+  function validateForm() {
+    if (!form.name.trim()) {
+      throw new Error(
+        'Le nom du produit est obligatoire.'
+      )
+    }
+
+    if (!form.rubrique.trim()) {
+      throw new Error(
+        'La rubrique du produit est obligatoire.'
+      )
+    }
+
+    if (
+      !Array.isArray(
+        form.size_variants
+      ) ||
+      form.size_variants
+        .length === 0
+    ) {
+      throw new Error(
+        'La taille principale est obligatoire.'
+      )
+    }
+
+    if (
+      form.has_size_variants &&
+      form.size_variants
+        .length < 2
+    ) {
+      throw new Error(
+        'Ajoutez au moins une taille supplémentaire.'
+      )
+    }
+
+    form.size_variants.forEach(
+      (
+        variant,
+        index
+      ) => {
+        const sizeName =
+          index === 0
+            ? 'taille principale'
+            : `taille ${index + 1}`
+
+        const price =
+          Number(
+            variant.price
+          )
+
+        if (
+          variant.price === '' ||
+          !Number.isFinite(price) ||
+          price < 0
+        ) {
+          throw new Error(
+            `Le prix de la ${sizeName} est invalide.`
+          )
+        }
+
+        const wholesalePrice =
+          Number(
+            variant.price_wholesale ||
+              0
+          )
+
+        if (
+          !Number.isFinite(
+            wholesalePrice
+          ) ||
+          wholesalePrice < 0
+        ) {
+          throw new Error(
+            `Le prix de gros de la ${sizeName} est invalide.`
+          )
+        }
+
+        const wholesaleMinQty =
+          Number(
+            variant.wholesale_min_qty
+          )
+
+        if (
+          !Number.isInteger(
+            wholesaleMinQty
+          ) ||
+          wholesaleMinQty < 1
+        ) {
+          throw new Error(
+            `Le seuil de gros de la ${sizeName} doit être un entier supérieur ou égal à 1.`
+          )
+        }
+
+        const stock =
+          Number(
+            variant.stock
+          )
+
+        if (
+          !Number.isInteger(
+            stock
+          ) ||
+          stock < 0
+        ) {
+          throw new Error(
+            `Le stock de la ${sizeName} doit être un entier positif ou nul.`
+          )
+        }
+
+        const dimensions = [
+          {
+            label: 'largeur',
+            value:
+              variant.width_cm,
+          },
+          {
+            label:
+              'profondeur',
+            value:
+              variant.depth_cm,
+          },
+          {
+            label: 'hauteur',
+            value:
+              variant.height_cm,
+          },
+        ]
+
+        dimensions.forEach(
+          dimension => {
+            if (
+              dimension.value ===
+                '' ||
+              dimension.value ===
+                null ||
+              dimension.value ===
+                undefined
+            ) {
+              return
+            }
+
+            const value =
+              Number(
+                dimension.value
+              )
+
+            if (
+              !Number.isFinite(
+                value
+              ) ||
+              value < 0
+            ) {
+              throw new Error(
+                `La ${dimension.label} de la ${sizeName} est invalide.`
+              )
+            }
+          }
+        )
+      }
+    )
+  }
+
   function formToPayload() {
+    validateForm()
+
     const hasColorVariants =
       Boolean(
         form.has_color_variants
       )
+
+    const hasSizeVariants =
+      Boolean(
+        form.has_size_variants
+      )
+
+    const sourceVariants =
+      hasSizeVariants
+        ? form.size_variants
+        : [
+            form.size_variants[0],
+          ]
+
+    const variantsToSend =
+      sourceVariants.map(
+        (
+          variant,
+          index
+        ) => {
+          const widthCm =
+            nullableNumber(
+              variant.width_cm
+            )
+
+          const depthCm =
+            nullableNumber(
+              variant.depth_cm
+            )
+
+          const heightCm =
+            nullableNumber(
+              variant.height_cm
+            )
+
+          return {
+            ...(variant.id
+              ? {
+                  id:
+                    String(
+                      variant.id
+                    ),
+                }
+              : {}),
+
+            label:
+              String(
+                variant.label ||
+                  ''
+              ).trim() ||
+              buildSizeLabel(
+                variant
+              ),
+
+            reference:
+              String(
+                variant.reference ||
+                  ''
+              ).trim() ||
+              null,
+
+            width_cm:
+              widthCm,
+
+            depth_cm:
+              depthCm,
+
+            height_cm:
+              heightCm,
+
+            price:
+              nonNegativeNumber(
+                variant.price
+              ),
+
+            price_wholesale:
+              nonNegativeNumber(
+                variant.price_wholesale
+              ),
+
+            wholesale_min_qty:
+              positiveInteger(
+                variant.wholesale_min_qty
+              ),
+
+            stock:
+              nonNegativeInteger(
+                variant.stock
+              ),
+
+            is_primary:
+              index === 0,
+
+            is_active:
+              index === 0
+                ? true
+                : variant.is_active !==
+                  false,
+
+            display_order:
+              index,
+          }
+        }
+      )
+
+    const primaryVariant =
+      variantsToSend[0]
 
     return {
       name:
@@ -510,55 +1094,72 @@ export default function AdminProducts() {
         null,
 
       url_image1:
-        form.url_image1 || null,
+        form.url_image1 ||
+        null,
 
       url_image2:
-        form.url_image2 || null,
+        form.url_image2 ||
+        null,
 
       url_image3:
-        form.url_image3 || null,
+        form.url_image3 ||
+        null,
 
       url_image4:
-        form.url_image4 || null,
+        form.url_image4 ||
+        null,
 
       url_image5:
-        form.url_image5 || null,
+        form.url_image5 ||
+        null,
 
       price:
-        Number(form.price || 0),
+        primaryVariant.price,
 
       price_wholesale:
-        Number(
-          form.price_wholesale || 0
-        ),
+        primaryVariant
+          .price_wholesale,
 
       wholesale_min_qty:
-        Number(
-          form.wholesale_min_qty ||
-            1
-        ),
+        primaryVariant
+          .wholesale_min_qty,
 
       stock:
-        Number(form.stock || 0),
+        variantsToSend
+          .filter(
+            variant =>
+              variant.is_active
+          )
+          .reduce(
+            (
+              total,
+              variant
+            ) =>
+              total +
+              variant.stock,
+            0
+          ),
+
+      width_cm:
+        primaryVariant.width_cm,
+
+      depth_cm:
+        primaryVariant.depth_cm,
+
+      height_cm:
+        primaryVariant.height_cm,
+
+      has_size_variants:
+        hasSizeVariants &&
+        variantsToSend.length >
+          1,
+
+      size_variants:
+        variantsToSend,
 
       weight:
         nullableNumber(
           form.weight
-        ),
-
-      width_cm:
-        nullableNumber(
-          form.width_cm
-        ),
-
-      depth_cm:
-        nullableNumber(
-          form.depth_cm
-        ),
-
-      height_cm:
-        nullableNumber(
-          form.height_cm
         ),
 
       has_color_variants:
@@ -576,7 +1177,9 @@ export default function AdminProducts() {
         null,
 
       is_active:
-        Boolean(form.is_active),
+        Boolean(
+          form.is_active
+        ),
 
       is_available_on_site:
         Boolean(
@@ -593,7 +1196,8 @@ export default function AdminProducts() {
         null,
 
       origin_country:
-        form.origin_country || null,
+        form.origin_country ||
+        null,
 
       collection_name:
         form.collection_name.trim() ||
@@ -609,7 +1213,10 @@ export default function AdminProducts() {
     }
   }
 
-  function updateForm(name, value) {
+  function updateForm(
+    name,
+    value
+  ) {
     setForm(current => {
       if (
         name ===
@@ -618,9 +1225,68 @@ export default function AdminProducts() {
       ) {
         return {
           ...current,
+
           has_color_variants:
             false,
+
           colors: [],
+        }
+      }
+
+      if (
+        name ===
+          'has_size_variants'
+      ) {
+        if (value === true) {
+          return {
+            ...current,
+
+            has_size_variants:
+              true,
+
+            size_variants:
+              current
+                .size_variants
+                .length > 0
+                ? current
+                    .size_variants
+                : [
+                    createEmptySizeVariant(
+                      {
+                        isPrimary:
+                          true,
+                      }
+                    ),
+                  ],
+          }
+        }
+
+        return {
+          ...current,
+
+          has_size_variants:
+            false,
+
+          size_variants: [
+            {
+              ...(
+                current
+                  .size_variants[0] ||
+                createEmptySizeVariant(
+                  {
+                    isPrimary:
+                      true,
+                  }
+                )
+              ),
+
+              is_primary:
+                true,
+
+              is_active:
+                true,
+            },
+          ],
         }
       }
 
@@ -631,20 +1297,112 @@ export default function AdminProducts() {
     })
   }
 
+  function updateSizeVariant(
+    index,
+    field,
+    value
+  ) {
+    setForm(current => ({
+      ...current,
+
+      size_variants:
+        current.size_variants.map(
+          (
+            variant,
+            variantIndex
+          ) =>
+            variantIndex ===
+            index
+              ? {
+                  ...variant,
+                  [field]:
+                    value,
+                }
+              : variant
+        ),
+    }))
+  }
+
+  function addSizeVariant() {
+    setForm(current => ({
+      ...current,
+
+      has_size_variants:
+        true,
+
+      size_variants: [
+        ...current.size_variants,
+
+        createEmptySizeVariant(),
+      ],
+    }))
+  }
+
+  function removeSizeVariant(
+    index
+  ) {
+    if (index === 0) {
+      return
+    }
+
+    setForm(current => {
+      const nextVariants =
+        current.size_variants
+          .filter(
+            (
+              _variant,
+              variantIndex
+            ) =>
+              variantIndex !==
+              index
+          )
+          .map(
+            (
+              variant,
+              variantIndex
+            ) => ({
+              ...variant,
+
+              is_primary:
+                variantIndex ===
+                0,
+
+              is_active:
+                variantIndex ===
+                0
+                  ? true
+                  : variant.is_active,
+            })
+          )
+
+      return {
+        ...current,
+
+        has_size_variants:
+          nextVariants.length >
+          1,
+
+        size_variants:
+          nextVariants,
+      }
+    })
+  }
+
   function openCreate() {
     setEditingProduct(null)
-
-    setForm({
-      ...emptyForm,
-      colors: [],
-    })
-
+    setError('')
+    setForm(
+      createEmptyForm()
+    )
     setFormOpen(true)
   }
 
   function openEdit(product) {
     setEditingProduct(product)
-    setForm(productToForm(product))
+    setError('')
+    setForm(
+      productToForm(product)
+    )
     setFormOpen(true)
   }
 
@@ -655,14 +1413,15 @@ export default function AdminProducts() {
 
     setFormOpen(false)
     setEditingProduct(null)
-
-    setForm({
-      ...emptyForm,
-      colors: [],
-    })
+    setError('')
+    setForm(
+      createEmptyForm()
+    )
   }
 
-  async function saveProduct(event) {
+  async function saveProduct(
+    event
+  ) {
     event.preventDefault()
     setSaving(true)
     setError('')
@@ -685,15 +1444,15 @@ export default function AdminProducts() {
 
       setFormOpen(false)
       setEditingProduct(null)
-
-      setForm({
-        ...emptyForm,
-        colors: [],
-      })
+      setForm(
+        createEmptyForm()
+      )
 
       await load()
     } catch (saveError) {
-      setError(saveError.message)
+      setError(
+        saveError.message
+      )
     } finally {
       setSaving(false)
     }
@@ -742,8 +1501,13 @@ export default function AdminProducts() {
       return
     }
 
-    const data = new FormData()
-    data.append('file', file)
+    const data =
+      new FormData()
+
+    data.append(
+      'file',
+      file
+    )
 
     setSaving(true)
     setError('')
@@ -777,7 +1541,11 @@ export default function AdminProducts() {
             {t('products.title')}
           </h1>
 
-          <p style={styles.subtitle}>
+          <p
+            style={
+              styles.subtitle
+            }
+          >
             {isAdmin
               ? t(
                   'products.subtitleAdmin'
@@ -796,12 +1564,14 @@ export default function AdminProducts() {
               styles.primaryButton
             }
           >
-            {t('products.create')}
+            {t(
+              'products.create'
+            )}
           </button>
         )}
       </div>
 
-      {error && (
+      {error && !formOpen && (
         <div style={styles.error}>
           {error}
         </div>
@@ -810,44 +1580,67 @@ export default function AdminProducts() {
       <div style={styles.card}>
         {loading ? (
           <div style={styles.empty}>
-            {t('common.loading')}
+            {t(
+              'common.loading'
+            )}
           </div>
-        ) : products.length === 0 ? (
+        ) : products.length ===
+          0 ? (
           <div style={styles.empty}>
             {t('common.empty')}
           </div>
         ) : (
           <div
-            style={styles.tableWrap}
+            style={
+              styles.tableWrap
+            }
           >
-            <table style={styles.table}>
+            <table
+              style={styles.table}
+            >
               <thead>
                 <tr>
-                  <th style={styles.th}>
+                  <th
+                    style={styles.th}
+                  >
                     {t(
                       'products.product'
                     )}
                   </th>
 
-                  <th style={styles.th}>
+                  <th
+                    style={styles.th}
+                  >
                     {t(
                       'products.category'
                     )}
                   </th>
 
-                  <th style={styles.th}>
+                  <th
+                    style={styles.th}
+                  >
+                    Tailles
+                  </th>
+
+                  <th
+                    style={styles.th}
+                  >
                     {t(
                       'products.retailPrice'
                     )}
                   </th>
 
-                  <th style={styles.th}>
+                  <th
+                    style={styles.th}
+                  >
                     {t(
                       'products.wholesalePrice'
                     )}
                   </th>
 
-                  <th style={styles.th}>
+                  <th
+                    style={styles.th}
+                  >
                     {isAdmin
                       ? t(
                           'products.globalStock'
@@ -857,7 +1650,9 @@ export default function AdminProducts() {
                         )}
                   </th>
 
-                  <th style={styles.th}>
+                  <th
+                    style={styles.th}
+                  >
                     {t(
                       'products.status'
                     )}
@@ -865,7 +1660,9 @@ export default function AdminProducts() {
 
                   {isAdmin && (
                     <th
-                      style={styles.th}
+                      style={
+                        styles.th
+                      }
                     >
                       {t(
                         'products.actions'
@@ -877,131 +1674,207 @@ export default function AdminProducts() {
 
               <tbody>
                 {products.map(
-                  product => (
-                    <tr
-                      key={product.id}
-                    >
-                      <td
-                        style={styles.td}
+                  product => {
+                    const primaryVariant =
+                      getPrimaryVariant(
+                        product
+                      )
+
+                    const sizesCount =
+                      getProductSizesCount(
+                        product
+                      )
+
+                    return (
+                      <tr
+                        key={
+                          product.id
+                        }
                       >
-                        <strong>
-                          {product.name}
-                        </strong>
-
-                        <br />
-
-                        <span
-                          style={
-                            styles.muted
-                          }
-                        >
-                          {
-                            product.reference
-                          }
-                        </span>
-                      </td>
-
-                      <td
-                        style={styles.td}
-                      >
-                        {product.categorie ||
-                          product.rubrique ||
-                          '-'}
-                      </td>
-
-                      <td
-                        style={styles.td}
-                      >
-                        {Number(
-                          product.price ||
-                            0
-                        ).toFixed(2)}{' '}
-                        DH
-                      </td>
-
-                      <td
-                        style={styles.td}
-                      >
-                        {Number(
-                          product.price_wholesale ||
-                            0
-                        ).toFixed(2)}{' '}
-                        DH
-                      </td>
-
-                      <td
-                        style={styles.td}
-                      >
-                        {isAdmin
-                          ? Number(
-                              product.stock ||
-                                0
-                            )
-                          : Number(
-                              product.pos_quantity ||
-                                0
-                            )}
-                      </td>
-
-                      <td
-                        style={styles.td}
-                      >
-                        {product.is_active
-                          ? t(
-                              'products.active'
-                            )
-                          : t(
-                              'products.inactive'
-                            )}
-                      </td>
-
-                      {isAdmin && (
                         <td
                           style={
                             styles.td
                           }
                         >
-                          <div
+                          <strong>
+                            {
+                              product.name
+                            }
+                          </strong>
+
+                          <br />
+
+                          <span
                             style={
-                              styles.rowActions
+                              styles.muted
                             }
                           >
-                            <button
-                              type="button"
-                              onClick={() =>
-                                openEdit(
-                                  product
-                                )
-                              }
-                              style={
-                                styles.smallButton
-                              }
-                            >
-                              {t(
-                                'common.edit'
-                              )}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                deleteProduct(
-                                  product
-                                )
-                              }
-                              style={
-                                styles.dangerButton
-                              }
-                            >
-                              {t(
-                                'common.delete'
-                              )}
-                            </button>
-                          </div>
+                            {
+                              product.reference
+                            }
+                          </span>
                         </td>
-                      )}
-                    </tr>
-                  )
+
+                        <td
+                          style={
+                            styles.td
+                          }
+                        >
+                          {product.categorie ||
+                            product.rubrique ||
+                            '-'}
+                        </td>
+
+                        <td
+                          style={
+                            styles.td
+                          }
+                        >
+                          {product.has_size_variants &&
+                          sizesCount >
+                            1 ? (
+                            <>
+                              <strong>
+                                {
+                                  sizesCount
+                                }{' '}
+                                tailles
+                              </strong>
+
+                              <br />
+
+                              <span
+                                style={
+                                  styles.muted
+                                }
+                              >
+                                Principale :{' '}
+                                {primaryVariant?.label ||
+                                  buildSizeLabel(
+                                    primaryVariant ||
+                                      product
+                                  )}
+                              </span>
+                            </>
+                          ) : (
+                            <span>
+                              {primaryVariant?.label ||
+                                buildSizeLabel(
+                                  primaryVariant ||
+                                    product
+                                )}
+                            </span>
+                          )}
+                        </td>
+
+                        <td
+                          style={
+                            styles.td
+                          }
+                        >
+                          {Number(
+                            primaryVariant?.price ??
+                              product.price ??
+                              0
+                          ).toFixed(
+                            2
+                          )}{' '}
+                          DH
+                        </td>
+
+                        <td
+                          style={
+                            styles.td
+                          }
+                        >
+                          {Number(
+                            primaryVariant?.price_wholesale ??
+                              product.price_wholesale ??
+                              0
+                          ).toFixed(
+                            2
+                          )}{' '}
+                          DH
+                        </td>
+
+                        <td
+                          style={
+                            styles.td
+                          }
+                        >
+                          {isAdmin
+                            ? Number(
+                                product.stock ||
+                                  0
+                              )
+                            : Number(
+                                product.pos_quantity ||
+                                  0
+                              )}
+                        </td>
+
+                        <td
+                          style={
+                            styles.td
+                          }
+                        >
+                          {product.is_active
+                            ? t(
+                                'products.active'
+                              )
+                            : t(
+                                'products.inactive'
+                              )}
+                        </td>
+
+                        {isAdmin && (
+                          <td
+                            style={
+                              styles.td
+                            }
+                          >
+                            <div
+                              style={
+                                styles.rowActions
+                              }
+                            >
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openEdit(
+                                    product
+                                  )
+                                }
+                                style={
+                                  styles.smallButton
+                                }
+                              >
+                                {t(
+                                  'common.edit'
+                                )}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  deleteProduct(
+                                    product
+                                  )
+                                }
+                                style={
+                                  styles.dangerButton
+                                }
+                              >
+                                {t(
+                                  'common.delete'
+                                )}
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    )
+                  }
                 )}
               </tbody>
             </table>
@@ -1009,562 +1882,953 @@ export default function AdminProducts() {
         )}
       </div>
 
-      {isAdmin && formOpen && (
-        <div
-          style={styles.modalOverlay}
-          onMouseDown={event => {
-            if (
-              event.target ===
-              event.currentTarget
-            ) {
-              closeForm()
-            }
-          }}
-        >
+      {isAdmin &&
+        formOpen && (
           <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="product-form-title"
-            style={styles.modalDialog}
+            style={
+              styles.modalOverlay
+            }
+            onMouseDown={event => {
+              if (
+                event.target ===
+                event.currentTarget
+              ) {
+                closeForm()
+              }
+            }}
           >
-            <form
-              onSubmit={saveProduct}
-              style={styles.modalForm}
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="product-form-title"
+              style={
+                styles.modalDialog
+              }
             >
-              <div
+              <form
+                onSubmit={
+                  saveProduct
+                }
                 style={
-                  styles.formHeader
+                  styles.modalForm
                 }
               >
-                <strong
-                  id="product-form-title"
-                  style={
-                    styles.modalTitle
-                  }
-                >
-                  {editingProduct
-                    ? t(
-                        'products.editProduct'
-                      )
-                    : t(
-                        'products.newProduct'
-                      )}
-                </strong>
-
-                <button
-                  type="button"
-                  onClick={closeForm}
-                  disabled={saving}
-                  style={
-                    styles.ghostButton
-                  }
-                >
-                  {t('common.cancel')}
-                </button>
-              </div>
-
-              {error && (
                 <div
-                  style={styles.error}
+                  style={
+                    styles.formHeader
+                  }
                 >
-                  {error}
+                  <div>
+                    <strong
+                      id="product-form-title"
+                      style={
+                        styles.modalTitle
+                      }
+                    >
+                      {editingProduct
+                        ? t(
+                            'products.editProduct'
+                          )
+                        : t(
+                            'products.newProduct'
+                          )}
+                    </strong>
+
+                    <p
+                      style={
+                        styles.modalSubtitle
+                      }
+                    >
+                      Les prix, les
+                      dimensions et les
+                      stocks sont gérés
+                      dans la section des
+                      tailles.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={
+                      closeForm
+                    }
+                    disabled={
+                      saving
+                    }
+                    style={
+                      styles.ghostButton
+                    }
+                  >
+                    {t(
+                      'common.cancel'
+                    )}
+                  </button>
                 </div>
-              )}
 
-              <div
-                style={styles.formGrid}
-              >
-                <TextField
-                  label={t(
-                    'products.name'
-                  )}
-                  value={form.name}
-                  onChange={value =>
-                    updateForm(
-                      'name',
-                      value
-                    )
-                  }
-                  required
-                />
+                {error && (
+                  <div
+                    style={
+                      styles.error
+                    }
+                  >
+                    {error}
+                  </div>
+                )}
 
-                <TextField
-                  label={t(
-                    'products.brand'
-                  )}
-                  value={form.marque}
-                  onChange={value =>
-                    updateForm(
-                      'marque',
-                      value
-                    )
+                <section
+                  style={
+                    styles.formSection
                   }
-                />
+                >
+                  <div
+                    style={
+                      styles.sectionHeading
+                    }
+                  >
+                    <h2
+                      style={
+                        styles.sectionTitle
+                      }
+                    >
+                      Informations générales
+                    </h2>
+                  </div>
 
-                <SelectField
-                  label={t(
-                    'products.section'
-                  )}
-                  value={form.rubrique}
-                  options={
-                    PRODUCT_RUBRIQUE_OPTIONS
-                  }
-                  placeholder={t(
-                    'products.selectSection'
-                  )}
-                  onChange={value =>
-                    updateForm(
-                      'rubrique',
-                      value
-                    )
-                  }
-                  required
-                />
+                  <div
+                    style={
+                      styles.formGrid
+                    }
+                  >
+                    <TextField
+                      label={t(
+                        'products.name'
+                      )}
+                      value={
+                        form.name
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'name',
+                          value
+                        )
+                      }
+                      required
+                    />
 
-                <SelectOrText
-                  label={t(
-                    'products.category'
-                  )}
-                  value={
-                    form.categorie
-                  }
-                  options={
-                    options.categories
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'categorie',
-                      value
-                    )
-                  }
-                />
+                    <TextField
+                      label={t(
+                        'products.brand'
+                      )}
+                      value={
+                        form.marque
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'marque',
+                          value
+                        )
+                      }
+                    />
 
-                <SelectOrText
-                  label={t(
-                    'products.family'
-                  )}
-                  value={form.famille}
-                  options={
-                    options.familles
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'famille',
-                      value
-                    )
-                  }
-                />
+                    <SelectField
+                      label={t(
+                        'products.section'
+                      )}
+                      value={
+                        form.rubrique
+                      }
+                      options={
+                        PRODUCT_RUBRIQUE_OPTIONS
+                      }
+                      placeholder={t(
+                        'products.selectSection'
+                      )}
+                      onChange={value =>
+                        updateForm(
+                          'rubrique',
+                          value
+                        )
+                      }
+                      required
+                    />
 
-                <TextField
-                  label={t(
-                    'products.collectionName'
-                  )}
-                  value={
-                    form.collection_name
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'collection_name',
-                      value
-                    )
-                  }
-                />
+                    <SelectOrText
+                      label={t(
+                        'products.category'
+                      )}
+                      value={
+                        form.categorie
+                      }
+                      options={
+                        options.categories
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'categorie',
+                          value
+                        )
+                      }
+                    />
 
-                <SelectOrText
-                  label={t(
-                    'products.badge'
-                  )}
-                  value={form.badge}
-                  options={
-                    options.badges
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'badge',
-                      value
-                    )
-                  }
-                />
+                    <SelectOrText
+                      label={t(
+                        'products.family'
+                      )}
+                      value={
+                        form.famille
+                      }
+                      options={
+                        options.familles
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'famille',
+                          value
+                        )
+                      }
+                    />
 
-                <NumberField
-                  label={t(
-                    'products.retailPrice'
-                  )}
-                  value={form.price}
-                  onChange={value =>
-                    updateForm(
-                      'price',
-                      value
-                    )
-                  }
-                  required
-                />
+                    <TextField
+                      label={t(
+                        'products.collectionName'
+                      )}
+                      value={
+                        form.collection_name
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'collection_name',
+                          value
+                        )
+                      }
+                    />
 
-                <NumberField
-                  label={t(
-                    'products.wholesalePrice'
-                  )}
-                  value={
-                    form.price_wholesale
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'price_wholesale',
-                      value
-                    )
-                  }
-                />
+                    <SelectOrText
+                      label={t(
+                        'products.badge'
+                      )}
+                      value={
+                        form.badge
+                      }
+                      options={
+                        options.badges
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'badge',
+                          value
+                        )
+                      }
+                    />
 
-                <NumberField
-                  label={t(
-                    'products.wholesaleMinQty'
-                  )}
-                  value={
-                    form.wholesale_min_qty
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'wholesale_min_qty',
-                      value
-                    )
-                  }
-                  min="1"
-                />
+                    <NumberField
+                      label={t(
+                        'products.weightGrams'
+                      )}
+                      value={
+                        form.weight
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'weight',
+                          value
+                        )
+                      }
+                      min="0"
+                    />
 
-                <NumberField
-                  label={t(
-                    'products.globalStock'
-                  )}
-                  value={form.stock}
-                  onChange={value =>
-                    updateForm(
-                      'stock',
-                      value
-                    )
-                  }
-                  min="0"
-                />
+                    <SelectField
+                      label={t(
+                        'products.originCountry'
+                      )}
+                      value={
+                        form.origin_country
+                      }
+                      options={
+                        countryOptions
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'origin_country',
+                          value
+                        )
+                      }
+                      placeholder={t(
+                        'products.chooseCountry'
+                      )}
+                    />
+                  </div>
+                </section>
 
-                <NumberField
-                  label={t(
-                    'products.weightGrams'
-                  )}
-                  value={form.weight}
-                  onChange={value =>
-                    updateForm(
-                      'weight',
-                      value
-                    )
+                <section
+                  style={
+                    styles.formSection
                   }
-                  min="0"
-                />
+                >
+                  <div
+                    style={
+                      styles.sectionHeading
+                    }
+                  >
+                    <h2
+                      style={
+                        styles.sectionTitle
+                      }
+                    >
+                      Disponibilité et options
+                    </h2>
+                  </div>
 
-                <NumberField
-                  label={t(
-                    'products.width'
-                  )}
-                  value={
-                    form.width_cm
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'width_cm',
-                      value
-                    )
-                  }
-                  min="0"
-                />
+                  <div
+                    style={
+                      styles.formGrid
+                    }
+                  >
+                    <BooleanField
+                      label="Disponible en plusieurs tailles"
+                      value={
+                        form.has_size_variants
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'has_size_variants',
+                          value
+                        )
+                      }
+                    />
 
-                <NumberField
-                  label={t(
-                    'products.depth'
-                  )}
-                  value={
-                    form.depth_cm
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'depth_cm',
-                      value
-                    )
-                  }
-                  min="0"
-                />
+                    <BooleanField
+                      label={t(
+                        'products.hasColorVariants'
+                      )}
+                      value={
+                        form.has_color_variants
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'has_color_variants',
+                          value
+                        )
+                      }
+                    />
 
-                <NumberField
-                  label={t(
-                    'products.height'
-                  )}
-                  value={
-                    form.height_cm
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'height_cm',
-                      value
-                    )
-                  }
-                  min="0"
-                />
+                    <BooleanField
+                      label={t(
+                        'products.status'
+                      )}
+                      value={
+                        form.is_active
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'is_active',
+                          value
+                        )
+                      }
+                      trueLabel={t(
+                        'products.active'
+                      )}
+                      falseLabel={t(
+                        'products.inactive'
+                      )}
+                    />
 
-                <BooleanField
-                  label={t(
-                    'products.status'
-                  )}
-                  value={
-                    form.is_active
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'is_active',
-                      value
-                    )
-                  }
-                  trueLabel={t(
-                    'products.active'
-                  )}
-                  falseLabel={t(
-                    'products.inactive'
-                  )}
-                />
+                    <BooleanField
+                      label={t(
+                        'products.availableOnSite'
+                      )}
+                      value={
+                        form.is_available_on_site
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'is_available_on_site',
+                          value
+                        )
+                      }
+                    />
 
-                <BooleanField
-                  label={t(
-                    'products.availableOnSite'
-                  )}
-                  value={
-                    form.is_available_on_site
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'is_available_on_site',
-                      value
-                    )
-                  }
-                />
+                    <BooleanField
+                      label={t(
+                        'products.bestseller'
+                      )}
+                      value={
+                        form.is_bestseller
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'is_bestseller',
+                          value
+                        )
+                      }
+                    />
+                  </div>
 
-                <BooleanField
-                  label={t(
-                    'products.bestseller'
+                  {form.has_color_variants && (
+                    <MultiSelectField
+                      label={t(
+                        'products.colors'
+                      )}
+                      value={
+                        form.colors
+                      }
+                      options={
+                        COLOR_OPTIONS
+                      }
+                      onChange={value =>
+                        updateForm(
+                          'colors',
+                          value
+                        )
+                      }
+                    />
                   )}
-                  value={
-                    form.is_bestseller
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'is_bestseller',
-                      value
-                    )
-                  }
-                />
+                </section>
 
-                <BooleanField
-                  label={t(
-                    'products.hasColorVariants'
-                  )}
-                  value={
-                    form.has_color_variants
+                <section
+                  style={
+                    styles.sizeSection
                   }
-                  onChange={value =>
-                    updateForm(
-                      'has_color_variants',
-                      value
-                    )
-                  }
-                />
-
-                <SelectField
-                  label={t(
-                    'products.originCountry'
-                  )}
-                  value={
-                    form.origin_country
-                  }
-                  options={
-                    countryOptions
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'origin_country',
-                      value
-                    )
-                  }
-                  placeholder={t(
-                    'products.chooseCountry'
-                  )}
-                />
-              </div>
-
-              {form.has_color_variants && (
-                <MultiSelectField
-                  label={t(
-                    'products.colors'
-                  )}
-                  value={form.colors}
-                  options={
-                    COLOR_OPTIONS
-                  }
-                  onChange={value =>
-                    updateForm(
-                      'colors',
-                      value
-                    )
-                  }
-                />
-              )}
-
-              <div
-                style={styles.imageGrid}
-              >
-                {[1, 2, 3, 4, 5].map(
-                  index => {
-                    const field =
-                      `url_image${index}`
-
-                    return (
-                      <label
-                        key={field}
+                >
+                  <div
+                    style={
+                      styles.sizeSectionHeader
+                    }
+                  >
+                    <div>
+                      <h2
                         style={
-                          styles.field
+                          styles.sizeSectionTitle
                         }
                       >
-                        <span
-                          style={
-                            styles.label
+                        Tailles, prix et stocks
+                      </h2>
+
+                      <p
+                        style={
+                          styles.sizeSectionDescription
+                        }
+                      >
+                        {form.has_size_variants
+                          ? 'La taille principale sera affichée par défaut sur le site. Le client pourra ensuite choisir une autre taille disponible.'
+                          : 'Renseignez ici le prix, les dimensions et le stock du produit.'}
+                      </p>
+                    </div>
+
+                    {form.has_size_variants && (
+                      <button
+                        type="button"
+                        onClick={
+                          addSizeVariant
+                        }
+                        style={
+                          styles.addSizeButton
+                        }
+                      >
+                        + Ajouter une taille
+                      </button>
+                    )}
+                  </div>
+
+                  <div
+                    style={
+                      styles.sizeCards
+                    }
+                  >
+                    {form.size_variants.map(
+                      (
+                        variant,
+                        index
+                      ) => (
+                        <article
+                          key={
+                            variant.id ||
+                            `new-size-${index}`
                           }
+                          style={{
+                            ...styles.sizeCard,
+
+                            ...(index ===
+                            0
+                              ? styles.primarySizeCard
+                              : {}),
+                          }}
                         >
-                          {t(
-                            'products.image'
-                          )}{' '}
-                          {index}
-                        </span>
-
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={event =>
-                            uploadImage(
-                              event,
-                              field
-                            )
-                          }
-                          style={
-                            styles.fileInput
-                          }
-                        />
-
-                        {form[field] && (
-                          <span
+                          <div
                             style={
-                              styles.uploadedText
+                              styles.sizeCardHeader
                             }
                           >
-                            {t(
-                              'products.uploadedImage'
+                            <div
+                              style={
+                                styles.sizeCardHeading
+                              }
+                            >
+                              <strong
+                                style={
+                                  styles.sizeCardTitle
+                                }
+                              >
+                                {index ===
+                                0
+                                  ? 'Taille principale'
+                                  : `Taille ${index + 1}`}
+                              </strong>
+
+                              {index ===
+                                0 && (
+                                <span
+                                  style={
+                                    styles.primarySizeBadge
+                                  }
+                                >
+                                  Affichée par défaut
+                                </span>
+                              )}
+                            </div>
+
+                            {index > 0 && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  removeSizeVariant(
+                                    index
+                                  )
+                                }
+                                style={
+                                  styles.removeSizeButton
+                                }
+                              >
+                                Supprimer
+                              </button>
                             )}
-                          </span>
-                        )}
-                      </label>
-                    )
-                  }
-                )}
-              </div>
+                          </div>
 
-              <TextArea
-                label={t(
-                  'products.description'
-                )}
-                value={
-                  form.description
-                }
-                onChange={value =>
-                  updateForm(
-                    'description',
-                    value
-                  )
-                }
-              />
+                          <div
+                            style={
+                              styles.sizeFieldsGrid
+                            }
+                          >
+                            <TextField
+                              label="Nom de la taille"
+                              value={
+                                variant.label
+                              }
+                              onChange={value =>
+                                updateSizeVariant(
+                                  index,
+                                  'label',
+                                  value
+                                )
+                              }
+                              placeholder={
+                                buildSizeLabel(
+                                  variant
+                                )
+                              }
+                            />
 
-              <TextArea
-                label={t(
-                  'products.careInstructions'
-                )}
-                value={
-                  form.care_instructions
-                }
-                onChange={value =>
-                  updateForm(
-                    'care_instructions',
-                    value
-                  )
-                }
-              />
+                            <NumberField
+                              label="Largeur (cm)"
+                              value={
+                                variant.width_cm
+                              }
+                              onChange={value =>
+                                updateSizeVariant(
+                                  index,
+                                  'width_cm',
+                                  value
+                                )
+                              }
+                              min="0"
+                            />
 
-              <TextField
-                wide
-                label={t(
-                  'products.seoTitle'
-                )}
-                value={form.seo_title}
-                onChange={value =>
-                  updateForm(
-                    'seo_title',
-                    value
-                  )
-                }
-              />
+                            <NumberField
+                              label="Profondeur (cm)"
+                              value={
+                                variant.depth_cm
+                              }
+                              onChange={value =>
+                                updateSizeVariant(
+                                  index,
+                                  'depth_cm',
+                                  value
+                                )
+                              }
+                              min="0"
+                            />
 
-              <TextArea
-                label={t(
-                  'products.seoDescription'
-                )}
-                value={
-                  form.seo_description
-                }
-                onChange={value =>
-                  updateForm(
-                    'seo_description',
-                    value
-                  )
-                }
-              />
+                            <NumberField
+                              label="Hauteur (cm)"
+                              value={
+                                variant.height_cm
+                              }
+                              onChange={value =>
+                                updateSizeVariant(
+                                  index,
+                                  'height_cm',
+                                  value
+                                )
+                              }
+                              min="0"
+                            />
 
-              <div
-                style={
-                  styles.modalActions
-                }
-              >
-                <button
-                  type="button"
-                  onClick={closeForm}
-                  disabled={saving}
-                  style={
-                    styles.ghostButton
-                  }
-                >
-                  {t('common.cancel')}
-                </button>
+                            <NumberField
+                              label={t(
+                                'products.retailPrice'
+                              )}
+                              value={
+                                variant.price
+                              }
+                              onChange={value =>
+                                updateSizeVariant(
+                                  index,
+                                  'price',
+                                  value
+                                )
+                              }
+                              required
+                              min="0"
+                            />
 
-                <button
-                  type="submit"
-                  disabled={saving}
-                  style={
-                    styles.primaryButton
-                  }
-                >
-                  {saving
-                    ? t(
-                        'common.loading'
+                            <NumberField
+                              label={t(
+                                'products.wholesalePrice'
+                              )}
+                              value={
+                                variant.price_wholesale
+                              }
+                              onChange={value =>
+                                updateSizeVariant(
+                                  index,
+                                  'price_wholesale',
+                                  value
+                                )
+                              }
+                              min="0"
+                            />
+
+                            <NumberField
+                              label={t(
+                                'products.wholesaleMinQty'
+                              )}
+                              value={
+                                variant.wholesale_min_qty
+                              }
+                              onChange={value =>
+                                updateSizeVariant(
+                                  index,
+                                  'wholesale_min_qty',
+                                  value
+                                )
+                              }
+                              min="1"
+                              integer
+                            />
+
+                            <NumberField
+                              label={t(
+                                'products.globalStock'
+                              )}
+                              value={
+                                variant.stock
+                              }
+                              onChange={value =>
+                                updateSizeVariant(
+                                  index,
+                                  'stock',
+                                  value
+                                )
+                              }
+                              min="0"
+                              integer
+                            />
+
+                            {index > 0 && (
+                              <BooleanField
+                                label="Taille disponible"
+                                value={
+                                  variant.is_active
+                                }
+                                onChange={value =>
+                                  updateSizeVariant(
+                                    index,
+                                    'is_active',
+                                    value
+                                  )
+                                }
+                                trueLabel="Disponible"
+                                falseLabel="Indisponible"
+                              />
+                            )}
+                          </div>
+
+                          {!String(
+                            variant.label ||
+                              ''
+                          ).trim() && (
+                            <div
+                              style={
+                                styles.generatedSizeLabel
+                              }
+                            >
+                              Nom généré automatiquement :{' '}
+                              <strong>
+                                {buildSizeLabel(
+                                  variant
+                                )}
+                              </strong>
+                            </div>
+                          )}
+                        </article>
                       )
-                    : t(
-                        'common.save'
-                      )}
-                </button>
-              </div>
-            </form>
+                    )}
+                  </div>
+                </section>
+
+                <section
+                  style={
+                    styles.formSection
+                  }
+                >
+                  <div
+                    style={
+                      styles.sectionHeading
+                    }
+                  >
+                    <h2
+                      style={
+                        styles.sectionTitle
+                      }
+                    >
+                      Images
+                    </h2>
+                  </div>
+
+                  <div
+                    style={
+                      styles.imageGrid
+                    }
+                  >
+                    {[1, 2, 3, 4, 5].map(
+                      index => {
+                        const field =
+                          `url_image${index}`
+
+                        return (
+                          <label
+                            key={
+                              field
+                            }
+                            style={
+                              styles.field
+                            }
+                          >
+                            <span
+                              style={
+                                styles.label
+                              }
+                            >
+                              {t(
+                                'products.image'
+                              )}{' '}
+                              {index}
+                            </span>
+
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={event =>
+                                uploadImage(
+                                  event,
+                                  field
+                                )
+                              }
+                              style={
+                                styles.fileInput
+                              }
+                            />
+
+                            {form[field] && (
+                              <span
+                                style={
+                                  styles.uploadedText
+                                }
+                              >
+                                {t(
+                                  'products.uploadedImage'
+                                )}
+                              </span>
+                            )}
+                          </label>
+                        )
+                      }
+                    )}
+                  </div>
+                </section>
+
+                <section
+                  style={
+                    styles.formSection
+                  }
+                >
+                  <div
+                    style={
+                      styles.sectionHeading
+                    }
+                  >
+                    <h2
+                      style={
+                        styles.sectionTitle
+                      }
+                    >
+                      Description et entretien
+                    </h2>
+                  </div>
+
+                  <TextArea
+                    label={t(
+                      'products.description'
+                    )}
+                    value={
+                      form.description
+                    }
+                    onChange={value =>
+                      updateForm(
+                        'description',
+                        value
+                      )
+                    }
+                  />
+
+                  <TextArea
+                    label={t(
+                      'products.careInstructions'
+                    )}
+                    value={
+                      form.care_instructions
+                    }
+                    onChange={value =>
+                      updateForm(
+                        'care_instructions',
+                        value
+                      )
+                    }
+                  />
+                </section>
+
+                <section
+                  style={
+                    styles.formSection
+                  }
+                >
+                  <div
+                    style={
+                      styles.sectionHeading
+                    }
+                  >
+                    <h2
+                      style={
+                        styles.sectionTitle
+                      }
+                    >
+                      Référencement
+                    </h2>
+
+                    <p
+                      style={
+                        styles.sectionDescription
+                      }
+                    >
+                      Le prix et les
+                      dimensions de la
+                      taille principale
+                      seront utilisés pour
+                      les données produit
+                      par défaut.
+                    </p>
+                  </div>
+
+                  <TextField
+                    wide
+                    label={t(
+                      'products.seoTitle'
+                    )}
+                    value={
+                      form.seo_title
+                    }
+                    onChange={value =>
+                      updateForm(
+                        'seo_title',
+                        value
+                      )
+                    }
+                  />
+
+                  <TextArea
+                    label={t(
+                      'products.seoDescription'
+                    )}
+                    value={
+                      form.seo_description
+                    }
+                    onChange={value =>
+                      updateForm(
+                        'seo_description',
+                        value
+                      )
+                    }
+                  />
+                </section>
+
+                <div
+                  style={
+                    styles.modalActions
+                  }
+                >
+                  <button
+                    type="button"
+                    onClick={
+                      closeForm
+                    }
+                    disabled={
+                      saving
+                    }
+                    style={
+                      styles.ghostButton
+                    }
+                  >
+                    {t(
+                      'common.cancel'
+                    )}
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={
+                      saving
+                    }
+                    style={{
+                      ...styles.primaryButton,
+
+                      ...(saving
+                        ? styles.disabledButton
+                        : {}),
+                    }}
+                  >
+                    {saving
+                      ? t(
+                          'common.loading'
+                        )
+                      : t(
+                          'common.save'
+                        )}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </AdminShell>
   )
 }
@@ -1627,7 +2891,8 @@ function MultiSelectField({
     ) {
       onChange(
         current.filter(
-          item => item !== option
+          item =>
+            item !== option
         )
       )
 
@@ -1641,18 +2906,28 @@ function MultiSelectField({
   }
 
   return (
-    <div style={styles.fieldWide}>
+    <div
+      style={
+        styles.fieldWide
+      }
+    >
       <span style={styles.label}>
         {label}
       </span>
 
       <div
-        style={styles.choiceGrid}
+        style={
+          styles.choiceGrid
+        }
       >
         {options.map(option => {
           const selected =
-            Array.isArray(value) &&
-            value.includes(option)
+            Array.isArray(
+              value
+            ) &&
+            value.includes(
+              option
+            )
 
           return (
             <button
@@ -1663,6 +2938,7 @@ function MultiSelectField({
               }
               style={{
                 ...styles.choiceButton,
+
                 ...(selected
                   ? styles.choiceButtonActive
                   : {}),
@@ -1683,6 +2959,7 @@ function TextField({
   onChange,
   required = false,
   wide = false,
+  placeholder = '',
 }) {
   return (
     <label
@@ -1700,6 +2977,9 @@ function TextField({
         type="text"
         value={value}
         required={required}
+        placeholder={
+          placeholder
+        }
         onChange={event =>
           onChange(
             event.target.value
@@ -1717,6 +2997,7 @@ function NumberField({
   onChange,
   required = false,
   min,
+  integer = false,
 }) {
   return (
     <label style={styles.field}>
@@ -1726,7 +3007,9 @@ function NumberField({
 
       <input
         type="number"
-        step="any"
+        step={
+          integer ? '1' : 'any'
+        }
         min={min}
         value={value}
         required={required}
@@ -1748,7 +3031,9 @@ function TextArea({
 }) {
   return (
     <label
-      style={styles.fieldWide}
+      style={
+        styles.fieldWide
+      }
     >
       <span style={styles.label}>
         {label}
@@ -1761,7 +3046,9 @@ function TextArea({
             event.target.value
           )
         }
-        style={styles.textarea}
+        style={
+          styles.textarea
+        }
       />
     </label>
   )
@@ -1782,7 +3069,9 @@ function BooleanField({
 
       <select
         value={
-          value ? 'true' : 'false'
+          value
+            ? 'true'
+            : 'false'
         }
         onChange={event =>
           onChange(
@@ -1851,7 +3140,8 @@ const styles = {
     justifyContent:
       'space-between',
     gap: 14,
-    alignItems: 'flex-start',
+    alignItems:
+      'flex-start',
     marginBottom: 18,
     flexWrap: 'wrap',
   },
@@ -1859,7 +3149,8 @@ const styles = {
   title: {
     fontSize: 28,
     margin: 0,
-    letterSpacing: '-0.04em',
+    letterSpacing:
+      '-0.04em',
   },
 
   subtitle: {
@@ -1878,6 +3169,11 @@ const styles = {
     fontSize: 13,
     fontWeight: 900,
     cursor: 'pointer',
+  },
+
+  disabledButton: {
+    opacity: 0.6,
+    cursor: 'not-allowed',
   },
 
   ghostButton: {
@@ -1917,8 +3213,9 @@ const styles = {
 
   table: {
     width: '100%',
-    borderCollapse: 'collapse',
-    minWidth: 860,
+    borderCollapse:
+      'collapse',
+    minWidth: 1040,
   },
 
   th: {
@@ -1985,12 +3282,15 @@ const styles = {
     zIndex: 3000,
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent:
+      'center',
     padding: 16,
-    boxSizing: 'border-box',
+    boxSizing:
+      'border-box',
     background:
       'rgba(31, 26, 20, 0.62)',
-    backdropFilter: 'blur(4px)',
+    backdropFilter:
+      'blur(4px)',
   },
 
   modalDialog: {
@@ -2014,7 +3314,8 @@ const styles = {
       'calc(100dvh - 32px)',
     overflowY: 'auto',
     padding: 18,
-    boxSizing: 'border-box',
+    boxSizing:
+      'border-box',
   },
 
   formHeader: {
@@ -2027,7 +3328,8 @@ const styles = {
     alignItems: 'center',
     gap: 12,
     flexWrap: 'wrap',
-    margin: '-18px -18px 0',
+    margin:
+      '-18px -18px 0',
     padding: 18,
     background: '#fff',
     borderBottom:
@@ -2036,6 +3338,41 @@ const styles = {
 
   modalTitle: {
     fontSize: 20,
+  },
+
+  modalSubtitle: {
+    margin: '5px 0 0',
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: '#8a7f72',
+  },
+
+  formSection: {
+    display: 'grid',
+    gap: 14,
+    padding: 16,
+    border:
+      '1px solid #eee6dc',
+    borderRadius: 20,
+    background: '#fff',
+  },
+
+  sectionHeading: {
+    display: 'grid',
+    gap: 4,
+  },
+
+  sectionTitle: {
+    margin: 0,
+    fontSize: 17,
+    color: '#1f1a14',
+  },
+
+  sectionDescription: {
+    margin: 0,
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: '#8a7f72',
   },
 
   formGrid: {
@@ -2081,7 +3418,8 @@ const styles = {
     padding: '0 12px',
     fontSize: 13,
     outline: 'none',
-    boxSizing: 'border-box',
+    boxSizing:
+      'border-box',
   },
 
   fileInput: {
@@ -2093,7 +3431,8 @@ const styles = {
     color: '#1f1a14',
     padding: 10,
     fontSize: 12,
-    boxSizing: 'border-box',
+    boxSizing:
+      'border-box',
   },
 
   textarea: {
@@ -2108,7 +3447,8 @@ const styles = {
     fontSize: 13,
     outline: 'none',
     resize: 'vertical',
-    boxSizing: 'border-box',
+    boxSizing:
+      'border-box',
   },
 
   uploadedText: {
@@ -2141,15 +3481,141 @@ const styles = {
     borderColor: '#1f1a14',
   },
 
+  sizeSection: {
+    display: 'grid',
+    gap: 14,
+    padding: 16,
+    border:
+      '1px solid #d9cdbd',
+    borderRadius: 20,
+    background: '#faf8f5',
+  },
+
+  sizeSectionHeader: {
+    display: 'flex',
+    alignItems:
+      'flex-start',
+    justifyContent:
+      'space-between',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+
+  sizeSectionTitle: {
+    margin: 0,
+    fontSize: 17,
+    color: '#1f1a14',
+  },
+
+  sizeSectionDescription: {
+    margin: '5px 0 0',
+    color: '#8a7f72',
+    fontSize: 12,
+    lineHeight: 1.5,
+    maxWidth: 720,
+  },
+
+  addSizeButton: {
+    border: 'none',
+    borderRadius: 999,
+    background: '#1f1a14',
+    color: '#fff',
+    padding: '10px 14px',
+    fontSize: 12,
+    fontWeight: 900,
+    cursor: 'pointer',
+  },
+
+  sizeCards: {
+    display: 'grid',
+    gap: 12,
+  },
+
+  sizeCard: {
+    display: 'grid',
+    gap: 14,
+    padding: 14,
+    border:
+      '1px solid #e6ded2',
+    borderRadius: 18,
+    background: '#fff',
+  },
+
+  primarySizeCard: {
+    border:
+      '2px solid #1f1a14',
+  },
+
+  sizeCardHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent:
+      'space-between',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+
+  sizeCardHeading: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+
+  sizeCardTitle: {
+    fontSize: 14,
+    color: '#1f1a14',
+  },
+
+  primarySizeBadge: {
+    display:
+      'inline-flex',
+    padding: '4px 8px',
+    borderRadius: 999,
+    background: '#1f1a14',
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 900,
+  },
+
+  removeSizeButton: {
+    border:
+      '1px solid #ffd0d0',
+    borderRadius: 999,
+    background: '#fff0f0',
+    color: '#c0392b',
+    padding: '8px 11px',
+    fontSize: 11,
+    fontWeight: 900,
+    cursor: 'pointer',
+  },
+
+  sizeFieldsGrid: {
+    display: 'grid',
+    gridTemplateColumns:
+      'repeat(auto-fit, minmax(155px, 1fr))',
+    gap: 12,
+  },
+
+  generatedSizeLabel: {
+    padding: '10px 12px',
+    borderRadius: 12,
+    background: '#f7f3ed',
+    color: '#6f665c',
+    fontSize: 12,
+  },
+
   modalActions: {
     position: 'sticky',
     bottom: -18,
     zIndex: 5,
     display: 'flex',
-    justifyContent: 'flex-end',
+    justifyContent:
+      'flex-end',
     gap: 10,
     flexWrap: 'wrap',
-    margin: '0 -18px -18px',
+    margin:
+      '0 -18px -18px',
     padding: 18,
     background: '#fff',
     borderTop:

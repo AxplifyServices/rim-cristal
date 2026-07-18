@@ -30,34 +30,56 @@ const PAYMENT_STATUSES = [
 
 function createEmptyItem() {
   return {
-    key: `${Date.now()}-${Math.random()}`,
+    key:
+      `${Date.now()}-${Math.random()}`,
+
     product_id: '',
+
+    product_size_variant_id:
+      '',
+
     quantity: 1,
+
     selected_color: '',
-    selected_size: '',
   }
 }
 
 function normalizeColors(value) {
   if (Array.isArray(value)) {
     return value
-      .map(color => String(color || '').trim())
+      .map(color =>
+        String(
+          color || ''
+        ).trim()
+      )
       .filter(Boolean)
   }
 
-  if (typeof value === 'string') {
+  if (
+    typeof value ===
+    'string'
+  ) {
     try {
-      const parsed = JSON.parse(value)
+      const parsed =
+        JSON.parse(value)
 
-      if (Array.isArray(parsed)) {
+      if (
+        Array.isArray(parsed)
+      ) {
         return parsed
-          .map(color => String(color || '').trim())
+          .map(color =>
+            String(
+              color || ''
+            ).trim()
+          )
           .filter(Boolean)
       }
     } catch {
       return value
         .split(',')
-        .map(color => color.trim())
+        .map(color =>
+          color.trim()
+        )
         .filter(Boolean)
     }
   }
@@ -65,19 +87,191 @@ function normalizeColors(value) {
   return []
 }
 
-function getProductPrice(product, quantity) {
-  const retailPrice = Number(product?.price || 0)
-  const wholesalePrice = Number(
-    product?.price_wholesale || 0
-  )
+function getProductVariants(
+  product
+) {
+  if (
+    !Array.isArray(
+      product
+        ?.product_size_variants
+    )
+  ) {
+    return []
+  }
 
-  const wholesaleMinimum = Number(
-    product?.wholesale_min_qty || 1
+  return [
+    ...product
+      .product_size_variants,
+  ]
+    .filter(
+      variant =>
+        variant.is_active !==
+        false
+    )
+    .sort(
+      (
+        first,
+        second
+      ) => {
+        if (
+          Boolean(
+            first.is_primary
+          ) !==
+          Boolean(
+            second.is_primary
+          )
+        ) {
+          return first
+            .is_primary
+            ? -1
+            : 1
+        }
+
+        const orderDifference =
+          Number(
+            first.display_order ||
+              0
+          ) -
+          Number(
+            second.display_order ||
+              0
+          )
+
+        if (
+          orderDifference !==
+          0
+        ) {
+          return orderDifference
+        }
+
+        return String(
+          first.id
+        ).localeCompare(
+          String(
+            second.id
+          )
+        )
+      }
+    )
+}
+
+function getSizeLabel(
+  variant
+) {
+  if (!variant) {
+    return 'Taille standard'
+  }
+
+  if (
+    String(
+      variant.label || ''
+    ).trim()
+  ) {
+    return String(
+      variant.label
+    ).trim()
+  }
+
+  const dimensions = [
+    variant.width_cm,
+    variant.depth_cm,
+    variant.height_cm,
+  ]
+    .filter(
+      value =>
+        value !== null &&
+        value !==
+          undefined &&
+        value !== ''
+    )
+    .map(value => {
+      const number =
+        Number(value)
+
+      if (
+        !Number.isFinite(
+          number
+        )
+      ) {
+        return null
+      }
+
+      return Number.isInteger(
+        number
+      )
+        ? String(number)
+        : String(number).replace(
+            '.',
+            ','
+          )
+    })
+    .filter(Boolean)
+
+  if (
+    dimensions.length ===
+    0
+  ) {
+    return 'Taille standard'
+  }
+
+  return `${dimensions.join(
+    ' × '
+  )} cm`
+}
+
+function getVariantAvailableStock(
+  variant,
+  stockSourceType
+) {
+  if (!variant) {
+    return 0
+  }
+
+  if (
+    stockSourceType ===
+    'point_of_sale'
+  ) {
+    return Number(
+      variant.pos_quantity ??
+        variant.quantity ??
+        variant.stock ??
+        0
+    )
+  }
+
+  return Number(
+    variant.stock || 0
   )
+}
+
+function getVariantPrice(
+  variant,
+  quantity
+) {
+  const retailPrice =
+    Number(
+      variant?.price ||
+        0
+    )
+
+  const wholesalePrice =
+    Number(
+      variant
+        ?.price_wholesale ||
+        0
+    )
+
+  const wholesaleMinimum =
+    Number(
+      variant
+        ?.wholesale_min_qty ||
+        1
+    )
 
   if (
     wholesalePrice > 0 &&
-    Number(quantity) >= wholesaleMinimum
+    Number(quantity) >=
+      wholesaleMinimum
   ) {
     return wholesalePrice
   }
@@ -85,24 +279,72 @@ function getProductPrice(product, quantity) {
   return retailPrice
 }
 
+function isWholesaleApplied(
+  variant,
+  quantity
+) {
+  if (!variant) {
+    return false
+  }
+
+  return (
+    Number(
+      variant.price_wholesale ||
+        0
+    ) > 0 &&
+    Number(quantity) >=
+      Number(
+        variant.wholesale_min_qty ||
+          1
+      )
+  )
+}
+
 export default function AdminOrders() {
-  const { t, locale } = useAdminI18n()
+  const {
+    t,
+    locale,
+  } = useAdminI18n()
 
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [savingId, setSavingId] = useState(null)
-  const [selectedOrder, setSelectedOrder] = useState(null)
-  const [createOrderOpen, setCreateOrderOpen] =
-    useState(false)
+  const [
+    orders,
+    setOrders,
+  ] = useState([])
 
-  const [error, setError] = useState('')
+  const [
+    loading,
+    setLoading,
+  ] = useState(true)
+
+  const [
+    savingId,
+    setSavingId,
+  ] = useState(null)
+
+  const [
+    selectedOrder,
+    setSelectedOrder,
+  ] = useState(null)
+
+  const [
+    createOrderOpen,
+    setCreateOrderOpen,
+  ] = useState(false)
+
+  const [
+    error,
+    setError,
+  ] = useState('')
 
   async function load() {
     setLoading(true)
     setError('')
 
     try {
-      const data = await adminApi.get('/orders')
+      const data =
+        await adminApi.get(
+          '/orders'
+        )
 
       setOrders(
         Array.isArray(data)
@@ -110,7 +352,9 @@ export default function AdminOrders() {
           : []
       )
     } catch (loadError) {
-      setError(loadError.message)
+      setError(
+        loadError.message
+      )
     } finally {
       setLoading(false)
     }
@@ -120,31 +364,43 @@ export default function AdminOrders() {
     load()
   }, [])
 
-  async function updateOrder(order, patch) {
-    setSavingId(order.id)
+  async function updateOrder(
+    order,
+    patch
+  ) {
+    setSavingId(
+      order.id
+    )
+
     setError('')
 
     try {
-      const updated = await adminApi.patch(
-        `/orders/${order.id}/status`,
-        patch
-      )
+      const updated =
+        await adminApi.patch(
+          `/orders/${order.id}/status`,
+          patch
+        )
 
       setOrders(current =>
         current.map(item =>
-          item.id === order.id
+          item.id ===
+          order.id
             ? updated
             : item
         )
       )
 
-      setSelectedOrder(current =>
-        current?.id === order.id
-          ? updated
-          : current
+      setSelectedOrder(
+        current =>
+          current?.id ===
+          order.id
+            ? updated
+            : current
       )
     } catch (updateError) {
-      setError(updateError.message)
+      setError(
+        updateError.message
+      )
     } finally {
       setSavingId(null)
     }
@@ -155,30 +411,46 @@ export default function AdminOrders() {
       return '-'
     }
 
-    return new Intl.DateTimeFormat(
-      locale === 'en'
-        ? 'en-GB'
-        : 'fr-FR',
-      {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      }
-    ).format(new Date(value))
+    return new Intl
+      .DateTimeFormat(
+        locale === 'en'
+          ? 'en-GB'
+          : 'fr-FR',
+        {
+          dateStyle:
+            'medium',
+
+          timeStyle:
+            'short',
+        }
+      )
+      .format(
+        new Date(value)
+      )
   }
 
   function formatMoney(value) {
-    return new Intl.NumberFormat(
-      locale === 'en'
-        ? 'en-GB'
-        : 'fr-FR',
-      {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }
-    ).format(Number(value || 0))
+    return new Intl
+      .NumberFormat(
+        locale === 'en'
+          ? 'en-GB'
+          : 'fr-FR',
+        {
+          minimumFractionDigits:
+            2,
+
+          maximumFractionDigits:
+            2,
+        }
+      )
+      .format(
+        Number(value || 0)
+      )
   }
 
-  function getOrderOriginLabel(order) {
+  function getOrderOriginLabel(
+    order
+  ) {
     const origin =
       order.order_origin ||
       'website'
@@ -188,13 +460,17 @@ export default function AdminOrders() {
     )
   }
 
-  function getStockSourceLabel(order) {
+  function getStockSourceLabel(
+    order
+  ) {
     if (
       order.stock_source_type ===
       'point_of_sale'
     ) {
       return (
-        order.point_of_sales?.name ||
+        order
+          .point_of_sales
+          ?.name ||
         t(
           'orders.sources.point_of_sale'
         )
@@ -210,8 +486,17 @@ export default function AdminOrders() {
     <AdminShell>
       <div className="admin-page-heading admin-page-heading-with-action">
         <div>
-          <h1>{t('orders.title')}</h1>
-          <p>{t('orders.subtitle')}</p>
+          <h1>
+            {t(
+              'orders.title'
+            )}
+          </h1>
+
+          <p>
+            {t(
+              'orders.subtitle'
+            )}
+          </p>
         </div>
 
         <button
@@ -219,11 +504,20 @@ export default function AdminOrders() {
           className="admin-primary-action"
           onClick={() => {
             setError('')
-            setCreateOrderOpen(true)
+            setCreateOrderOpen(
+              true
+            )
           }}
         >
-          <span aria-hidden="true">＋</span>
-          {t('orders.create')}
+          <span
+            aria-hidden="true"
+          >
+            ＋
+          </span>
+
+          {t(
+            'orders.create'
+          )}
         </button>
       </div>
 
@@ -235,11 +529,16 @@ export default function AdminOrders() {
 
       {loading ? (
         <div className="admin-empty-card">
-          {t('common.loading')}
+          {t(
+            'common.loading'
+          )}
         </div>
-      ) : orders.length === 0 ? (
+      ) : orders.length ===
+        0 ? (
         <div className="admin-empty-card">
-          {t('common.empty')}
+          {t(
+            'common.empty'
+          )}
         </div>
       ) : (
         <section className="admin-order-list">
@@ -251,7 +550,9 @@ export default function AdminOrders() {
               <div className="admin-order-card-header">
                 <div>
                   <strong>
-                    {order.order_number}
+                    {
+                      order.order_number
+                    }
                   </strong>
 
                   <span>
@@ -262,41 +563,67 @@ export default function AdminOrders() {
                 </div>
 
                 <strong className="admin-order-total">
-                  {formatMoney(order.total)} MAD
+                  {formatMoney(
+                    order.total
+                  )}{' '}
+                  MAD
                 </strong>
               </div>
 
               <div className="admin-order-customer">
                 <strong>
-                  {order.shipping_first_name}{' '}
-                  {order.shipping_last_name}
+                  {
+                    order.shipping_first_name
+                  }{' '}
+                  {
+                    order.shipping_last_name
+                  }
                 </strong>
 
                 <span>
-                  {order.shipping_phone}
+                  {
+                    order.shipping_phone
+                  }
                 </span>
 
                 <span>
-                  {order.shipping_email}
+                  {
+                    order.shipping_email
+                  }
                 </span>
 
                 <span>
-                  {order.shipping_address},{' '}
-                  {order.shipping_city}
+                  {
+                    order.shipping_address
+                  }
+                  ,{' '}
+                  {
+                    order.shipping_city
+                  }
                 </span>
 
                 <span>
                   <strong>
-                    {t('orders.origin')} :
+                    {t(
+                      'orders.origin'
+                    )}{' '}
+                    :
                   </strong>{' '}
-                  {getOrderOriginLabel(order)}
+                  {getOrderOriginLabel(
+                    order
+                  )}
                 </span>
 
                 <span>
                   <strong>
-                    {t('orders.source')} :
+                    {t(
+                      'orders.source'
+                    )}{' '}
+                    :
                   </strong>{' '}
-                  {getStockSourceLabel(order)}
+                  {getStockSourceLabel(
+                    order
+                  )}
                 </span>
               </div>
 
@@ -309,32 +636,44 @@ export default function AdminOrders() {
                   </span>
 
                   <select
-                    value={order.status}
+                    value={
+                      order.status
+                    }
                     disabled={
-                      savingId === order.id ||
+                      savingId ===
+                        order.id ||
                       order.status ===
                         'cancelled'
                     }
                     onChange={event =>
-                      updateOrder(order, {
-                        status:
-                          event.target.value,
+                      updateOrder(
+                        order,
+                        {
+                          status:
+                            event
+                              .target
+                              .value,
 
-                        payment_status:
-                          order.payment_status,
+                          payment_status:
+                            order.payment_status,
 
-                        note:
-                          t(
-                            'orders.automaticStatusNote'
-                          ),
-                      })
+                          note:
+                            t(
+                              'orders.automaticStatusNote'
+                            ),
+                        }
+                      )
                     }
                   >
                     {ORDER_STATUSES.map(
                       status => (
                         <option
-                          key={status}
-                          value={status}
+                          key={
+                            status
+                          }
+                          value={
+                            status
+                          }
                         >
                           {t(
                             `orders.statuses.${status}`
@@ -357,30 +696,40 @@ export default function AdminOrders() {
                       order.payment_status
                     }
                     disabled={
-                      savingId === order.id ||
+                      savingId ===
+                        order.id ||
                       order.status ===
                         'cancelled'
                     }
                     onChange={event =>
-                      updateOrder(order, {
-                        status:
-                          order.status,
+                      updateOrder(
+                        order,
+                        {
+                          status:
+                            order.status,
 
-                        payment_status:
-                          event.target.value,
+                          payment_status:
+                            event
+                              .target
+                              .value,
 
-                        note:
-                          t(
-                            'orders.automaticPaymentNote'
-                          ),
-                      })
+                          note:
+                            t(
+                              'orders.automaticPaymentNote'
+                            ),
+                        }
+                      )
                     }
                   >
                     {PAYMENT_STATUSES.map(
                       status => (
                         <option
-                          key={status}
-                          value={status}
+                          key={
+                            status
+                          }
+                          value={
+                            status
+                          }
                         >
                           {t(
                             `orders.paymentStatuses.${status}`
@@ -394,18 +743,25 @@ export default function AdminOrders() {
 
               <div className="admin-order-card-footer">
                 <span>
-                  {order.order_items?.length ||
-                    0}{' '}
-                  {t('orders.items')}
+                  {order
+                    .order_items
+                    ?.length || 0}{' '}
+                  {t(
+                    'orders.items'
+                  )}
                 </span>
 
                 <button
                   type="button"
                   onClick={() =>
-                    setSelectedOrder(order)
+                    setSelectedOrder(
+                      order
+                    )
                   }
                 >
-                  {t('orders.open')}
+                  {t(
+                    'orders.open'
+                  )}
                 </button>
               </div>
             </article>
@@ -421,7 +777,9 @@ export default function AdminOrders() {
               event.target ===
               event.currentTarget
             ) {
-              setSelectedOrder(null)
+              setSelectedOrder(
+                null
+              )
             }
           }}
         >
@@ -429,7 +787,9 @@ export default function AdminOrders() {
             <div className="admin-modal-header">
               <div>
                 <h2>
-                  {selectedOrder.order_number}
+                  {
+                    selectedOrder.order_number
+                  }
                 </h2>
 
                 <p>
@@ -441,9 +801,13 @@ export default function AdminOrders() {
 
               <button
                 type="button"
-                aria-label={t('common.close')}
+                aria-label={t(
+                  'common.close'
+                )}
                 onClick={() =>
-                  setSelectedOrder(null)
+                  setSelectedOrder(
+                    null
+                  )
                 }
               >
                 ×
@@ -451,14 +815,20 @@ export default function AdminOrders() {
             </div>
 
             <OrderEditor
-              order={selectedOrder}
+              order={
+                selectedOrder
+              }
               saving={
                 savingId ===
                 selectedOrder.id
               }
               t={t}
-              formatDate={formatDate}
-              formatMoney={formatMoney}
+              formatDate={
+                formatDate
+              }
+              formatMoney={
+                formatMoney
+              }
               onSave={patch =>
                 updateOrder(
                   selectedOrder,
@@ -473,13 +843,18 @@ export default function AdminOrders() {
       {createOrderOpen && (
         <CreateWebOrderModal
           t={t}
-          locale={locale}
-          formatMoney={formatMoney}
+          formatMoney={
+            formatMoney
+          }
           onClose={() =>
-            setCreateOrderOpen(false)
+            setCreateOrderOpen(
+              false
+            )
           }
           onCreated={async createdOrder => {
-            setCreateOrderOpen(false)
+            setCreateOrderOpen(
+              false
+            )
 
             setOrders(current => [
               createdOrder,
@@ -497,7 +872,6 @@ export default function AdminOrders() {
 
 function CreateWebOrderModal({
   t,
-  locale,
   formatMoney,
   onClose,
   onCreated,
@@ -512,64 +886,97 @@ function CreateWebOrderModal({
 
   const ownPointOfSaleId =
     Number(
-      currentUser?.point_of_sale_id ||
-      currentUser?.point_of_sale?.id ||
-      0
+      currentUser
+        ?.point_of_sale_id ||
+        currentUser
+          ?.point_of_sale
+          ?.id ||
+        0
     )
 
-  const [stockSourceType, setStockSourceType] =
-    useState('global')
+  const [
+    stockSourceType,
+    setStockSourceType,
+  ] = useState(
+    isPointOfSaleUser
+      ? 'point_of_sale'
+      : 'global'
+  )
 
-  const [pointOfSaleId, setPointOfSaleId] =
-    useState(
-      isPointOfSaleUser &&
-        ownPointOfSaleId
-        ? String(ownPointOfSaleId)
-        : ''
-    )
+  const [
+    pointOfSaleId,
+    setPointOfSaleId,
+  ] = useState(
+    isPointOfSaleUser &&
+      ownPointOfSaleId
+      ? String(
+          ownPointOfSaleId
+        )
+      : ''
+  )
 
-  const [pointsOfSale, setPointsOfSale] =
-    useState([])
+  const [
+    pointsOfSale,
+    setPointsOfSale,
+  ] = useState([])
 
-  const [products, setProducts] =
-    useState([])
+  const [
+    products,
+    setProducts,
+  ] = useState([])
 
-  const [items, setItems] =
-    useState([
-      createEmptyItem(),
-    ])
+  const [
+    items,
+    setItems,
+  ] = useState(() => [
+    createEmptyItem(),
+  ])
 
-  const [customer, setCustomer] =
-    useState({
-      first_name: '',
-      last_name: '',
-      email: '',
-      phone: '',
-      address: '',
-      apt: '',
-      city: '',
-      state: '',
-      zip: '',
-      country: 'Morocco',
-    })
+  const [
+    customer,
+    setCustomer,
+  ] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    address: '',
+    apt: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: 'Morocco',
+  })
 
-  const [notes, setNotes] =
-    useState('')
+  const [
+    notes,
+    setNotes,
+  ] = useState('')
 
-  const [shippingCost, setShippingCost] =
-    useState('0')
+  const [
+    shippingCost,
+    setShippingCost,
+  ] = useState('0')
 
-  const [discountAmount, setDiscountAmount] =
-    useState('0')
+  const [
+    discountAmount,
+    setDiscountAmount,
+  ] = useState('0')
 
-  const [loadingOptions, setLoadingOptions] =
-    useState(true)
+  const [
+    loadingOptions,
+    setLoadingOptions,
+  ] = useState(true)
 
-  const [saving, setSaving] =
-    useState(false)
+  const [
+    saving,
+    setSaving,
+  ] = useState(false)
 
-  const [modalError, setModalError] =
-    useState('')
+  const [
+    modalError,
+    setModalError,
+  ] = useState('')
 
   async function loadOptions({
     sourceType,
@@ -581,7 +988,9 @@ function CreateWebOrderModal({
       !selectedPointOfSaleId
     ) {
       setProducts([])
-      setLoadingOptions(false)
+      setLoadingOptions(
+        false
+      )
       return
     }
 
@@ -590,12 +999,16 @@ function CreateWebOrderModal({
 
     try {
       const query =
-        new URLSearchParams({
-          stock_source_type:
-            sourceType,
-        })
+        new URLSearchParams(
+          {
+            stock_source_type:
+              sourceType,
+          }
+        )
 
-      if (selectedPointOfSaleId) {
+      if (
+        selectedPointOfSaleId
+      ) {
         query.set(
           'point_of_sale_id',
           selectedPointOfSaleId
@@ -608,14 +1021,17 @@ function CreateWebOrderModal({
         )
 
       setProducts(
-        Array.isArray(data?.products)
+        Array.isArray(
+          data?.products
+        )
           ? data.products
           : []
       )
 
       if (
         Array.isArray(
-          data?.points_of_sale
+          data
+            ?.points_of_sale
         )
       ) {
         setPointsOfSale(
@@ -627,7 +1043,9 @@ function CreateWebOrderModal({
         loadError.message
       )
     } finally {
-      setLoadingOptions(false)
+      setLoadingOptions(
+        false
+      )
     }
   }
 
@@ -654,19 +1072,66 @@ function CreateWebOrderModal({
   ])
 
   const productById =
-    useMemo(() => {
-      return new Map(
-        products.map(product => [
-          String(product.id),
-          product,
-        ])
-      )
-    }, [products])
+    useMemo(
+      () =>
+        new Map(
+          products.map(
+            product => [
+              String(
+                product.id
+              ),
+              product,
+            ]
+          )
+        ),
+      [products]
+    )
+
+  function getItemProduct(
+    item
+  ) {
+    return (
+      productById.get(
+        String(
+          item.product_id
+        )
+      ) || null
+    )
+  }
+
+  function getItemVariants(
+    item
+  ) {
+    return getProductVariants(
+      getItemProduct(item)
+    )
+  }
+
+  function getItemVariant(
+    item
+  ) {
+    return (
+      getItemVariants(
+        item
+      ).find(
+        variant =>
+          String(
+            variant.id
+          ) ===
+          String(
+            item.product_size_variant_id
+          )
+      ) || null
+    )
+  }
 
   const subtotal =
     useMemo(() => {
       return items.reduce(
-        (sum, item) => {
+        (
+          sum,
+          item
+        ) => {
           const product =
             productById.get(
               String(
@@ -674,7 +1139,20 @@ function CreateWebOrderModal({
               )
             )
 
-          if (!product) {
+          const variant =
+            getProductVariants(
+              product
+            ).find(
+              candidate =>
+                String(
+                  candidate.id
+                ) ===
+                String(
+                  item.product_size_variant_id
+                )
+            )
+
+          if (!variant) {
             return sum
           }
 
@@ -682,14 +1160,15 @@ function CreateWebOrderModal({
             Math.max(
               1,
               Number(
-                item.quantity || 1
+                item.quantity ||
+                  1
               )
             )
 
           return (
             sum +
-            getProductPrice(
-              product,
+            getVariantPrice(
+              variant,
               quantity
             ) *
               quantity
@@ -702,16 +1181,29 @@ function CreateWebOrderModal({
       productById,
     ])
 
+  const normalizedShippingCost =
+    Math.max(
+      0,
+      Number(
+        shippingCost || 0
+      )
+    )
+
+  const normalizedDiscount =
+    Math.max(
+      0,
+      Number(
+        discountAmount ||
+          0
+      )
+    )
+
   const total =
     Math.max(
       0,
       subtotal +
-        Number(
-          shippingCost || 0
-        ) -
-        Number(
-          discountAmount || 0
-        )
+        normalizedShippingCost -
+        normalizedDiscount
     )
 
   function updateCustomer(
@@ -730,23 +1222,58 @@ function CreateWebOrderModal({
     value
   ) {
     setItems(current =>
-      current.map(item =>
-        item.key === key
-          ? {
-              ...item,
-              [field]: value,
-              ...(field ===
-              'product_id'
-                ? {
-                    selected_color:
-                      '',
-                    selected_size:
-                      '',
-                  }
-                : {}),
-            }
-          : item
-      )
+      current.map(item => {
+        if (
+          item.key !== key
+        ) {
+          return item
+        }
+
+        if (
+          field ===
+          'product_id'
+        ) {
+          const product =
+            productById.get(
+              String(value)
+            )
+
+          const variants =
+            getProductVariants(
+              product
+            )
+
+          const primaryVariant =
+            variants.find(
+              variant =>
+                variant.is_primary
+            ) ||
+            variants[0] ||
+            null
+
+          return {
+            ...item,
+
+            product_id:
+              value,
+
+            product_size_variant_id:
+              primaryVariant
+                ? String(
+                    primaryVariant.id
+                  )
+                : '',
+
+            selected_color:
+              '',
+          }
+        }
+
+        return {
+          ...item,
+          [field]: value,
+        }
+      })
     )
   }
 
@@ -760,7 +1287,8 @@ function CreateWebOrderModal({
   function removeItem(key) {
     setItems(current => {
       if (
-        current.length === 1
+        current.length ===
+        1
       ) {
         return [
           createEmptyItem(),
@@ -774,7 +1302,9 @@ function CreateWebOrderModal({
     })
   }
 
-  async function submit(event) {
+  async function submit(
+    event
+  ) {
     event.preventDefault()
 
     setModalError('')
@@ -793,88 +1323,132 @@ function CreateWebOrderModal({
       return
     }
 
-    const normalizedItems =
-      items
-        .filter(
-          item =>
-            item.product_id
-        )
-        .map(item => {
-          const product =
-            productById.get(
-              String(
-                item.product_id
+    let normalizedItems =
+      []
+
+    try {
+      normalizedItems =
+        items
+          .filter(
+            item =>
+              item.product_id
+          )
+          .map(item => {
+            const product =
+              getItemProduct(
+                item
               )
-            )
 
-          const quantity =
-            Number(
-              item.quantity
-            )
-
-          if (
-            !Number.isInteger(
-              quantity
-            ) ||
-            quantity <= 0
-          ) {
-            throw new Error(
-              t(
-                'orders.errors.invalidQuantity'
+            const variant =
+              getItemVariant(
+                item
               )
-            )
-          }
 
-          if (
-            product &&
-            quantity >
+            const quantity =
               Number(
-                product.stock || 0
+                item.quantity
               )
-          ) {
-            throw new Error(
-              t(
-                'orders.errors.insufficientStock'
+
+            if (!product) {
+              throw new Error(
+                'Produit introuvable.'
               )
-            )
-          }
+            }
 
-          if (
-            product?.has_color_variants &&
-            !item.selected_color
-          ) {
-            throw new Error(
-              t(
-                'orders.errors.colorRequired'
+            if (!variant) {
+              throw new Error(
+                `Sélectionnez une taille pour ${product.name}.`
               )
-            )
-          }
+            }
 
-          return {
-            product_id:
-              Number(
-                item.product_id
-              ),
+            if (
+              !Number.isInteger(
+                quantity
+              ) ||
+              quantity <= 0
+            ) {
+              throw new Error(
+                t(
+                  'orders.errors.invalidQuantity'
+                )
+              )
+            }
 
-            quantity,
+            const availableStock =
+              getVariantAvailableStock(
+                variant,
+                stockSourceType
+              )
 
-            selected_color:
-              item.selected_color ||
-              null,
+            if (
+              quantity >
+              availableStock
+            ) {
+              throw new Error(
+                `Stock insuffisant pour ${product.name} — ${getSizeLabel(
+                  variant
+                )}. Disponible : ${availableStock}.`
+              )
+            }
 
-            selected_size:
-              item.selected_size ||
-              null,
-          }
-        })
+            if (
+              product
+                .has_color_variants &&
+              !item.selected_color
+            ) {
+              throw new Error(
+                t(
+                  'orders.errors.colorRequired'
+                )
+              )
+            }
+
+            return {
+              product_id:
+                Number(
+                  product.id
+                ),
+
+              product_size_variant_id:
+                String(
+                  variant.id
+                ),
+
+              quantity,
+
+              selected_color:
+                item.selected_color ||
+                null,
+            }
+          })
+    } catch (
+      validationError
+    ) {
+      setModalError(
+        validationError.message
+      )
+      return
+    }
 
     if (
-      normalizedItems.length === 0
+      normalizedItems.length ===
+      0
     ) {
       setModalError(
         t(
           'orders.errors.productRequired'
         )
+      )
+      return
+    }
+
+    if (
+      normalizedDiscount >
+      subtotal +
+        normalizedShippingCost
+    ) {
+      setModalError(
+        'La remise ne peut pas dépasser le montant de la commande.'
       )
       return
     }
@@ -903,14 +1477,10 @@ function CreateWebOrderModal({
               normalizedItems,
 
             shipping_cost:
-              Number(
-                shippingCost || 0
-              ),
+              normalizedShippingCost,
 
             discount_amount:
-              Number(
-                discountAmount || 0
-              ),
+              normalizedDiscount,
 
             notes:
               notes.trim() ||
@@ -936,7 +1506,7 @@ function CreateWebOrderModal({
       onMouseDown={event => {
         if (
           event.target ===
-          event.currentTarget &&
+            event.currentTarget &&
           !saving
         ) {
           onClose()
@@ -962,7 +1532,9 @@ function CreateWebOrderModal({
           <button
             type="button"
             disabled={saving}
-            aria-label={t('common.close')}
+            aria-label={t(
+              'common.close'
+            )}
             onClick={onClose}
           >
             ×
@@ -997,43 +1569,45 @@ function CreateWebOrderModal({
             </div>
 
             <div className="admin-source-options">
-              <label
-                className={
-                  stockSourceType ===
-                  'global'
-                    ? 'is-selected'
-                    : ''
-                }
-              >
-                <input
-                  type="radio"
-                  name="stock-source"
-                  value="global"
-                  checked={
+              {!isPointOfSaleUser && (
+                <label
+                  className={
                     stockSourceType ===
                     'global'
+                      ? 'is-selected'
+                      : ''
                   }
-                  onChange={() =>
-                    setStockSourceType(
+                >
+                  <input
+                    type="radio"
+                    name="stock-source"
+                    value="global"
+                    checked={
+                      stockSourceType ===
                       'global'
-                    )
-                  }
-                />
+                    }
+                    onChange={() =>
+                      setStockSourceType(
+                        'global'
+                      )
+                    }
+                  />
 
-                <span>
-                  <strong>
-                    {t(
-                      'orders.globalStock'
-                    )}
-                  </strong>
+                  <span>
+                    <strong>
+                      {t(
+                        'orders.globalStock'
+                      )}
+                    </strong>
 
-                  <small>
-                    {t(
-                      'orders.globalStockHelp'
-                    )}
-                  </small>
-                </span>
-              </label>
+                    <small>
+                      {t(
+                        'orders.globalStockHelp'
+                      )}
+                    </small>
+                  </span>
+                </label>
+              )}
 
               <label
                 className={
@@ -1124,7 +1698,10 @@ function CreateWebOrderModal({
                           pointOfSale.id
                         }
                       >
-                        {pointOfSale.name}
+                        {
+                          pointOfSale.name
+                        }
+
                         {pointOfSale.city
                           ? ` — ${pointOfSale.city}`
                           : ''}
@@ -1362,9 +1939,9 @@ function CreateWebOrderModal({
                 </h3>
 
                 <p>
-                  {t(
-                    'orders.productsHelp'
-                  )}
+                  Sélectionnez le produit,
+                  la taille, la couleur et
+                  la quantité.
                 </p>
               </div>
 
@@ -1386,7 +1963,8 @@ function CreateWebOrderModal({
                   'common.loading'
                 )}
               </div>
-            ) : products.length === 0 ? (
+            ) : products.length ===
+              0 ? (
               <div className="admin-order-options-loading">
                 {t(
                   'orders.noProductsForSource'
@@ -1395,12 +1973,23 @@ function CreateWebOrderModal({
             ) : (
               <div className="admin-create-order-items">
                 {items.map(
-                  (item, index) => {
+                  (
+                    item,
+                    index
+                  ) => {
                     const product =
-                      productById.get(
-                        String(
-                          item.product_id
-                        )
+                      getItemProduct(
+                        item
+                      )
+
+                    const variants =
+                      getItemVariants(
+                        item
+                      )
+
+                    const variant =
+                      getItemVariant(
+                        item
                       )
 
                     const colors =
@@ -1418,26 +2007,28 @@ function CreateWebOrderModal({
                       )
 
                     const unitPrice =
-                      getProductPrice(
-                        product,
+                      getVariantPrice(
+                        variant,
                         quantity
                       )
 
+                    const availableStock =
+                      getVariantAvailableStock(
+                        variant,
+                        stockSourceType
+                      )
+
                     const wholesaleApplied =
-                      product &&
-                      Number(
-                        product.price_wholesale ||
-                          0
-                      ) > 0 &&
-                      quantity >=
-                        Number(
-                          product.wholesale_min_qty ||
-                            1
-                        )
+                      isWholesaleApplied(
+                        variant,
+                        quantity
+                      )
 
                     return (
                       <article
-                        key={item.key}
+                        key={
+                          item.key
+                        }
                         className="admin-create-order-item"
                       >
                         <div className="admin-create-order-item-top">
@@ -1485,7 +2076,8 @@ function CreateWebOrderModal({
                                 updateItem(
                                   item.key,
                                   'product_id',
-                                  event.target
+                                  event
+                                    .target
                                     .value
                                 )
                               }
@@ -1512,13 +2104,89 @@ function CreateWebOrderModal({
                                     —{' '}
                                     {
                                       option.name
-                                    }{' '}
-                                    (
-                                    {
-                                      option.stock
-                                    })
+                                    }
                                   </option>
                                 )
+                              )}
+                            </select>
+                          </label>
+
+                          <label className="admin-create-order-field">
+                            <span>
+                              Taille
+                            </span>
+
+                            <select
+                              required
+                              disabled={
+                                !item.product_id
+                              }
+                              value={
+                                item.product_size_variant_id
+                              }
+                              onChange={event =>
+                                updateItem(
+                                  item.key,
+                                  'product_size_variant_id',
+                                  event
+                                    .target
+                                    .value
+                                )
+                              }
+                            >
+                              <option value="">
+                                {item.product_id
+                                  ? 'Sélectionner une taille'
+                                  : 'Sélectionnez d’abord un produit'}
+                              </option>
+
+                              {variants.map(
+                                variantOption => {
+                                  const optionStock =
+                                    getVariantAvailableStock(
+                                      variantOption,
+                                      stockSourceType
+                                    )
+
+                                  return (
+                                    <option
+                                      key={
+                                        String(
+                                          variantOption.id
+                                        )
+                                      }
+                                      value={
+                                        String(
+                                          variantOption.id
+                                        )
+                                      }
+                                    >
+                                      {getSizeLabel(
+                                        variantOption
+                                      )}
+
+                                      {variantOption.is_primary
+                                        ? ' — principale'
+                                        : ''}
+
+                                      {' — '}
+
+                                      {Number(
+                                        variantOption.price ||
+                                          0
+                                      ).toFixed(
+                                        2
+                                      )}{' '}
+                                      MAD
+
+                                      {' — stock '}
+
+                                      {
+                                        optionStock
+                                      }
+                                    </option>
+                                  )
+                                }
                               )}
                             </select>
                           </label>
@@ -1533,9 +2201,11 @@ function CreateWebOrderModal({
                             <input
                               type="number"
                               min="1"
+                              step="1"
                               max={
-                                product?.stock ||
-                                undefined
+                                variant
+                                  ? availableStock
+                                  : undefined
                               }
                               required
                               value={
@@ -1545,14 +2215,16 @@ function CreateWebOrderModal({
                                 updateItem(
                                   item.key,
                                   'quantity',
-                                  event.target
+                                  event
+                                    .target
                                     .value
                                 )
                               }
                             />
                           </label>
 
-                          {product?.has_color_variants && (
+                          {product
+                            ?.has_color_variants && (
                             <label className="admin-create-order-field">
                               <span>
                                 {t(
@@ -1569,7 +2241,8 @@ function CreateWebOrderModal({
                                   updateItem(
                                     item.key,
                                     'selected_color',
-                                    event.target
+                                    event
+                                      .target
                                       .value
                                   )
                                 }
@@ -1590,7 +2263,9 @@ function CreateWebOrderModal({
                                         color
                                       }
                                     >
-                                      {color}
+                                      {
+                                        color
+                                      }
                                     </option>
                                   )
                                 )}
@@ -1599,60 +2274,72 @@ function CreateWebOrderModal({
                           )}
                         </div>
 
-                        {product && (
-                          <div className="admin-create-order-product-summary">
-                            {product.url_image1 && (
-                              <img
-                                src={resolveImageUrl(
-                                  product.url_image1
-                                )}
-                                alt={
-                                  product.name
-                                }
-                              />
-                            )}
+                        {product &&
+                          variant && (
+                            <div className="admin-create-order-product-summary">
+                              {product.url_image1 && (
+                                <img
+                                  src={resolveImageUrl(
+                                    product.url_image1
+                                  )}
+                                  alt={
+                                    product.name
+                                  }
+                                />
+                              )}
 
-                            <div>
-                              <strong>
-                                {product.name}
-                              </strong>
+                              <div>
+                                <strong>
+                                  {
+                                    product.name
+                                  }
+                                </strong>
 
-                              <span>
-                                {t(
-                                  'orders.availableStock'
-                                )}{' '}
-                                :{' '}
-                                {
-                                  product.stock
-                                }
-                              </span>
-
-                              <span>
-                                {formatMoney(
-                                  unitPrice
-                                )}{' '}
-                                MAD ×{' '}
-                                {quantity}
-                              </span>
-
-                              {wholesaleApplied && (
-                                <span className="admin-wholesale-badge">
-                                  {t(
-                                    'orders.wholesaleApplied'
+                                <span>
+                                  Taille :{' '}
+                                  {getSizeLabel(
+                                    variant
                                   )}
                                 </span>
-                              )}
-                            </div>
 
-                            <strong>
-                              {formatMoney(
-                                unitPrice *
-                                  quantity
-                              )}{' '}
-                              MAD
-                            </strong>
-                          </div>
-                        )}
+                                <span>
+                                  {t(
+                                    'orders.availableStock'
+                                  )}{' '}
+                                  :{' '}
+                                  {
+                                    availableStock
+                                  }
+                                </span>
+
+                                <span>
+                                  {formatMoney(
+                                    unitPrice
+                                  )}{' '}
+                                  MAD ×{' '}
+                                  {
+                                    quantity
+                                  }
+                                </span>
+
+                                {wholesaleApplied && (
+                                  <span className="admin-wholesale-badge">
+                                    {t(
+                                      'orders.wholesaleApplied'
+                                    )}
+                                  </span>
+                                )}
+                              </div>
+
+                              <strong>
+                                {formatMoney(
+                                  unitPrice *
+                                    quantity
+                                )}{' '}
+                                MAD
+                              </strong>
+                            </div>
+                          )}
                       </article>
                     )
                   }
@@ -1761,7 +2448,7 @@ function CreateWebOrderModal({
 
                 <strong>
                   {formatMoney(
-                    shippingCost
+                    normalizedShippingCost
                   )}{' '}
                   MAD
                 </strong>
@@ -1777,7 +2464,7 @@ function CreateWebOrderModal({
                 <strong>
                   -{' '}
                   {formatMoney(
-                    discountAmount
+                    normalizedDiscount
                   )}{' '}
                   MAD
                 </strong>
@@ -1791,7 +2478,9 @@ function CreateWebOrderModal({
                 </span>
 
                 <strong>
-                  {formatMoney(total)}{' '}
+                  {formatMoney(
+                    total
+                  )}{' '}
                   MAD
                 </strong>
               </div>
@@ -1816,7 +2505,8 @@ function CreateWebOrderModal({
               disabled={
                 saving ||
                 loadingOptions ||
-                products.length === 0
+                products.length ===
+                  0
               }
             >
               {saving
@@ -1842,8 +2532,12 @@ function OrderEditor({
   formatMoney,
   onSave,
 }) {
-  const [status, setStatus] =
-    useState(order.status)
+  const [
+    status,
+    setStatus,
+  ] = useState(
+    order.status
+  )
 
   const [
     paymentStatus,
@@ -1852,11 +2546,15 @@ function OrderEditor({
     order.payment_status
   )
 
-  const [note, setNote] =
-    useState('')
+  const [
+    note,
+    setNote,
+  ] = useState('')
 
   useEffect(() => {
-    setStatus(order.status)
+    setStatus(
+      order.status
+    )
 
     setPaymentStatus(
       order.payment_status
@@ -1877,33 +2575,57 @@ function OrderEditor({
     <div className="admin-order-editor">
       <section className="admin-order-detail-section">
         <h3>
-          {t('orders.customer')}
+          {t(
+            'orders.customer'
+          )}
         </h3>
 
         <p>
           <strong>
-            {order.shipping_first_name}{' '}
-            {order.shipping_last_name}
+            {
+              order.shipping_first_name
+            }{' '}
+            {
+              order.shipping_last_name
+            }
           </strong>
         </p>
 
-        <p>{order.shipping_phone}</p>
-        <p>{order.shipping_email}</p>
+        <p>
+          {
+            order.shipping_phone
+          }
+        </p>
 
         <p>
-          {order.shipping_address}
+          {
+            order.shipping_email
+          }
+        </p>
+
+        <p>
+          {
+            order.shipping_address
+          }
 
           {order.shipping_apt
             ? `, ${order.shipping_apt}`
             : ''}
 
-          , {order.shipping_city}
+          ,{' '}
+          {
+            order.shipping_city
+          }
         </p>
 
         <p>
           <strong>
-            {t('orders.origin')} :
+            {t(
+              'orders.origin'
+            )}{' '}
+            :
           </strong>{' '}
+
           {t(
             `orders.origins.${
               order.order_origin ||
@@ -1914,12 +2636,17 @@ function OrderEditor({
 
         <p>
           <strong>
-            {t('orders.source')} :
+            {t(
+              'orders.source'
+            )}{' '}
+            :
           </strong>{' '}
 
           {order.stock_source_type ===
           'point_of_sale'
-            ? order.point_of_sales?.name ||
+            ? order
+                .point_of_sales
+                ?.name ||
               t(
                 'orders.sources.point_of_sale'
               )
@@ -1929,61 +2656,114 @@ function OrderEditor({
         </p>
 
         {order.notes && (
-          <p>{order.notes}</p>
+          <p>
+            {order.notes}
+          </p>
         )}
       </section>
 
       <section className="admin-order-detail-section">
         <h3>
-          {t('orders.items')}
+          {t(
+            'orders.items'
+          )}
         </h3>
 
         <div className="admin-order-items">
-          {order.order_items?.map(item => (
-            <article key={item.id}>
-              {item.product_image && (
-                <img
-                  src={resolveImageUrl(
-                    item.product_image
+          {order
+            .order_items
+            ?.map(item => (
+              <article
+                key={item.id}
+              >
+                {item.product_image && (
+                  <img
+                    src={resolveImageUrl(
+                      item.product_image
+                    )}
+                    alt={
+                      item.product_name
+                    }
+                  />
+                )}
+
+                <div>
+                  <strong>
+                    {
+                      item.product_name
+                    }
+                  </strong>
+
+                  <span>
+                    {
+                      item.quantity
+                    }{' '}
+                    ×{' '}
+                    {formatMoney(
+                      item.unit_price
+                    )}{' '}
+                    MAD
+                  </span>
+
+                  <span>
+                    Taille :{' '}
+                    {item.selected_size ||
+                      'Taille standard'}
+                  </span>
+
+                  {item.selected_width_cm !==
+                    null &&
+                    item.selected_width_cm !==
+                      undefined && (
+                    <span>
+                      Dimensions :{' '}
+                      {[
+                        item.selected_width_cm,
+                        item.selected_depth_cm,
+                        item.selected_height_cm,
+                      ]
+                        .filter(
+                          value =>
+                            value !==
+                              null &&
+                            value !==
+                              undefined
+                        )
+                        .join(
+                          ' × '
+                        )}{' '}
+                      cm
+                    </span>
                   )}
-                  alt={item.product_name}
-                />
-              )}
 
-              <div>
+                  {item.selected_color && (
+                    <span>
+                      {t(
+                        'orders.color'
+                      )}{' '}
+                      :{' '}
+                      {
+                        item.selected_color
+                      }
+                    </span>
+                  )}
+                </div>
+
                 <strong>
-                  {item.product_name}
-                </strong>
-
-                <span>
-                  {item.quantity} ×{' '}
                   {formatMoney(
-                    item.unit_price
+                    item.line_total
                   )}{' '}
                   MAD
-                </span>
-
-                {item.selected_color && (
-                  <span>
-                    {t('orders.color')} :{' '}
-                    {item.selected_color}
-                  </span>
-                )}
-              </div>
-
-              <strong>
-                {formatMoney(
-                  item.line_total
-                )}{' '}
-                MAD
-              </strong>
-            </article>
-          ))}
+                </strong>
+              </article>
+            ))}
         </div>
 
         <div className="admin-order-detail-total">
           <span>
-            {t('orders.total')}
+            {t(
+              'orders.total'
+            )}
           </span>
 
           <strong>
@@ -1997,7 +2777,9 @@ function OrderEditor({
 
       <section className="admin-order-detail-section">
         <h3>
-          {t('orders.update')}
+          {t(
+            'orders.update'
+          )}
         </h3>
 
         {orderCancelled && (
@@ -2050,7 +2832,9 @@ function OrderEditor({
             </span>
 
             <select
-              value={paymentStatus}
+              value={
+                paymentStatus
+              }
               disabled={
                 orderCancelled
               }
@@ -2078,7 +2862,9 @@ function OrderEditor({
 
         <label className="admin-order-note">
           <span>
-            {t('orders.note')}
+            {t(
+              'orders.note'
+            )}
           </span>
 
           <textarea
@@ -2105,29 +2891,42 @@ function OrderEditor({
           onClick={() =>
             onSave({
               status,
+
               payment_status:
                 paymentStatus,
+
               note,
             })
           }
         >
           {saving
-            ? t('common.loading')
-            : t('common.save')}
+            ? t(
+                'common.loading'
+              )
+            : t(
+                'common.save'
+              )}
         </button>
       </section>
 
       <section className="admin-order-detail-section">
         <h3>
-          {t('orders.history')}
+          {t(
+            'orders.history'
+          )}
         </h3>
 
         <div className="admin-order-history">
-          {order.status_history?.length ? (
-            order.status_history.map(
-              history => (
+          {order
+            .status_history
+            ?.length ? (
+            order
+              .status_history
+              .map(history => (
                 <article
-                  key={history.id}
+                  key={
+                    history.id
+                  }
                 >
                   <div>
                     <strong>
@@ -2155,15 +2954,18 @@ function OrderEditor({
 
                   {history.note && (
                     <p>
-                      {history.note}
+                      {
+                        history.note
+                      }
                     </p>
                   )}
                 </article>
-              )
-            )
+              ))
           ) : (
             <p>
-              {t('common.empty')}
+              {t(
+                'common.empty'
+              )}
             </p>
           )}
         </div>
