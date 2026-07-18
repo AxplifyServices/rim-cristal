@@ -128,6 +128,8 @@
 "productLink": "Lien du produit",
 "whatsappButton": "Demander plus d’informations",
 "whatsappHelp": "Envoyer un message sur WhatsApp",
+"addToFavorites": "Ajouter aux favoris",
+"removeFromFavorites": "Retirer des favoris",
 "whatsappMessage": "Bonjour, je souhaite obtenir plus d’informations sur ce produit."
 },
   "cart": {

@@ -126,6 +126,8 @@
     "productName": "المنتج",
     "selectedColor": "اللون المختار",
     "productLink": "رابط المنتج",
+    "addToFavorites": "إضافة إلى المفضلة",
+"removeFromFavorites": "إزالة من المفضلة",
     "whatsappButton": "طلب المزيد من المعلومات",
     "whatsappHelp": "إرسال رسالة عبر واتساب",
     "whatsappMessage": "مرحباً، أود الحصول على مزيد من المعلومات حول هذا المنتج."
