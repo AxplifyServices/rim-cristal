@@ -524,9 +524,12 @@ a {
   justify-content: center;
   padding: 0;
   border: 0;
-  color: #282828;
+  color: #8f251d;
   background: transparent;
   cursor: pointer;
+  filter: drop-shadow(
+    0 2px 6px rgba(255, 255, 255, 0.55)
+  );
   transition:
     color 160ms ease,
     transform 160ms ease,
@@ -554,6 +557,7 @@ a {
 }
 
 .product-image-arrow:hover {
+  color: #6f1c16;
   transform:
     translateY(-50%)
     scale(1.12);
@@ -572,6 +576,7 @@ a {
 }
 
 .product-favorite-button:hover {
+  color: #6f1c16;
   transform: scale(1.1);
 }
 
