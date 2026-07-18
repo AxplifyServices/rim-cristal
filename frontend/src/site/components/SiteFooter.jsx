@@ -168,17 +168,17 @@ export default function SiteFooter() {
               Français
             </button>
 
-            <button
-              type="button"
-              className={
-                locale === 'en'
-                  ? 'is-active'
-                  : ''
-              }
-              onClick={() => setLocale('en')}
-            >
-              English
-            </button>
+<button
+  type="button"
+  className={
+    locale === 'ar'
+      ? 'is-active'
+      : ''
+  }
+  onClick={() => setLocale('ar')}
+>
+  العربية
+</button>
           </div>
         </div>
       </div>

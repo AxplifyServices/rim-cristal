@@ -26,9 +26,9 @@ export const metadata = {
   openGraph: {
     type: 'website',
     locale: 'fr_MA',
-    alternateLocale: [
-      'en_US',
-    ],
+alternateLocale: [
+  'ar_MA',
+],
     siteName:
       'Casa Luxury Decor',
     url:

@@ -686,8 +686,8 @@ export function formatPrice(
   locale = 'fr'
 ) {
   const language =
-    locale === 'en'
-      ? 'en-US'
+    locale === 'ar'
+      ? 'ar-MA'
       : 'fr-MA'
 
   return new Intl.NumberFormat(

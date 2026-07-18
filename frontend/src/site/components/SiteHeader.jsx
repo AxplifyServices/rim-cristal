@@ -580,13 +580,13 @@ export default function SiteHeader() {
                   )
                 }}
               >
-                <option value="fr">
-                  FR
-                </option>
+<option value="fr">
+  FR
+</option>
 
-                <option value="en">
-                  EN
-                </option>
+<option value="ar">
+  AR
+</option>
               </select>
             </label>
 

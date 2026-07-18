@@ -8,19 +8,20 @@ import {
   useState,
 } from 'react'
 
+import ar from '../../../messages/site.ar.json'
 import fr from '../../../messages/site.fr.json'
-import en from '../../../messages/site.en.json'
 
 const dictionaries = {
   fr,
-  en,
+  ar,
 }
 
 const LOCALE_STORAGE_KEY =
   'kaystia-home-locale'
 
-const LEGACY_LOCALE_STORAGE_KEY =
-  'lux-lumina-locale'
+const LEGACY_LOCALE_STORAGE_KEYS = [
+  'lux-lumina-locale',
+]
 
 const SiteI18nContext =
   createContext(null)
@@ -38,6 +39,29 @@ function getNestedValue(
     )
 }
 
+function applyDocumentLocale(
+  locale
+) {
+  const isArabic =
+    locale === 'ar'
+
+  document.documentElement.lang =
+    locale
+
+  document.documentElement.dir =
+    isArabic
+      ? 'rtl'
+      : 'ltr'
+
+  document.body.dir =
+    isArabic
+      ? 'rtl'
+      : 'ltr'
+
+  document.body.dataset.locale =
+    locale
+}
+
 export function SiteI18nProvider({
   children,
 }) {
@@ -50,39 +74,38 @@ export function SiteI18nProvider({
         LOCALE_STORAGE_KEY
       )
 
-    const legacyLocale =
-      window.localStorage.getItem(
-        LEGACY_LOCALE_STORAGE_KEY
-      )
-
-    const savedLocale =
-      currentLocale ||
-      legacyLocale
-
     const safeLocale =
-      savedLocale &&
-      dictionaries[savedLocale]
-        ? savedLocale
+      currentLocale &&
+      dictionaries[currentLocale]
+        ? currentLocale
         : 'fr'
 
     setLocaleState(safeLocale)
-
-    document.documentElement.lang =
-      safeLocale
+    applyDocumentLocale(safeLocale)
 
     window.localStorage.setItem(
       LOCALE_STORAGE_KEY,
       safeLocale
     )
 
-    window.localStorage.removeItem(
-      LEGACY_LOCALE_STORAGE_KEY
-    )
+    for (
+      const legacyKey
+      of LEGACY_LOCALE_STORAGE_KEYS
+    ) {
+      window.localStorage.removeItem(
+        legacyKey
+      )
+    }
   }, [])
 
   const value = useMemo(() => {
     return {
       locale,
+
+      direction:
+        locale === 'ar'
+          ? 'rtl'
+          : 'ltr',
 
       setLocale(nextLocale) {
         const safeLocale =
@@ -97,12 +120,9 @@ export function SiteI18nProvider({
           safeLocale
         )
 
-        window.localStorage.removeItem(
-          LEGACY_LOCALE_STORAGE_KEY
-        )
-
-        document.documentElement.lang =
+        applyDocumentLocale(
           safeLocale
+        )
       },
 
       t(key, variables = {}) {
@@ -110,11 +130,11 @@ export function SiteI18nProvider({
           getNestedValue(
             dictionaries[locale],
             key
-          ) ||
+          ) ??
           getNestedValue(
             dictionaries.fr,
             key
-          ) ||
+          ) ??
           key
 
         if (

@@ -48,13 +48,10 @@ function BrochureImage({
     4
   )
 
-  const altText =
-    locale === 'en'
-      ? brochure.altTextEn ||
-        brochure.altTextFr
-      : brochure.altTextFr ||
-        brochure.altTextEn ||
-        ''
+const altText =
+  brochure.altTextFr ||
+  brochure.altTextEn ||
+  ''
 
   return (
     <picture className="home-brochure-picture">
@@ -151,11 +148,9 @@ function BrochureContent({
         href={brochure.linkUrl}
         className="home-brochure-link"
         aria-label={
-          locale === 'en'
-            ? brochure.altTextEn ||
-              brochure.altTextFr
-            : brochure.altTextFr ||
-              brochure.altTextEn
+brochure.altTextFr ||
+brochure.altTextEn ||
+''
         }
       >
         {image}
