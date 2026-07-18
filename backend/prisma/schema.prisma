@@ -88,11 +88,13 @@ model order_items {
   selected_width_cm       Decimal?               @db.Decimal(10, 2)
   selected_depth_cm       Decimal?               @db.Decimal(10, 2)
   selected_height_cm      Decimal?               @db.Decimal(10, 2)
+  is_backorder            Boolean                @default(false)
   product_size_variants   product_size_variants? @relation(fields: [product_size_variant_id], references: [id], onUpdate: NoAction, map: "fk_order_items_size_variant")
   orders                  orders                 @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   products                products?              @relation(fields: [product_id], references: [id], onUpdate: NoAction)
 
   @@index([product_size_variant_id], map: "idx_order_items_size_variant")
+  @@index([is_backorder], map: "idx_order_items_is_backorder")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -129,6 +131,7 @@ model orders {
   stock_source_type                      String                 @default("global") @db.VarChar(40)
   stock_deducted_at                      DateTime?              @db.Timestamp(6)
   stock_restored_at                      DateTime?              @db.Timestamp(6)
+  requires_stock_confirmation            Boolean                @default(false)
   order_items                            order_items[]
   order_status_history                   order_status_history[]
   users_orders_created_by_user_idTousers users?                 @relation("orders_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onUpdate: NoAction, map: "fk_orders_created_by_user")
@@ -146,6 +149,7 @@ model orders {
   @@index([created_by_user_id], map: "idx_orders_created_by_user")
   @@index([order_origin], map: "idx_orders_origin")
   @@index([stock_source_type, point_of_sale_id], map: "idx_orders_stock_source")
+  @@index([requires_stock_confirmation, created_at(sort: Desc)], map: "idx_orders_requires_stock_confirmation")
 }
 
 model products {

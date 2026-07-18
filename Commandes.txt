@@ -45,12 +45,12 @@ pdv123
 
 rim_cristal
 
-psql -U postgres -d rim_cristal -f database/schema/018_homepage_brochures.sql
+psql -U postgres -d rim_cristal -f database/schema/019_product_backorders.sql
 
 ** Exécution serveur : 
 
 cd /opt/apps/rim_cristal
 
-sudo -u postgres psql -d rim_cristal  -f database/schema/018_homepage_brochures.sql
+sudo -u postgres psql -d rim_cristal  -f database/schema/019_product_backorders.sql
 
 
