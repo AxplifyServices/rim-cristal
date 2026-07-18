@@ -43,6 +43,465 @@ private normalizeProductColors(
   ];
 }
 
+private parseRequiredNumber(
+  value: unknown,
+  fieldName: string,
+  minimum = 0,
+): number {
+  if (
+    value === undefined ||
+    value === null ||
+    String(value).trim() === ''
+  ) {
+    throw new BadRequestException(
+      `${fieldName} is required`,
+    );
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    throw new BadRequestException(
+      `${fieldName} must be a valid number`,
+    );
+  }
+
+  if (parsed < minimum) {
+    throw new BadRequestException(
+      `${fieldName} must be greater than or equal to ${minimum}`,
+    );
+  }
+
+  return parsed;
+}
+
+private parseNullableNumber(
+  value: unknown,
+  fieldName: string,
+  minimum = 0,
+): number | null {
+  if (
+    value === undefined ||
+    value === null ||
+    String(value).trim() === ''
+  ) {
+    return null;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    throw new BadRequestException(
+      `${fieldName} must be a valid number`,
+    );
+  }
+
+  if (parsed < minimum) {
+    throw new BadRequestException(
+      `${fieldName} must be greater than or equal to ${minimum}`,
+    );
+  }
+
+  return parsed;
+}
+
+private parseRequiredInteger(
+  value: unknown,
+  fieldName: string,
+  minimum = 0,
+): number {
+  const parsed = this.parseRequiredNumber(
+    value,
+    fieldName,
+    minimum,
+  );
+
+  if (!Number.isInteger(parsed)) {
+    throw new BadRequestException(
+      `${fieldName} must be an integer`,
+    );
+  }
+
+  return parsed;
+}
+
+private parseBoolean(
+  value: unknown,
+  fallback = false,
+): boolean {
+  if (value === undefined || value === null) {
+    return fallback;
+  }
+
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'number') {
+    return value === 1;
+  }
+
+  const normalized = String(value)
+    .trim()
+    .toLowerCase();
+
+  return [
+    'true',
+    '1',
+    'yes',
+    'oui',
+    'on',
+  ].includes(normalized);
+}
+
+private buildSizeLabel(
+  widthCm: number | null,
+  depthCm: number | null,
+  heightCm: number | null,
+): string {
+  const dimensions = [
+    widthCm,
+    depthCm,
+    heightCm,
+  ].filter(
+    (value): value is number =>
+      value !== null,
+  );
+
+  if (dimensions.length === 0) {
+    return 'Taille standard';
+  }
+
+  return `${dimensions
+    .map(value => {
+      return Number.isInteger(value)
+        ? String(value)
+        : String(value).replace('.', ',');
+    })
+    .join(' × ')} cm`;
+}
+
+private normalizeSizeVariants(
+  body: any,
+  currentProduct?: any,
+) {
+  const hasSizeVariants =
+    body.has_size_variants !== undefined
+      ? this.parseBoolean(
+          body.has_size_variants,
+        )
+      : Boolean(
+          currentProduct?.has_size_variants,
+        );
+
+  const rawVariants = Array.isArray(
+    body.size_variants,
+  )
+    ? body.size_variants
+    : [];
+
+  /*
+   * Compatibilité avec l'ancien formulaire :
+   * tant que le frontend admin n'envoie pas size_variants,
+   * les anciens champs constituent la taille principale.
+   */
+  if (rawVariants.length === 0) {
+    const widthCm = this.parseNullableNumber(
+      body.width_cm ??
+        currentProduct?.width_cm,
+      'width_cm',
+    );
+
+    const depthCm = this.parseNullableNumber(
+      body.depth_cm ??
+        currentProduct?.depth_cm,
+      'depth_cm',
+    );
+
+    const heightCm = this.parseNullableNumber(
+      body.height_cm ??
+        currentProduct?.height_cm,
+      'height_cm',
+    );
+
+    return {
+      hasSizeVariants: false,
+      variants: [
+        {
+          id: null as bigint | null,
+          label:
+            String(
+              body.size_label || '',
+            ).trim() ||
+            this.buildSizeLabel(
+              widthCm,
+              depthCm,
+              heightCm,
+            ),
+          reference: null as string | null,
+          widthCm,
+          depthCm,
+          heightCm,
+          price: this.parseRequiredNumber(
+            body.price ??
+              currentProduct?.price ??
+              0,
+            'price',
+          ),
+          priceWholesale:
+            this.parseRequiredNumber(
+              body.price_wholesale ??
+                currentProduct
+                  ?.price_wholesale ??
+                0,
+              'price_wholesale',
+            ),
+          wholesaleMinQty:
+            this.parseRequiredInteger(
+              body.wholesale_min_qty ??
+                currentProduct
+                  ?.wholesale_min_qty ??
+                1,
+              'wholesale_min_qty',
+              1,
+            ),
+          stock: this.parseRequiredInteger(
+            body.stock ??
+              currentProduct?.stock ??
+              0,
+            'stock',
+          ),
+          isPrimary: true,
+          isActive: true,
+          displayOrder: 0,
+        },
+      ],
+    };
+  }
+
+  if (
+    !hasSizeVariants &&
+    rawVariants.length > 1
+  ) {
+    throw new BadRequestException(
+      'has_size_variants must be true when several size variants are provided',
+    );
+  }
+
+  const variants = rawVariants.map(
+    (variant: any, index: number) => {
+      const widthCm =
+        this.parseNullableNumber(
+          variant.width_cm,
+          `size_variants[${index}].width_cm`,
+        );
+
+      const depthCm =
+        this.parseNullableNumber(
+          variant.depth_cm,
+          `size_variants[${index}].depth_cm`,
+        );
+
+      const heightCm =
+        this.parseNullableNumber(
+          variant.height_cm,
+          `size_variants[${index}].height_cm`,
+        );
+
+      let id: bigint | null = null;
+
+      if (
+        variant.id !== undefined &&
+        variant.id !== null &&
+        String(variant.id).trim() !== ''
+      ) {
+        try {
+          id = BigInt(variant.id);
+        } catch {
+          throw new BadRequestException(
+            `size_variants[${index}].id is invalid`,
+          );
+        }
+
+        if (id <= BigInt(0)) {
+          throw new BadRequestException(
+            `size_variants[${index}].id is invalid`,
+          );
+        }
+      }
+
+      return {
+        id,
+        label:
+          String(
+            variant.label || '',
+          ).trim() ||
+          this.buildSizeLabel(
+            widthCm,
+            depthCm,
+            heightCm,
+          ),
+        reference:
+          String(
+            variant.reference || '',
+          ).trim() || null,
+        widthCm,
+        depthCm,
+        heightCm,
+        price:
+          this.parseRequiredNumber(
+            variant.price,
+            `size_variants[${index}].price`,
+          ),
+        priceWholesale:
+          this.parseRequiredNumber(
+            variant.price_wholesale ?? 0,
+            `size_variants[${index}].price_wholesale`,
+          ),
+        wholesaleMinQty:
+          this.parseRequiredInteger(
+            variant.wholesale_min_qty ??
+              1,
+            `size_variants[${index}].wholesale_min_qty`,
+            1,
+          ),
+        stock:
+          this.parseRequiredInteger(
+            variant.stock ?? 0,
+            `size_variants[${index}].stock`,
+          ),
+        isPrimary:
+          index === 0,
+        isActive:
+          variant.is_active !== undefined
+            ? this.parseBoolean(
+                variant.is_active,
+              )
+            : true,
+        displayOrder: index,
+      };
+    },
+  );
+
+  if (variants.length === 0) {
+    throw new BadRequestException(
+      'At least one size variant is required',
+    );
+  }
+
+  if (
+    !variants[0].isActive
+  ) {
+    throw new BadRequestException(
+      'The primary size variant must be active',
+    );
+  }
+
+  const existingIds = variants
+    .map(variant => variant.id)
+    .filter(
+      (id): id is bigint =>
+        id !== null,
+    );
+
+  const uniqueIds = new Set(
+    existingIds.map(id =>
+      id.toString(),
+    ),
+  );
+
+  if (
+    uniqueIds.size !==
+    existingIds.length
+  ) {
+    throw new BadRequestException(
+      'A size variant cannot be submitted more than once',
+    );
+  }
+
+  return {
+    hasSizeVariants:
+      hasSizeVariants &&
+      variants.length > 1,
+    variants,
+  };
+}
+
+private serializeProduct(product: any) {
+  if (!product) {
+    return product;
+  }
+
+  return {
+    ...product,
+    product_size_variants:
+      Array.isArray(
+        product.product_size_variants,
+      )
+        ? product.product_size_variants.map(
+            (variant: any) => ({
+              ...variant,
+              id: String(variant.id),
+              product_id: Number(
+                variant.product_id,
+              ),
+              price: Number(
+                variant.price,
+              ),
+              price_wholesale: Number(
+                variant.price_wholesale,
+              ),
+              width_cm:
+                variant.width_cm === null
+                  ? null
+                  : Number(
+                      variant.width_cm,
+                    ),
+              depth_cm:
+                variant.depth_cm === null
+                  ? null
+                  : Number(
+                      variant.depth_cm,
+                    ),
+              height_cm:
+                variant.height_cm === null
+                  ? null
+                  : Number(
+                      variant.height_cm,
+                    ),
+            }),
+          )
+        : [],
+  };
+}
+
+private getProductSizeVariantsInclude(
+  includeInactive = false,
+) {
+  return {
+    product_size_variants: {
+      where: includeInactive
+        ? undefined
+        : {
+            is_active: true,
+          },
+      orderBy: [
+        {
+          is_primary:
+            'desc' as const,
+        },
+        {
+          display_order:
+            'asc' as const,
+        },
+        {
+          id: 'asc' as const,
+        },
+      ],
+    },
+  };
+}
+
 private normalizeRubrique(
   value: unknown,
   required = false,
@@ -480,48 +939,61 @@ if (isPublicCatalog) {
       ];
     }
 
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.products.findMany({
-        where,
-        orderBy: { id: 'asc' },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-      this.prisma.products.count({ where }),
-    ]);
-
-    return {
-      items,
-      total,
-      page,
-      page_size: pageSize,
-      pages: Math.ceil(total / pageSize),
-    };
-  }
-
-  async findById(id: number) {
-    const product = await this.prisma.products.findUnique({
-      where: { id },
-    });
-
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
-
-    return product;
-  }
-
-async findBySlug(slug: string) {
-  const product =
-    await this.prisma.products.findFirst({
-      where: {
-        slug,
-        is_active: true,
-        is_available_on_site: true,
-        stock: {
-          gt: 0,
-        },
+const [items, total] =
+  await this.prisma.$transaction([
+    this.prisma.products.findMany({
+      where,
+      include:
+        this.getProductSizeVariantsInclude(
+          !isPublicCatalog,
+        ),
+      orderBy: {
+        id: 'asc',
       },
+      skip:
+        (page - 1) *
+        pageSize,
+      take: pageSize,
+    }),
+
+    this.prisma.products.count({
+      where,
+    }),
+  ]);
+
+return {
+  items: items.map(item =>
+    this.serializeProduct(item),
+  ),
+  total,
+  page,
+  page_size: pageSize,
+  pages: Math.ceil(
+    total / pageSize,
+  ),
+};
+  }
+
+async findById(id: number) {
+  if (
+    !Number.isInteger(id) ||
+    id <= 0
+  ) {
+    throw new BadRequestException(
+      'Invalid product id',
+    );
+  }
+
+  const product =
+    await this.prisma.products.findUnique({
+      where: {
+        id,
+      },
+
+      include:
+        this.getProductSizeVariantsInclude(
+          true,
+        ),
     });
 
   if (!product) {
@@ -530,261 +1002,1050 @@ async findBySlug(slug: string) {
     );
   }
 
-  return product;
+  return this.serializeProduct(
+    product,
+  );
+}
+
+async findBySlug(
+  slug: string,
+) {
+  const normalizedSlug =
+    String(slug || '').trim();
+
+  if (!normalizedSlug) {
+    throw new BadRequestException(
+      'Invalid product slug',
+    );
+  }
+
+  const product =
+    await this.prisma.products.findFirst({
+      where: {
+        slug: normalizedSlug,
+        is_active: true,
+        is_available_on_site:
+          true,
+        stock: {
+          gt: 0,
+        },
+      },
+
+      include:
+        this.getProductSizeVariantsInclude(
+          false,
+        ),
+    });
+
+  if (!product) {
+    throw new NotFoundException(
+      'Product not found',
+    );
+  }
+
+  return this.serializeProduct(
+    product,
+  );
 }
 
 async create(body: any) {
-  if (!body.name) {
-    throw new BadRequestException('name is required');
+  const name = String(
+    body.name || '',
+  ).trim();
+
+  if (!name) {
+    throw new BadRequestException(
+      'name is required',
+    );
   }
 
-  const slug = await this.generateUniqueSlug(body.name);
-  const reference = await this.generateReference();
+  const rubrique =
+    this.normalizeRubrique(
+      body.rubrique,
+      true,
+    );
 
-  return this.prisma.products.create({
-    data: {
-      name: body.name,
-      slug,
-      reference,
+  const slug =
+    await this.generateUniqueSlug(
+      name,
+    );
 
-      marque: body.marque || null,
-rubrique:
-  this.normalizeRubrique(
-    body.rubrique,
-    true,
-  ),
-      categorie: body.categorie || body.category || null,
-      famille: body.famille || null,
+  const reference =
+    await this.generateReference();
 
-      description: body.description || null,
+  const {
+    hasSizeVariants,
+    variants,
+  } = this.normalizeSizeVariants(
+    body,
+  );
 
-      url_image1: body.url_image1 || null,
-      url_image2: body.url_image2 || null,
-      url_image3: body.url_image3 || null,
-      url_image4: body.url_image4 || null,
-      url_image5: body.url_image5 || null,
+  const primaryVariant =
+    variants[0];
 
-      price: Number(body.price || 0),
+  try {
+    const product =
+      await this.prisma.$transaction(
+        async tx => {
+          const createdProduct =
+            await tx.products.create({
+              data: {
+                name,
+                slug,
+                reference,
 
-has_color_variants: Boolean(
-  body.has_color_variants,
-),
+                marque:
+                  body.marque ||
+                  null,
 
-colors: this.normalizeProductColors(
-  Boolean(body.has_color_variants),
-  body.colors,
-),
+                rubrique,
 
-width_cm:
-  body.width_cm !== undefined &&
-  body.width_cm !== null &&
-  body.width_cm !== ''
-    ? Number(body.width_cm)
-    : null,
+                categorie:
+                  body.categorie ||
+                  body.category ||
+                  null,
 
-depth_cm:
-  body.depth_cm !== undefined &&
-  body.depth_cm !== null &&
-  body.depth_cm !== ''
-    ? Number(body.depth_cm)
-    : null,
+                famille:
+                  body.famille ||
+                  null,
 
-height_cm:
-  body.height_cm !== undefined &&
-  body.height_cm !== null &&
-  body.height_cm !== ''
-    ? Number(body.height_cm)
-    : null,
+                description:
+                  body.description ||
+                  null,
 
-      stock: Number(body.stock || 0),
-      weight:
-        body.weight !== undefined && body.weight !== null && body.weight !== ''
-          ? Number(body.weight)
-          : null,
+                url_image1:
+                  body.url_image1 ||
+                  null,
 
-      badge: body.badge || null,
+                url_image2:
+                  body.url_image2 ||
+                  null,
 
-      is_active:
-        body.is_active !== undefined ? Boolean(body.is_active) : true,
-      is_available_on_site:
-        body.is_available_on_site !== undefined
-          ? Boolean(body.is_available_on_site)
-          : true,
-      is_featured: Boolean(body.is_featured),
-      is_new: Boolean(body.is_new),
-      is_bestseller: Boolean(body.is_bestseller),
+                url_image3:
+                  body.url_image3 ||
+                  null,
 
-      rating: Number(body.rating || 0),
-      reviews_count: Number(body.reviews_count || 0),
+                url_image4:
+                  body.url_image4 ||
+                  null,
 
-      category_id: body.category_id ? Number(body.category_id) : null,
-      subcategory_id: body.subcategory_id ? Number(body.subcategory_id) : null,
+                url_image5:
+                  body.url_image5 ||
+                  null,
 
-      care_instructions: body.care_instructions || null,
-      origin_country: body.origin_country || null,
-      collection_name: body.collection_name || null,
+                /*
+                 * Les champs historiques restent
+                 * synchronisés avec la taille principale.
+                 */
+                price:
+                  primaryVariant.price,
 
-      seo_title: body.seo_title || null,
-      seo_description: body.seo_description || null,
+                price_wholesale:
+                  primaryVariant
+                    .priceWholesale,
 
-      price_wholesale: Number(body.price_wholesale || 0),
-      wholesale_min_qty: Number(body.wholesale_min_qty || 1),
-    },
-  });
+                wholesale_min_qty:
+                  primaryVariant
+                    .wholesaleMinQty,
+
+                width_cm:
+                  primaryVariant
+                    .widthCm,
+
+                depth_cm:
+                  primaryVariant
+                    .depthCm,
+
+                height_cm:
+                  primaryVariant
+                    .heightCm,
+
+                stock:
+                  variants
+                    .filter(
+                      variant =>
+                        variant.isActive,
+                    )
+                    .reduce(
+                      (
+                        total,
+                        variant,
+                      ) =>
+                        total +
+                        variant.stock,
+                      0,
+                    ),
+
+                has_size_variants:
+                  hasSizeVariants,
+
+                has_color_variants:
+                  this.parseBoolean(
+                    body.has_color_variants,
+                  ),
+
+                colors:
+                  this.normalizeProductColors(
+                    this.parseBoolean(
+                      body.has_color_variants,
+                    ),
+                    body.colors,
+                  ),
+
+                weight:
+                  body.weight !==
+                    undefined &&
+                  body.weight !==
+                    null &&
+                  body.weight !== ''
+                    ? this.parseRequiredNumber(
+                        body.weight,
+                        'weight',
+                      )
+                    : null,
+
+                badge:
+                  body.badge ||
+                  null,
+
+                is_active:
+                  body.is_active !==
+                  undefined
+                    ? this.parseBoolean(
+                        body.is_active,
+                      )
+                    : true,
+
+                is_available_on_site:
+                  body
+                    .is_available_on_site !==
+                  undefined
+                    ? this.parseBoolean(
+                        body
+                          .is_available_on_site,
+                      )
+                    : true,
+
+                is_featured:
+                  this.parseBoolean(
+                    body.is_featured,
+                  ),
+
+                is_new:
+                  this.parseBoolean(
+                    body.is_new,
+                  ),
+
+                is_bestseller:
+                  this.parseBoolean(
+                    body.is_bestseller,
+                  ),
+
+                rating: Number(
+                  body.rating || 0,
+                ),
+
+                reviews_count:
+                  Number(
+                    body.reviews_count ||
+                      0,
+                  ),
+
+                category_id:
+                  body.category_id
+                    ? Number(
+                        body.category_id,
+                      )
+                    : null,
+
+                subcategory_id:
+                  body.subcategory_id
+                    ? Number(
+                        body.subcategory_id,
+                      )
+                    : null,
+
+                care_instructions:
+                  body
+                    .care_instructions ||
+                  null,
+
+                origin_country:
+                  body.origin_country ||
+                  null,
+
+                collection_name:
+                  body
+                    .collection_name ||
+                  null,
+
+                seo_title:
+                  body.seo_title ||
+                  null,
+
+                seo_description:
+                  body
+                    .seo_description ||
+                  null,
+
+                updated_at:
+                  new Date(),
+              },
+            });
+
+          for (
+            let index = 0;
+            index <
+            variants.length;
+            index += 1
+          ) {
+            const variant =
+              variants[index];
+
+            await tx
+              .product_size_variants
+              .create({
+                data: {
+                  product_id:
+                    createdProduct.id,
+
+                  label:
+                    variant.label,
+
+                  reference:
+                    variant.reference ||
+                    `${reference}-T${index + 1}`,
+
+                  width_cm:
+                    variant.widthCm,
+
+                  depth_cm:
+                    variant.depthCm,
+
+                  height_cm:
+                    variant.heightCm,
+
+                  price:
+                    variant.price,
+
+                  price_wholesale:
+                    variant
+                      .priceWholesale,
+
+                  wholesale_min_qty:
+                    variant
+                      .wholesaleMinQty,
+
+                  stock:
+                    variant.stock,
+
+                  is_primary:
+                    index === 0,
+
+                  is_active:
+                    variant.isActive,
+
+                  display_order:
+                    index,
+
+                  updated_at:
+                    new Date(),
+                },
+              });
+          }
+
+          return tx.products.findUnique({
+            where: {
+              id: createdProduct.id,
+            },
+
+            include:
+              this.getProductSizeVariantsInclude(
+                true,
+              ),
+          });
+        },
+      );
+
+    return this.serializeProduct(
+      product,
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    this.logger.error(
+      `Création du produit impossible : ${message}`,
+    );
+
+    if (
+      message.includes(
+        'uq_product_size_variants_reference',
+      ) ||
+      message.includes(
+        'Unique constraint',
+      )
+    ) {
+      throw new BadRequestException(
+        'Une référence de taille est déjà utilisée.',
+      );
+    }
+
+    throw error;
+  }
 }
 
-  async update(id: number, body: any) {
-const currentProduct =
-  await this.findById(id);
+async update(
+  id: number,
+  body: any,
+) {
+  const currentProduct =
+    await this.prisma.products
+      .findUnique({
+        where: {
+          id,
+        },
 
-const nextSlug =
-  body.name !== undefined ? await this.generateUniqueSlug(body.name, id) : undefined;
+        include:
+          this.getProductSizeVariantsInclude(
+            true,
+          ),
+      });
 
-    return this.prisma.products.update({
-      where: { id },
-      data: {
-        ...(body.name !== undefined && { name: body.name }),
-        ...(nextSlug !== undefined && { slug: nextSlug }),
-
-        ...(body.marque !== undefined && { marque: body.marque || null }),
-...(body.rubrique !== undefined && {
-  rubrique: this.normalizeRubrique(
-    body.rubrique,
-    true,
-  ),
-}),
-        ...((body.categorie !== undefined || body.category !== undefined) && {
-          categorie: body.categorie || body.category || null,
-        }),
-        ...(body.famille !== undefined && { famille: body.famille || null }),
-
-        ...(body.description !== undefined && {
-          description: body.description || null,
-        }),
-
-        ...(body.url_image1 !== undefined && { url_image1: body.url_image1 || null }),
-        ...(body.url_image2 !== undefined && { url_image2: body.url_image2 || null }),
-        ...(body.url_image3 !== undefined && { url_image3: body.url_image3 || null }),
-        ...(body.url_image4 !== undefined && { url_image4: body.url_image4 || null }),
-        ...(body.url_image5 !== undefined && { url_image5: body.url_image5 || null }),
-
-        ...(body.price !== undefined && { price: Number(body.price || 0) }),
-
-...(body.has_color_variants !== undefined && {
-  has_color_variants: Boolean(
-    body.has_color_variants,
-  ),
-}),
-
-...(
-  body.colors !== undefined ||
-  body.has_color_variants !== undefined
-    ? {
-        colors: this.normalizeProductColors(
-          body.has_color_variants !== undefined
-            ? Boolean(body.has_color_variants)
-            : Boolean(
-                currentProduct.has_color_variants,
-              ),
-          body.colors !== undefined
-            ? body.colors
-            : currentProduct.colors,
-        ),
-      }
-    : {}
-),
-
-...(body.width_cm !== undefined && {
-  width_cm:
-    body.width_cm !== null &&
-    body.width_cm !== ''
-      ? Number(body.width_cm)
-      : null,
-}),
-
-...(body.depth_cm !== undefined && {
-  depth_cm:
-    body.depth_cm !== null &&
-    body.depth_cm !== ''
-      ? Number(body.depth_cm)
-      : null,
-}),
-
-...(body.height_cm !== undefined && {
-  height_cm:
-    body.height_cm !== null &&
-    body.height_cm !== ''
-      ? Number(body.height_cm)
-      : null,
-}),
-
-        ...(body.stock !== undefined && { stock: Number(body.stock || 0) }),
-        ...(body.weight !== undefined && {
-          weight:
-            body.weight !== null && body.weight !== ''
-              ? Number(body.weight)
-              : null,
-        }),
-
-        ...(body.badge !== undefined && { badge: body.badge || null }),
-
-        ...(body.is_active !== undefined && {
-          is_active: Boolean(body.is_active),
-        }),
-        ...(body.is_featured !== undefined && {
-          is_featured: Boolean(body.is_featured),
-        }),
-        ...(body.is_new !== undefined && {
-          is_new: Boolean(body.is_new),
-        }),
-        ...(body.is_bestseller !== undefined && {
-          is_bestseller: Boolean(body.is_bestseller),
-        }),
-
-        ...(body.is_available_on_site !== undefined && {
-          is_available_on_site: Boolean(body.is_available_on_site),
-        }),
-
-        ...(body.rating !== undefined && { rating: Number(body.rating || 0) }),
-        ...(body.reviews_count !== undefined && {
-          reviews_count: Number(body.reviews_count || 0),
-        }),
-
-        ...(body.category_id !== undefined && {
-          category_id: body.category_id ? Number(body.category_id) : null,
-        }),
-        ...(body.subcategory_id !== undefined && {
-          subcategory_id: body.subcategory_id ? Number(body.subcategory_id) : null,
-        }),
-
-        ...(body.care_instructions !== undefined && {
-          care_instructions: body.care_instructions || null,
-        }),
-        ...(body.origin_country !== undefined && {
-          origin_country: body.origin_country || null,
-        }),
-        ...(body.collection_name !== undefined && {
-          collection_name: body.collection_name || null,
-        }),
-
-        ...(body.seo_title !== undefined && {
-          seo_title: body.seo_title || null,
-        }),
-        ...(body.seo_description !== undefined && {
-          seo_description: body.seo_description || null,
-        }),
-
-        ...(body.price_wholesale !== undefined && {
-          price_wholesale: Number(body.price_wholesale || 0),
-        }),
-        ...(body.wholesale_min_qty !== undefined && {
-          wholesale_min_qty: Number(body.wholesale_min_qty || 1),
-        }),
-
-        updated_at: new Date(),
-      },
-    });
+  if (!currentProduct) {
+    throw new NotFoundException(
+      'Product not found',
+    );
   }
+
+  const nextName =
+    body.name !== undefined
+      ? String(
+          body.name || '',
+        ).trim()
+      : currentProduct.name;
+
+  if (!nextName) {
+    throw new BadRequestException(
+      'name is required',
+    );
+  }
+
+  const nextSlug =
+    body.name !== undefined
+      ? await this.generateUniqueSlug(
+          nextName,
+          id,
+        )
+      : currentProduct.slug;
+
+  const {
+    hasSizeVariants,
+    variants,
+  } = this.normalizeSizeVariants(
+    body,
+    currentProduct,
+  );
+
+  /*
+   * Lors d'une modification provenant encore
+   * de l'ancien frontend, on conserve l'identifiant
+   * de la taille principale existante.
+   */
+  if (
+    !Array.isArray(
+      body.size_variants,
+    ) ||
+    body.size_variants.length === 0
+  ) {
+    const currentPrimary =
+      currentProduct
+        .product_size_variants
+        .find(
+          variant =>
+            variant.is_primary,
+        ) ||
+      currentProduct
+        .product_size_variants[0];
+
+    if (currentPrimary) {
+      variants[0].id =
+        currentPrimary.id;
+
+      variants[0].reference =
+        currentPrimary.reference;
+    }
+  }
+
+  const submittedExistingIds =
+    variants
+      .map(variant => variant.id)
+      .filter(
+        (variantId): variantId is bigint =>
+          variantId !== null,
+      );
+
+  if (
+    submittedExistingIds.length >
+    0
+  ) {
+    const ownedVariants =
+      await this.prisma
+        .product_size_variants
+        .findMany({
+          where: {
+            product_id: id,
+            id: {
+              in: submittedExistingIds,
+            },
+          },
+
+          select: {
+            id: true,
+          },
+        });
+
+    if (
+      ownedVariants.length !==
+      submittedExistingIds.length
+    ) {
+      throw new BadRequestException(
+        'One or more size variants do not belong to this product',
+      );
+    }
+  }
+
+  const primaryVariant =
+    variants[0];
+
+  try {
+    const product =
+      await this.prisma.$transaction(
+        async tx => {
+          /*
+           * On retire temporairement le statut principal.
+           * L'index SQL interdit plusieurs variantes
+           * principales pour le même produit.
+           */
+          await tx
+            .product_size_variants
+            .updateMany({
+              where: {
+                product_id: id,
+              },
+              data: {
+                is_primary:
+                  false,
+              },
+            });
+
+          const retainedIds:
+            bigint[] = [];
+
+          for (
+            let index = 0;
+            index <
+            variants.length;
+            index += 1
+          ) {
+            const variant =
+              variants[index];
+
+            if (variant.id) {
+              const updatedVariant =
+                await tx
+                  .product_size_variants
+                  .update({
+                    where: {
+                      id: variant.id,
+                    },
+
+                    data: {
+                      label:
+                        variant.label,
+
+                      reference:
+                        variant.reference ||
+                        `${currentProduct.reference}-T${index + 1}`,
+
+                      width_cm:
+                        variant.widthCm,
+
+                      depth_cm:
+                        variant.depthCm,
+
+                      height_cm:
+                        variant.heightCm,
+
+                      price:
+                        variant.price,
+
+                      price_wholesale:
+                        variant
+                          .priceWholesale,
+
+                      wholesale_min_qty:
+                        variant
+                          .wholesaleMinQty,
+
+                      stock:
+                        variant.stock,
+
+                      is_primary:
+                        index === 0,
+
+                      is_active:
+                        variant
+                          .isActive,
+
+                      display_order:
+                        index,
+
+                      updated_at:
+                        new Date(),
+                    },
+                  });
+
+              retainedIds.push(
+                updatedVariant.id,
+              );
+
+              continue;
+            }
+
+            const createdVariant =
+              await tx
+                .product_size_variants
+                .create({
+                  data: {
+                    product_id:
+                      id,
+
+                    label:
+                      variant.label,
+
+                    reference:
+                      variant.reference ||
+                      `${currentProduct.reference}-T${index + 1}`,
+
+                    width_cm:
+                      variant.widthCm,
+
+                    depth_cm:
+                      variant.depthCm,
+
+                    height_cm:
+                      variant.heightCm,
+
+                    price:
+                      variant.price,
+
+                    price_wholesale:
+                      variant
+                        .priceWholesale,
+
+                    wholesale_min_qty:
+                      variant
+                        .wholesaleMinQty,
+
+                    stock:
+                      variant.stock,
+
+                    is_primary:
+                      index === 0,
+
+                    is_active:
+                      variant
+                        .isActive,
+
+                    display_order:
+                      index,
+
+                    updated_at:
+                      new Date(),
+                  },
+                });
+
+            retainedIds.push(
+              createdVariant.id,
+            );
+          }
+
+          /*
+           * Les variantes supprimées de l'interface
+           * sont supprimées de la fiche produit.
+           *
+           * Les lignes historiques des commandes et
+           * ventes gardent selected_size et les
+           * dimensions copiées. Leur FK passera à NULL.
+           */
+          await tx
+            .product_size_variants
+            .deleteMany({
+              where: {
+                product_id: id,
+                id: {
+                  notIn:
+                    retainedIds,
+                },
+              },
+            });
+
+          const totalStock =
+            variants
+              .filter(
+                variant =>
+                  variant.isActive,
+              )
+              .reduce(
+                (
+                  total,
+                  variant,
+                ) =>
+                  total +
+                  variant.stock,
+                0,
+              );
+
+          await tx.products.update({
+            where: {
+              id,
+            },
+
+            data: {
+              name: nextName,
+              slug: nextSlug,
+
+              ...(body.marque !==
+                undefined && {
+                marque:
+                  body.marque ||
+                  null,
+              }),
+
+              ...(body.rubrique !==
+                undefined && {
+                rubrique:
+                  this.normalizeRubrique(
+                    body.rubrique,
+                    true,
+                  ),
+              }),
+
+              ...(
+                body.categorie !==
+                  undefined ||
+                body.category !==
+                  undefined
+                  ? {
+                      categorie:
+                        body.categorie ||
+                        body.category ||
+                        null,
+                    }
+                  : {}
+              ),
+
+              ...(body.famille !==
+                undefined && {
+                famille:
+                  body.famille ||
+                  null,
+              }),
+
+              ...(body.description !==
+                undefined && {
+                description:
+                  body.description ||
+                  null,
+              }),
+
+              ...(body.url_image1 !==
+                undefined && {
+                url_image1:
+                  body.url_image1 ||
+                  null,
+              }),
+
+              ...(body.url_image2 !==
+                undefined && {
+                url_image2:
+                  body.url_image2 ||
+                  null,
+              }),
+
+              ...(body.url_image3 !==
+                undefined && {
+                url_image3:
+                  body.url_image3 ||
+                  null,
+              }),
+
+              ...(body.url_image4 !==
+                undefined && {
+                url_image4:
+                  body.url_image4 ||
+                  null,
+              }),
+
+              ...(body.url_image5 !==
+                undefined && {
+                url_image5:
+                  body.url_image5 ||
+                  null,
+              }),
+
+              has_size_variants:
+                hasSizeVariants,
+
+              price:
+                primaryVariant.price,
+
+              price_wholesale:
+                primaryVariant
+                  .priceWholesale,
+
+              wholesale_min_qty:
+                primaryVariant
+                  .wholesaleMinQty,
+
+              width_cm:
+                primaryVariant.widthCm,
+
+              depth_cm:
+                primaryVariant.depthCm,
+
+              height_cm:
+                primaryVariant.heightCm,
+
+              stock:
+                totalStock,
+
+              ...(body
+                .has_color_variants !==
+                undefined && {
+                has_color_variants:
+                  this.parseBoolean(
+                    body
+                      .has_color_variants,
+                  ),
+              }),
+
+              ...(
+                body.colors !==
+                  undefined ||
+                body
+                  .has_color_variants !==
+                  undefined
+                  ? {
+                      colors:
+                        this.normalizeProductColors(
+                          body
+                            .has_color_variants !==
+                            undefined
+                            ? this.parseBoolean(
+                                body
+                                  .has_color_variants,
+                              )
+                            : Boolean(
+                                currentProduct
+                                  .has_color_variants,
+                              ),
+                          body.colors !==
+                            undefined
+                            ? body.colors
+                            : currentProduct.colors,
+                        ),
+                    }
+                  : {}
+              ),
+
+              ...(body.weight !==
+                undefined && {
+                weight:
+                  body.weight !==
+                    null &&
+                  body.weight !== ''
+                    ? this.parseRequiredNumber(
+                        body.weight,
+                        'weight',
+                      )
+                    : null,
+              }),
+
+              ...(body.badge !==
+                undefined && {
+                badge:
+                  body.badge ||
+                  null,
+              }),
+
+              ...(body.is_active !==
+                undefined && {
+                is_active:
+                  this.parseBoolean(
+                    body.is_active,
+                  ),
+              }),
+
+              ...(body
+                .is_available_on_site !==
+                undefined && {
+                is_available_on_site:
+                  this.parseBoolean(
+                    body
+                      .is_available_on_site,
+                  ),
+              }),
+
+              ...(body.is_featured !==
+                undefined && {
+                is_featured:
+                  this.parseBoolean(
+                    body.is_featured,
+                  ),
+              }),
+
+              ...(body.is_new !==
+                undefined && {
+                is_new:
+                  this.parseBoolean(
+                    body.is_new,
+                  ),
+              }),
+
+              ...(body.is_bestseller !==
+                undefined && {
+                is_bestseller:
+                  this.parseBoolean(
+                    body.is_bestseller,
+                  ),
+              }),
+
+              ...(body.rating !==
+                undefined && {
+                rating: Number(
+                  body.rating ||
+                    0,
+                ),
+              }),
+
+              ...(body.reviews_count !==
+                undefined && {
+                reviews_count:
+                  Number(
+                    body.reviews_count ||
+                      0,
+                  ),
+              }),
+
+              ...(body.category_id !==
+                undefined && {
+                category_id:
+                  body.category_id
+                    ? Number(
+                        body.category_id,
+                      )
+                    : null,
+              }),
+
+              ...(body.subcategory_id !==
+                undefined && {
+                subcategory_id:
+                  body.subcategory_id
+                    ? Number(
+                        body.subcategory_id,
+                      )
+                    : null,
+              }),
+
+              ...(body
+                .care_instructions !==
+                undefined && {
+                care_instructions:
+                  body
+                    .care_instructions ||
+                  null,
+              }),
+
+              ...(body.origin_country !==
+                undefined && {
+                origin_country:
+                  body.origin_country ||
+                  null,
+              }),
+
+              ...(body.collection_name !==
+                undefined && {
+                collection_name:
+                  body.collection_name ||
+                  null,
+              }),
+
+              ...(body.seo_title !==
+                undefined && {
+                seo_title:
+                  body.seo_title ||
+                  null,
+              }),
+
+              ...(body.seo_description !==
+                undefined && {
+                seo_description:
+                  body
+                    .seo_description ||
+                  null,
+              }),
+
+              updated_at:
+                new Date(),
+            },
+          });
+
+          return tx.products.findUnique({
+            where: {
+              id,
+            },
+
+            include:
+              this.getProductSizeVariantsInclude(
+                true,
+              ),
+          });
+        },
+      );
+
+    return this.serializeProduct(
+      product,
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    this.logger.error(
+      `Modification du produit ${id} impossible : ${message}`,
+    );
+
+    if (
+      message.includes(
+        'uq_product_size_variants_reference',
+      ) ||
+      message.includes(
+        'Unique constraint',
+      )
+    ) {
+      throw new BadRequestException(
+        'Une référence de taille est déjà utilisée.',
+      );
+    }
+
+    throw error;
+  }
+}
 
 async remove(id: number) {
   const product = await this.findById(id);
@@ -803,26 +2064,34 @@ async remove(id: number) {
        * Les commandes doivent conserver leur historique.
        * On détache donc le produit au lieu de supprimer les lignes.
        */
-      await tx.order_items.updateMany({
-        where: {
-          product_id: id,
-        },
-        data: {
-          product_id: null,
-        },
-      });
+await tx.order_items.updateMany({
+  where: {
+    product_id: id,
+  },
+
+  data: {
+    product_id: null,
+    product_size_variant_id:
+      null,
+  },
+});
 
       /*
        * Même logique pour les ventes effectuées en point de vente.
        */
-      await tx.point_of_sale_sale_items.updateMany({
-        where: {
-          product_id: id,
-        },
-        data: {
-          product_id: null,
-        },
-      });
+await tx
+  .point_of_sale_sale_items
+  .updateMany({
+    where: {
+      product_id: id,
+    },
+
+    data: {
+      product_id: null,
+      product_size_variant_id:
+        null,
+    },
+  });
 
       /*
        * Ces mouvements dépendent directement du produit et bloquent
@@ -855,6 +2124,14 @@ async remove(id: number) {
           product_id: id,
         },
       });
+
+await tx
+  .product_size_variants
+  .deleteMany({
+    where: {
+      product_id: id,
+    },
+  });      
 
       await tx.products.delete({
         where: {

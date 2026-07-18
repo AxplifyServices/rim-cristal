@@ -1276,25 +1276,20 @@ export class OrdersService {
                 },
               );
             } else {
-              const pointOfSaleStock =
-                await tx.point_of_sale_stocks.findUnique(
-                  {
-                    where: {
-                      point_of_sale_id_product_id:
-                        {
-                          point_of_sale_id:
-                            context.pointOfSaleId as number,
+const pointOfSaleStock =
+  await tx.point_of_sale_stocks.findFirst({
+    where: {
+      point_of_sale_id:
+        context.pointOfSaleId as number,
 
-                          product_id:
-                            item.product_id,
-                        },
-                    },
+      product_id:
+        item.product_id,
+    },
 
-                    select: {
-                      quantity: true,
-                    },
-                  },
-                );
+    select: {
+      quantity: true,
+    },
+  });
 
               const stockAfter =
                 Number(
@@ -1677,42 +1672,51 @@ export class OrdersService {
                 'point_of_sale' &&
               currentOrder.point_of_sale_id
             ) {
-              const stock =
-                await tx.point_of_sale_stocks.upsert(
-                  {
-                    where: {
-                      point_of_sale_id_product_id:
-                        {
-                          point_of_sale_id:
-                            currentOrder.point_of_sale_id,
+if (
+  !item.product_size_variant_id
+) {
+  throw new BadRequestException(
+    `Cannot restore stock for order item ${item.id}: missing product size variant`,
+  );
+}
 
-                          product_id:
-                            item.product_id,
-                        },
-                    },
+const stock =
+  await tx.point_of_sale_stocks.upsert({
+    where: {
+      point_of_sale_id_product_size_variant_id:
+        {
+          point_of_sale_id:
+            currentOrder.point_of_sale_id,
 
-                    create: {
-                      point_of_sale_id:
-                        currentOrder.point_of_sale_id,
+          product_size_variant_id:
+            item.product_size_variant_id,
+        },
+    },
 
-                      product_id:
-                        item.product_id,
+    create: {
+      point_of_sale_id:
+        currentOrder.point_of_sale_id,
 
-                      quantity:
-                        item.quantity,
-                    },
+      product_id:
+        item.product_id,
 
-                    update: {
-                      quantity: {
-                        increment:
-                          item.quantity,
-                      },
+      product_size_variant_id:
+        item.product_size_variant_id,
 
-                      updated_at:
-                        new Date(),
-                    },
-                  },
-                );
+      quantity:
+        item.quantity,
+    },
+
+    update: {
+      quantity: {
+        increment:
+          item.quantity,
+      },
+
+      updated_at:
+        new Date(),
+    },
+  });
 
               await tx.stock_movements.create(
                 {

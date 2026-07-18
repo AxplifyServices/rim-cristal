@@ -10,6 +10,79 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
+private parseProductSizeVariantId(
+  value: unknown,
+): bigint | null {
+  if (
+    value === undefined ||
+    value === null ||
+    String(value).trim() === ''
+  ) {
+    return null;
+  }
+
+  try {
+    const id = BigInt(
+      String(value),
+    );
+
+    if (id <= BigInt(0)) {
+      throw new Error();
+    }
+
+    return id;
+  } catch {
+    throw new BadRequestException(
+      'Invalid product_size_variant_id',
+    );
+  }
+}
+
+private async resolveProductSizeVariant(
+  tx: any,
+  productId: number,
+  rawVariantId: unknown,
+) {
+  const variantId =
+    this.parseProductSizeVariantId(
+      rawVariantId,
+    );
+
+  const variant =
+    variantId !== null
+      ? await tx
+          .product_size_variants
+          .findFirst({
+            where: {
+              id: variantId,
+              product_id:
+                productId,
+              is_active:
+                true,
+            },
+          })
+      : await tx
+          .product_size_variants
+          .findFirst({
+            where: {
+              product_id:
+                productId,
+              is_primary:
+                true,
+              is_active:
+                true,
+            },
+          });
+
+  if (!variant) {
+    throw new NotFoundException(
+      `No active size variant found for product ${productId}`,
+    );
+  }
+
+  return variant;
+}
+
   private getDateFilter(query: any) {
   const startDate = query.start_date
     ? new Date(`${query.start_date}T00:00:00.000Z`)
@@ -733,378 +806,954 @@ async dashboardStock(user?: any, query: any = {}) {
     });
   }
 
-  async transferGlobalStockToPointOfSale(body: any) {
-    const productId = Number(body.product_id);
-    const pointOfSaleId = Number(body.point_of_sale_id);
-    const quantity = Number(body.quantity);
+async transferGlobalStockToPointOfSale(
+  body: any,
+) {
+  const productId =
+    Number(
+      body.product_id,
+    );
 
-    if (!productId || !pointOfSaleId || !quantity || quantity <= 0) {
-      throw new BadRequestException(
-        'product_id, point_of_sale_id and positive quantity are required',
-      );
-    }
+  const pointOfSaleId =
+    Number(
+      body.point_of_sale_id,
+    );
 
-    return this.prisma.$transaction(async (tx) => {
-      const product = await tx.products.findUnique({
-        where: { id: productId },
-      });
+  const quantity =
+    Number(
+      body.quantity,
+    );
+
+  if (
+    !productId ||
+    !pointOfSaleId ||
+    !Number.isInteger(
+      quantity,
+    ) ||
+    quantity <= 0
+  ) {
+    throw new BadRequestException(
+      'product_id, point_of_sale_id and positive integer quantity are required',
+    );
+  }
+
+  return this.prisma.$transaction(
+    async tx => {
+      const product =
+        await tx.products
+          .findUnique({
+            where: {
+              id: productId,
+            },
+          });
 
       if (!product) {
-        throw new NotFoundException('Product not found');
-      }
-
-      const pointOfSale = await tx.point_of_sales.findUnique({
-        where: { id: pointOfSaleId },
-      });
-
-      if (!pointOfSale) {
-        throw new NotFoundException('Point of sale not found');
-      }
-
-      const stockBefore = Number(product.stock || 0);
-
-      if (stockBefore < quantity) {
-        throw new BadRequestException(
-          `Insufficient global stock. Available: ${stockBefore}`,
+        throw new NotFoundException(
+          'Product not found',
         );
       }
 
-      const existingPosStock = await tx.point_of_sale_stocks.findUnique({
-        where: {
-          point_of_sale_id_product_id: {
-            point_of_sale_id: pointOfSaleId,
-            product_id: productId,
+      const variant =
+        await this
+          .resolveProductSizeVariant(
+            tx,
+            productId,
+            body.product_size_variant_id,
+          );
+
+      const pointOfSale =
+        await tx
+          .point_of_sales
+          .findUnique({
+            where: {
+              id:
+                pointOfSaleId,
+            },
+          });
+
+      if (!pointOfSale) {
+        throw new NotFoundException(
+          'Point of sale not found',
+        );
+      }
+
+      const variantStockBefore =
+        Number(
+          variant.stock || 0,
+        );
+
+      if (
+        variantStockBefore <
+        quantity
+      ) {
+        throw new BadRequestException(
+          `Insufficient global stock for ${variant.label || 'Taille standard'}. Available: ${variantStockBefore}`,
+        );
+      }
+
+      const existingPosStock =
+        await tx
+          .point_of_sale_stocks
+          .findUnique({
+            where: {
+              point_of_sale_id_product_size_variant_id:
+                {
+                  point_of_sale_id:
+                    pointOfSaleId,
+
+                  product_size_variant_id:
+                    variant.id,
+                },
+            },
+          });
+
+      const posBefore =
+        Number(
+          existingPosStock?.quantity ||
+            0,
+        );
+
+      const variantStockAfter =
+        variantStockBefore -
+        quantity;
+
+      const posAfter =
+        posBefore +
+        quantity;
+
+      await tx
+        .product_size_variants
+        .update({
+          where: {
+            id: variant.id,
           },
-        },
-      });
 
-      const posBefore = Number(existingPosStock?.quantity || 0);
-      const globalAfter = stockBefore - quantity;
-      const posAfter = posBefore + quantity;
+          data: {
+            stock:
+              variantStockAfter,
 
-      const updatedProduct = await tx.products.update({
-        where: { id: productId },
-        data: {
-          stock: globalAfter,
-          updated_at: new Date(),
-        },
-      });
-
-      const updatedPosStock = await tx.point_of_sale_stocks.upsert({
-        where: {
-          point_of_sale_id_product_id: {
-            point_of_sale_id: pointOfSaleId,
-            product_id: productId,
+            updated_at:
+              new Date(),
           },
-        },
-        create: {
-          point_of_sale_id: pointOfSaleId,
-          product_id: productId,
-          quantity: posAfter,
-        },
-        update: {
-          quantity: posAfter,
-          updated_at: new Date(),
-        },
-      });
+        });
 
-      await tx.stock_movements.create({
-        data: {
-          product_id: productId,
-          point_of_sale_id: pointOfSaleId,
-          movement_type: 'global_to_pos',
-          quantity,
-          stock_global_before: stockBefore,
-          stock_global_after: globalAfter,
-          stock_pos_before: posBefore,
-          stock_pos_after: posAfter,
-          note: body.note || null,
-        },
-      });
+      const updatedPosStock =
+        await tx
+          .point_of_sale_stocks
+          .upsert({
+            where: {
+              point_of_sale_id_product_size_variant_id:
+                {
+                  point_of_sale_id:
+                    pointOfSaleId,
+
+                  product_size_variant_id:
+                    variant.id,
+                },
+            },
+
+            create: {
+              point_of_sale_id:
+                pointOfSaleId,
+
+              product_id:
+                productId,
+
+              product_size_variant_id:
+                variant.id,
+
+              quantity:
+                posAfter,
+            },
+
+            update: {
+              quantity:
+                posAfter,
+
+              updated_at:
+                new Date(),
+            },
+          });
+
+      /*
+       * Le trigger SQL recalcule products.stock
+       * après la modification de la variante.
+       */
+      const updatedProduct =
+        await tx.products
+          .findUnique({
+            where: {
+              id:
+                productId,
+            },
+          });
+
+      await tx
+        .stock_movements
+        .create({
+          data: {
+            product_id:
+              productId,
+
+            product_size_variant_id:
+              variant.id,
+
+            point_of_sale_id:
+              pointOfSaleId,
+
+            movement_type:
+              'global_to_pos',
+
+            quantity,
+
+            stock_global_before:
+              variantStockBefore,
+
+            stock_global_after:
+              variantStockAfter,
+
+            stock_pos_before:
+              posBefore,
+
+            stock_pos_after:
+              posAfter,
+
+            note:
+              body.note ||
+              null,
+          },
+        });
 
       return {
-        product: updatedProduct,
-        point_of_sale_stock: updatedPosStock,
+        product:
+          updatedProduct,
+
+        size_variant: {
+          ...variant,
+          id:
+            variant.id.toString(),
+          stock:
+            variantStockAfter,
+        },
+
+        point_of_sale_stock:
+          {
+            ...updatedPosStock,
+            product_size_variant_id:
+              updatedPosStock.product_size_variant_id.toString(),
+          },
       };
-    });
+    },
+  );
+}
+
+async adjustGlobalStock(
+  body: any,
+) {
+  const productId =
+    Number(
+      body.product_id,
+    );
+
+  const quantity =
+    Number(
+      body.quantity,
+    );
+
+  const mode =
+    body.mode ||
+    'add';
+
+  if (
+    !productId ||
+    !Number.isInteger(
+      quantity,
+    )
+  ) {
+    throw new BadRequestException(
+      'product_id and integer quantity are required',
+    );
   }
 
-  async adjustGlobalStock(body: any) {
-    const productId = Number(body.product_id);
-    const quantity = Number(body.quantity);
-    const mode = body.mode || 'add';
+  if (
+    ![
+      'add',
+      'remove',
+      'set',
+    ].includes(mode)
+  ) {
+    throw new BadRequestException(
+      'mode must be add, remove or set',
+    );
+  }
 
-    if (!productId || Number.isNaN(quantity)) {
-      throw new BadRequestException('product_id and quantity are required');
-    }
-
-    if (!['add', 'remove', 'set'].includes(mode)) {
-      throw new BadRequestException('mode must be add, remove or set');
-    }
-
-    return this.prisma.$transaction(async (tx) => {
-      const product = await tx.products.findUnique({
-        where: { id: productId },
-      });
+  return this.prisma.$transaction(
+    async tx => {
+      const product =
+        await tx.products
+          .findUnique({
+            where: {
+              id: productId,
+            },
+          });
 
       if (!product) {
-        throw new NotFoundException('Product not found');
+        throw new NotFoundException(
+          'Product not found',
+        );
       }
 
-      const before = Number(product.stock || 0);
+      const variant =
+        await this
+          .resolveProductSizeVariant(
+            tx,
+            productId,
+            body.product_size_variant_id,
+          );
 
-      let after = before;
+      const before =
+        Number(
+          variant.stock || 0,
+        );
 
-      if (mode === 'add') after = before + quantity;
-      if (mode === 'remove') after = before - quantity;
-      if (mode === 'set') after = quantity;
+      let after =
+        before;
+
+      if (mode === 'add') {
+        after =
+          before +
+          quantity;
+      }
+
+      if (mode === 'remove') {
+        after =
+          before -
+          quantity;
+      }
+
+      if (mode === 'set') {
+        after =
+          quantity;
+      }
 
       if (after < 0) {
-        throw new BadRequestException('Stock cannot be negative');
+        throw new BadRequestException(
+          'Stock cannot be negative',
+        );
       }
 
-      const updatedProduct = await tx.products.update({
-        where: { id: productId },
-        data: {
-          stock: after,
-          updated_at: new Date(),
-        },
-      });
+      const updatedVariant =
+        await tx
+          .product_size_variants
+          .update({
+            where: {
+              id: variant.id,
+            },
 
-      await tx.stock_movements.create({
-        data: {
-          product_id: productId,
-          movement_type: 'global_adjustment',
-          quantity: after - before,
-          stock_global_before: before,
-          stock_global_after: after,
-          note: body.note || null,
-        },
-      });
+            data: {
+              stock: after,
+              updated_at:
+                new Date(),
+            },
+          });
 
-      return updatedProduct;
-    });
+      await tx
+        .stock_movements
+        .create({
+          data: {
+            product_id:
+              productId,
+
+            product_size_variant_id:
+              variant.id,
+
+            movement_type:
+              'global_adjustment',
+
+            quantity:
+              after -
+              before,
+
+            stock_global_before:
+              before,
+
+            stock_global_after:
+              after,
+
+            note:
+              body.note ||
+              null,
+          },
+        });
+
+      return {
+        ...updatedVariant,
+        id:
+          updatedVariant.id.toString(),
+      };
+    },
+  );
+}
+
+async adjustPointOfSaleStock(
+  body: any,
+) {
+  const productId =
+    Number(
+      body.product_id,
+    );
+
+  const pointOfSaleId =
+    Number(
+      body.point_of_sale_id,
+    );
+
+  const quantity =
+    Number(
+      body.quantity,
+    );
+
+  const mode =
+    body.mode ||
+    'set';
+
+  if (
+    !productId ||
+    !pointOfSaleId ||
+    !Number.isInteger(
+      quantity,
+    )
+  ) {
+    throw new BadRequestException(
+      'product_id, point_of_sale_id and integer quantity are required',
+    );
   }
 
-  async adjustPointOfSaleStock(body: any) {
-    const productId = Number(body.product_id);
-    const pointOfSaleId = Number(body.point_of_sale_id);
-    const quantity = Number(body.quantity);
-    const mode = body.mode || 'set';
+  if (
+    ![
+      'add',
+      'remove',
+      'set',
+    ].includes(mode)
+  ) {
+    throw new BadRequestException(
+      'mode must be add, remove or set',
+    );
+  }
 
-    if (!productId || !pointOfSaleId || Number.isNaN(quantity)) {
-      throw new BadRequestException(
-        'product_id, point_of_sale_id and quantity are required',
-      );
-    }
-
-    if (!['add', 'remove', 'set'].includes(mode)) {
-      throw new BadRequestException('mode must be add, remove or set');
-    }
-
-    return this.prisma.$transaction(async (tx) => {
-      const product = await tx.products.findUnique({
-        where: { id: productId },
-      });
+  return this.prisma.$transaction(
+    async tx => {
+      const product =
+        await tx.products
+          .findUnique({
+            where: {
+              id: productId,
+            },
+          });
 
       if (!product) {
-        throw new NotFoundException('Product not found');
+        throw new NotFoundException(
+          'Product not found',
+        );
       }
 
-      const pointOfSale = await tx.point_of_sales.findUnique({
-        where: { id: pointOfSaleId },
-      });
+      const variant =
+        await this
+          .resolveProductSizeVariant(
+            tx,
+            productId,
+            body.product_size_variant_id,
+          );
+
+      const pointOfSale =
+        await tx
+          .point_of_sales
+          .findUnique({
+            where: {
+              id:
+                pointOfSaleId,
+            },
+          });
 
       if (!pointOfSale) {
-        throw new NotFoundException('Point of sale not found');
+        throw new NotFoundException(
+          'Point of sale not found',
+        );
       }
 
-      const existing = await tx.point_of_sale_stocks.findUnique({
-        where: {
-          point_of_sale_id_product_id: {
-            point_of_sale_id: pointOfSaleId,
-            product_id: productId,
-          },
-        },
-      });
+      const existing =
+        await tx
+          .point_of_sale_stocks
+          .findUnique({
+            where: {
+              point_of_sale_id_product_size_variant_id:
+                {
+                  point_of_sale_id:
+                    pointOfSaleId,
 
-      const before = Number(existing?.quantity || 0);
+                  product_size_variant_id:
+                    variant.id,
+                },
+            },
+          });
 
-      let after = before;
+      const before =
+        Number(
+          existing?.quantity ||
+            0,
+        );
 
-      if (mode === 'add') after = before + quantity;
-      if (mode === 'remove') after = before - quantity;
-      if (mode === 'set') after = quantity;
+      let after =
+        before;
+
+      if (mode === 'add') {
+        after =
+          before +
+          quantity;
+      }
+
+      if (mode === 'remove') {
+        after =
+          before -
+          quantity;
+      }
+
+      if (mode === 'set') {
+        after =
+          quantity;
+      }
 
       if (after < 0) {
-        throw new BadRequestException('Point of sale stock cannot be negative');
+        throw new BadRequestException(
+          'Point of sale stock cannot be negative',
+        );
       }
 
-      const updated = await tx.point_of_sale_stocks.upsert({
-        where: {
-          point_of_sale_id_product_id: {
-            point_of_sale_id: pointOfSaleId,
-            product_id: productId,
+      const updated =
+        await tx
+          .point_of_sale_stocks
+          .upsert({
+            where: {
+              point_of_sale_id_product_size_variant_id:
+                {
+                  point_of_sale_id:
+                    pointOfSaleId,
+
+                  product_size_variant_id:
+                    variant.id,
+                },
+            },
+
+            create: {
+              point_of_sale_id:
+                pointOfSaleId,
+
+              product_id:
+                productId,
+
+              product_size_variant_id:
+                variant.id,
+
+              quantity:
+                after,
+            },
+
+            update: {
+              quantity:
+                after,
+
+              updated_at:
+                new Date(),
+            },
+          });
+
+      await tx
+        .stock_movements
+        .create({
+          data: {
+            product_id:
+              productId,
+
+            product_size_variant_id:
+              variant.id,
+
+            point_of_sale_id:
+              pointOfSaleId,
+
+            movement_type:
+              'pos_adjustment',
+
+            quantity:
+              after -
+              before,
+
+            stock_pos_before:
+              before,
+
+            stock_pos_after:
+              after,
+
+            note:
+              body.note ||
+              null,
           },
-        },
-        create: {
-          point_of_sale_id: pointOfSaleId,
-          product_id: productId,
-          quantity: after,
-        },
-        update: {
-          quantity: after,
-          updated_at: new Date(),
-        },
-      });
+        });
 
-      await tx.stock_movements.create({
-        data: {
-          product_id: productId,
-          point_of_sale_id: pointOfSaleId,
-          movement_type: 'pos_adjustment',
-          quantity: after - before,
-          stock_pos_before: before,
-          stock_pos_after: after,
-          note: body.note || null,
-        },
-      });
+      return {
+        ...updated,
+        product_size_variant_id:
+          updated.product_size_variant_id.toString(),
+      };
+    },
+  );
+}
 
-      return updated;
-    });
+async createPointOfSaleSale(
+  pointOfSaleId: number,
+  body: any,
+) {
+  const items = body.items || [];
+
+  if (
+    !Array.isArray(items) ||
+    items.length === 0
+  ) {
+    throw new BadRequestException(
+      'Sale must contain at least one item',
+    );
   }
 
-  async createPointOfSaleSale(pointOfSaleId: number, body: any) {
-    const items = body.items || [];
-
-    if (!Array.isArray(items) || items.length === 0) {
-      throw new BadRequestException('Sale must contain at least one item');
-    }
-
-    return this.prisma.$transaction(async (tx) => {
-      const pointOfSale = await tx.point_of_sales.findUnique({
-        where: { id: pointOfSaleId },
-      });
+  return this.prisma.$transaction(
+    async tx => {
+      const pointOfSale =
+        await tx.point_of_sales.findUnique({
+          where: {
+            id: pointOfSaleId,
+          },
+        });
 
       if (!pointOfSale) {
-        throw new NotFoundException('Point of sale not found');
+        throw new NotFoundException(
+          'Point of sale not found',
+        );
       }
 
       const normalizedItems: any[] = [];
 
       for (const item of items) {
-        const productId = Number(item.product_id);
-        const quantity = Number(item.quantity || 1);
+        const productId = Number(
+          item.product_id,
+        );
 
-        if (!productId || quantity <= 0) {
+        const quantity = Number(
+          item.quantity || 1,
+        );
+
+        if (
+          !productId ||
+          !Number.isInteger(quantity) ||
+          quantity <= 0
+        ) {
           throw new BadRequestException(
-            'Each item must contain product_id and positive quantity',
+            'Each item must contain product_id and a positive integer quantity',
           );
         }
 
-        const product = await tx.products.findUnique({
-          where: { id: productId },
-        });
+        const product =
+          await tx.products.findUnique({
+            where: {
+              id: productId,
+            },
+          });
 
         if (!product) {
-          throw new NotFoundException(`Product ${productId} not found`);
+          throw new NotFoundException(
+            `Product ${productId} not found`,
+          );
         }
 
-        const posStock = await tx.point_of_sale_stocks.findUnique({
-          where: {
-            point_of_sale_id_product_id: {
-              point_of_sale_id: pointOfSaleId,
-              product_id: productId,
-            },
-          },
-        });
+        /*
+         * resolveProductSizeVariant() utilise :
+         * - la variante envoyée par le frontend ;
+         * - sinon la variante principale.
+         */
+        const variant =
+          await this.resolveProductSizeVariant(
+            tx,
+            productId,
+            item.product_size_variant_id,
+          );
 
-        const stockBefore = Number(posStock?.quantity || 0);
+        const posStock =
+          await tx.point_of_sale_stocks.findUnique({
+            where: {
+              point_of_sale_id_product_size_variant_id:
+                {
+                  point_of_sale_id:
+                    pointOfSaleId,
+
+                  product_size_variant_id:
+                    variant.id,
+                },
+            },
+          });
+
+        const stockBefore = Number(
+          posStock?.quantity || 0,
+        );
 
         if (stockBefore < quantity) {
           throw new BadRequestException(
-            `Insufficient stock for ${product.name}. Available: ${stockBefore}`,
+            `Insufficient stock for ${product.name} - ${
+              variant.label || 'Taille standard'
+            }. Available: ${stockBefore}`,
           );
         }
 
-        const unitPrice = Number(item.unit_price || product.price || 0);
+        /*
+         * Sécurité :
+         * le prix fourni par le frontend est ignoré.
+         * Le prix est toujours lu depuis la variante.
+         */
+        const retailPrice = Number(
+          variant.price || 0,
+        );
+
+        const wholesalePrice = Number(
+          variant.price_wholesale || 0,
+        );
+
+        const wholesaleMinQty = Number(
+          variant.wholesale_min_qty || 1,
+        );
+
+        const unitPrice =
+          wholesalePrice > 0 &&
+          quantity >= wholesaleMinQty
+            ? wholesalePrice
+            : retailPrice;
 
         normalizedItems.push({
           product,
+          variant,
           quantity,
           unitPrice,
           stockBefore,
-          stockAfter: stockBefore - quantity,
+          stockAfter:
+            stockBefore - quantity,
         });
       }
 
-      const subtotal = normalizedItems.reduce(
-        (sum, item) => sum + item.unitPrice * item.quantity,
-        0,
+      const subtotal =
+        normalizedItems.reduce(
+          (sum, item) =>
+            sum +
+            item.unitPrice *
+              item.quantity,
+          0,
+        );
+
+      const discountAmount = Number(
+        body.discount_amount || 0,
       );
 
-      const discountAmount = Number(body.discount_amount || 0);
-      const total = subtotal - discountAmount;
-      const saleNumber = `POS-${Date.now()}`;
+      if (
+        !Number.isFinite(
+          discountAmount,
+        ) ||
+        discountAmount < 0
+      ) {
+        throw new BadRequestException(
+          'Invalid discount amount',
+        );
+      }
 
-      const sale = await tx.point_of_sale_sales.create({
-        data: {
-          point_of_sale_id: pointOfSaleId,
-          sale_number: saleNumber,
-          subtotal,
-          discount_amount: discountAmount,
-          total,
-          customer_name: body.customer_name || null,
-          customer_phone: body.customer_phone || null,
-          note: body.note || null,
-          point_of_sale_sale_items: {
-            create: normalizedItems.map((item) => ({
-              product_id: item.product.id,
-              product_name: item.product.name,
-              product_reference: item.product.reference,
-              unit_price: item.unitPrice,
-              quantity: item.quantity,
-              line_total: item.unitPrice * item.quantity,
-            })),
-          },
-        },
-        include: {
-          point_of_sale_sale_items: true,
-          point_of_sales: true,
-        },
-      });
+      const total =
+        subtotal - discountAmount;
 
-      for (const item of normalizedItems) {
-        await tx.point_of_sale_stocks.update({
-          where: {
-            point_of_sale_id_product_id: {
-              point_of_sale_id: pointOfSaleId,
-              product_id: item.product.id,
+      if (total < 0) {
+        throw new BadRequestException(
+          'Discount cannot exceed subtotal',
+        );
+      }
+
+      const saleNumber =
+        `POS-${Date.now()}`;
+
+      const sale =
+        await tx.point_of_sale_sales.create({
+          data: {
+            point_of_sale_id:
+              pointOfSaleId,
+
+            sale_number:
+              saleNumber,
+
+            subtotal,
+
+            discount_amount:
+              discountAmount,
+
+            total,
+
+            customer_name:
+              body.customer_name ||
+              null,
+
+            customer_phone:
+              body.customer_phone ||
+              null,
+
+            note:
+              body.note ||
+              null,
+
+            point_of_sale_sale_items: {
+              create:
+                normalizedItems.map(
+                  item => ({
+                    product_id:
+                      item.product.id,
+
+                    product_size_variant_id:
+                      item.variant.id,
+
+                    product_name:
+                      item.product.name,
+
+                    product_reference:
+                      item.product.reference,
+
+                    selected_size:
+                      item.variant.label ||
+                      'Taille standard',
+
+                    selected_width_cm:
+                      item.variant.width_cm,
+
+                    selected_depth_cm:
+                      item.variant.depth_cm,
+
+                    selected_height_cm:
+                      item.variant.height_cm,
+
+                    unit_price:
+                      item.unitPrice,
+
+                    quantity:
+                      item.quantity,
+
+                    line_total:
+                      item.unitPrice *
+                      item.quantity,
+                  }),
+                ),
             },
           },
-          data: {
-            quantity: item.stockAfter,
-            updated_at: new Date(),
+
+          include: {
+            point_of_sale_sale_items:
+              true,
+
+            point_of_sales:
+              true,
           },
         });
+
+      for (
+        const item of normalizedItems
+      ) {
+        /*
+         * updateMany avec quantity >= quantité demandée
+         * évite un stock négatif en cas de ventes concurrentes.
+         */
+        const updatedStock =
+          await tx.point_of_sale_stocks.updateMany({
+            where: {
+              point_of_sale_id:
+                pointOfSaleId,
+
+              product_size_variant_id:
+                item.variant.id,
+
+              quantity: {
+                gte: item.quantity,
+              },
+            },
+
+            data: {
+              quantity: {
+                decrement:
+                  item.quantity,
+              },
+
+              updated_at:
+                new Date(),
+            },
+          });
+
+        if (
+          updatedStock.count !== 1
+        ) {
+          throw new BadRequestException(
+            `Insufficient stock for ${item.product.name} - ${
+              item.variant.label ||
+              'Taille standard'
+            }`,
+          );
+        }
 
         await tx.stock_movements.create({
           data: {
-            product_id: item.product.id,
-            point_of_sale_id: pointOfSaleId,
-            movement_type: 'pos_sale',
-            quantity: -item.quantity,
-            stock_pos_before: item.stockBefore,
-            stock_pos_after: item.stockAfter,
-            sale_id: sale.id,
-            note: body.note || null,
+            product_id:
+              item.product.id,
+
+            product_size_variant_id:
+              item.variant.id,
+
+            point_of_sale_id:
+              pointOfSaleId,
+
+            movement_type:
+              'pos_sale',
+
+            quantity:
+              -item.quantity,
+
+            stock_pos_before:
+              item.stockBefore,
+
+            stock_pos_after:
+              item.stockAfter,
+
+            sale_id:
+              sale.id,
+
+            note:
+              body.note ||
+              null,
           },
         });
       }
 
-      return sale;
-    });
-  }
+      return {
+        ...sale,
+
+        point_of_sale_sale_items:
+          sale.point_of_sale_sale_items.map(
+            item => ({
+              ...item,
+
+              product_size_variant_id:
+                item.product_size_variant_id
+                  ? item.product_size_variant_id.toString()
+                  : null,
+            }),
+          ),
+      };
+    },
+  );
+}
 
   async listPointOfSaleSales(query: any, user?: any) {
     let pointOfSaleId = query.point_of_sale_id
