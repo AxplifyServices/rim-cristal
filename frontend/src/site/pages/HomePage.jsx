@@ -5,6 +5,7 @@ import {
   useEffect,
   useState,
 } from 'react'
+
 import HomeBrochureCarousel from '../components/HomeBrochureCarousel'
 import ProductCard from '../components/ProductCard'
 import SiteLayout from '../components/SiteLayout'
@@ -14,6 +15,29 @@ import {
 } from '../lib/products'
 
 const BESTSELLERS_LIMIT = 8
+const SKELETON_COUNT = 6
+
+function ProductCardSkeleton() {
+  return (
+    <article
+      className="product-card product-card-skeleton"
+      aria-hidden="true"
+    >
+      <div className="product-card-skeleton-image" />
+
+      <div className="product-card-skeleton-body">
+        <div className="product-card-skeleton-line is-meta" />
+        <div className="product-card-skeleton-line is-title" />
+        <div className="product-card-skeleton-line is-title-short" />
+
+        <div className="product-card-skeleton-footer">
+          <div className="product-card-skeleton-line is-price" />
+          <div className="product-card-skeleton-action" />
+        </div>
+      </div>
+    </article>
+  )
+}
 
 export default function HomePage() {
   const { t } = useSiteI18n()
@@ -37,8 +61,10 @@ export default function HomePage() {
       const response =
         await getProductsPage({
           page: 1,
+
           pageSize:
             BESTSELLERS_LIMIT,
+
           bestseller: true,
         })
 
@@ -46,9 +72,14 @@ export default function HomePage() {
         response.items
       )
     } catch (loadError) {
-      console.error(loadError)
+      console.error(
+        loadError
+      )
+
       setError(
-        t('common.error')
+        t(
+          'common.error'
+        )
       )
     } finally {
       setLoading(false)
@@ -63,10 +94,16 @@ export default function HomePage() {
     <SiteLayout>
       <HomeBrochureCarousel />
 
-      <section className="section section-light">
+      <section className="section section-light home-products-section">
         <div className="container">
-          <div className="section-heading">
+          <div className="section-heading home-products-heading">
             <div>
+              <span className="home-section-kicker">
+                {t(
+                  'home.featuredKicker'
+                )}
+              </span>
+
               <h2>
                 {t(
                   'home.featuredTitle'
@@ -91,9 +128,18 @@ export default function HomePage() {
           </div>
 
           {loading && (
-            <div className="empty-block">
-              {t(
-                'common.loading'
+            <div className="product-grid home-product-grid">
+              {Array.from({
+                length:
+                  SKELETON_COUNT,
+              }).map(
+                (_, index) => (
+                  <ProductCardSkeleton
+                    key={
+                      index
+                    }
+                  />
+                )
               )}
             </div>
           )}
@@ -130,7 +176,7 @@ export default function HomePage() {
             !error &&
             bestsellers.length >
               0 && (
-              <div className="product-grid">
+              <div className="product-grid home-product-grid">
                 {bestsellers.map(
                   product => (
                     <ProductCard
@@ -147,8 +193,6 @@ export default function HomePage() {
             )}
         </div>
       </section>
-
-
     </SiteLayout>
   )
 }

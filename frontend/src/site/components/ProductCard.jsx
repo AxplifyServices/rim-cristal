@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react'
 import Link from 'next/link'
@@ -15,6 +16,8 @@ import { useSiteI18n } from '../i18n/SiteI18nProvider'
 import { formatPrice } from '../lib/products'
 
 const STOCK_COUNTER_THRESHOLD = 10
+const SWIPE_THRESHOLD = 42
+const ADDED_FEEDBACK_DURATION = 1100
 
 function ArrowLeftIcon() {
   return (
@@ -27,7 +30,7 @@ function ArrowLeftIcon() {
         d="M15 18 9 12l6-6"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -46,7 +49,7 @@ function ArrowRightIcon() {
         d="m9 18 6-6-6-6"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -71,7 +74,54 @@ function HeartIcon({
             : 'none'
         }
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function ShoppingBagIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M5.4 8.5h13.2l.9 11.5h-15l.9-11.5Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <path
+        d="M9 9V6.7a3 3 0 0 1 6 0V9"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="m5 12.5 4.2 4.2L19 7"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -96,14 +146,35 @@ export default function ProductCard({
   const [imageIndex, setImageIndex] =
     useState(0)
 
-  const productImages =
-    Array.isArray(product.images) &&
-    product.images.length > 0
-      ? product.images.filter(Boolean)
-      : [
-          product.image ||
-            '/images/product-placeholder.svg',
-        ]
+  const [
+    recentlyAdded,
+    setRecentlyAdded,
+  ] = useState(false)
+
+  const touchStartXRef =
+    useRef(null)
+
+  const swipeDetectedRef =
+    useRef(false)
+
+  const addedTimerRef =
+    useRef(null)
+
+  const productImages = [
+    ...new Set(
+      (
+        Array.isArray(
+          product.images
+        ) &&
+        product.images.length > 0
+          ? product.images
+          : [
+              product.image ||
+                '/images/product-placeholder.svg',
+            ]
+      ).filter(Boolean)
+    ),
+  ]
 
   const currentImage =
     productImages[imageIndex] ||
@@ -144,13 +215,25 @@ export default function ProductCard({
 
   useEffect(() => {
     setImageIndex(0)
+    setRecentlyAdded(false)
   }, [product.id])
 
-  function showPreviousImage(
-    event
-  ) {
-    event.preventDefault()
-    event.stopPropagation()
+  useEffect(() => {
+    return () => {
+      if (
+        addedTimerRef.current
+      ) {
+        window.clearTimeout(
+          addedTimerRef.current
+        )
+      }
+    }
+  }, [])
+
+  function showPreviousImage() {
+    if (!hasMultipleImages) {
+      return
+    }
 
     setImageIndex(current =>
       current === 0
@@ -159,11 +242,10 @@ export default function ProductCard({
     )
   }
 
-  function showNextImage(
-    event
-  ) {
-    event.preventDefault()
-    event.stopPropagation()
+  function showNextImage() {
+    if (!hasMultipleImages) {
+      return
+    }
 
     setImageIndex(current =>
       current ===
@@ -173,6 +255,100 @@ export default function ProductCard({
     )
   }
 
+  function handlePreviousImage(
+    event
+  ) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    showPreviousImage()
+  }
+
+  function handleNextImage(
+    event
+  ) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    showNextImage()
+  }
+
+  function handleTouchStart(
+    event
+  ) {
+    if (!hasMultipleImages) {
+      return
+    }
+
+    touchStartXRef.current =
+      event.touches[0]?.clientX ??
+      null
+
+    swipeDetectedRef.current =
+      false
+  }
+
+  function handleTouchEnd(
+    event
+  ) {
+    if (
+      !hasMultipleImages ||
+      touchStartXRef.current ===
+        null
+    ) {
+      return
+    }
+
+    const touchEndX =
+      event.changedTouches[0]
+        ?.clientX
+
+    if (
+      typeof touchEndX !==
+      'number'
+    ) {
+      touchStartXRef.current =
+        null
+
+      return
+    }
+
+    const movement =
+      touchEndX -
+      touchStartXRef.current
+
+    touchStartXRef.current =
+      null
+
+    if (
+      Math.abs(movement) <
+      SWIPE_THRESHOLD
+    ) {
+      return
+    }
+
+    swipeDetectedRef.current =
+      true
+
+    if (movement > 0) {
+      showPreviousImage()
+    } else {
+      showNextImage()
+    }
+  }
+
+  function handleImageLinkClick(
+    event
+  ) {
+    if (
+      swipeDetectedRef.current
+    ) {
+      event.preventDefault()
+      swipeDetectedRef.current =
+        false
+    }
+  }
+
   function handleFavorite(
     event
   ) {
@@ -180,6 +356,23 @@ export default function ProductCard({
     event.stopPropagation()
 
     toggleFavorite(product.id)
+  }
+
+  function showAddedFeedback() {
+    if (
+      addedTimerRef.current
+    ) {
+      window.clearTimeout(
+        addedTimerRef.current
+      )
+    }
+
+    setRecentlyAdded(true)
+
+    addedTimerRef.current =
+      window.setTimeout(() => {
+        setRecentlyAdded(false)
+      }, ADDED_FEEDBACK_DURATION)
   }
 
   function handleProductAction() {
@@ -199,6 +392,8 @@ export default function ProductCard({
       isBackorder:
         isOutOfStock,
     })
+
+    showAddedFeedback()
   }
 
   const actionLabel =
@@ -214,38 +409,74 @@ export default function ProductCard({
             'common.addToCart'
           )
 
+  const stockBadgeLabel =
+    isOutOfStock
+      ? t(
+          'product.outOfStockBadge'
+        )
+      : t(
+          'product.stockLimited',
+          {
+            count: stock,
+          }
+        )
+
   return (
     <article
-      className={
+      className={[
+        'product-card',
+
         isOutOfStock
-          ? 'product-card is-out-of-stock'
-          : 'product-card'
-      }
+          ? 'is-out-of-stock'
+          : '',
+
+        recentlyAdded
+          ? 'has-recently-added'
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
-      <div className="product-image-wrap">
+      <div
+        className="product-image-wrap"
+        onTouchStart={
+          handleTouchStart
+        }
+        onTouchEnd={
+          handleTouchEnd
+        }
+      >
         <Link
           href={`/product/${product.slug}`}
           className="product-image-link"
           aria-label={product.name}
+          onClick={
+            handleImageLinkClick
+          }
         >
           <img
-            key={currentImage}
+            key={`${product.id}-${currentImage}`}
             src={currentImage}
             alt={`${product.name} - ${
               imageIndex + 1
             }`}
             className="product-image"
             loading="lazy"
+            draggable="false"
           />
         </Link>
 
         <button
           type="button"
-          className={
+          className={[
+            'product-favorite-button',
+
             productIsFavorite
-              ? 'product-favorite-button is-active'
-              : 'product-favorite-button'
-          }
+              ? 'is-active'
+              : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           onClick={
             handleFavorite
           }
@@ -270,31 +501,20 @@ export default function ProductCard({
           />
         </button>
 
-        {product.badge && (
-          <span className="product-badge">
-            {product.badge}
+        {(isOutOfStock ||
+          showStockCounter) && (
+          <span
+            className={[
+              'product-stock-badge',
+
+              isOutOfStock
+                ? 'is-out'
+                : 'is-available',
+            ].join(' ')}
+          >
+            {stockBadgeLabel}
           </span>
         )}
-
-        {isOutOfStock && (
-          <span className="product-stock-badge is-out">
-            {t(
-              'product.outOfStock'
-            )}
-          </span>
-        )}
-
-        {!isOutOfStock &&
-          showStockCounter && (
-            <span className="product-stock-badge is-available">
-              {t(
-                'product.stockRemaining',
-                {
-                  count: stock,
-                }
-              )}
-            </span>
-          )}
 
         {hasMultipleImages && (
           <>
@@ -302,9 +522,12 @@ export default function ProductCard({
               type="button"
               className="product-image-arrow product-image-arrow-previous"
               onClick={
-                showPreviousImage
+                handlePreviousImage
               }
               aria-label={t(
+                'product.previousImage'
+              )}
+              title={t(
                 'product.previousImage'
               )}
             >
@@ -315,9 +538,12 @@ export default function ProductCard({
               type="button"
               className="product-image-arrow product-image-arrow-next"
               onClick={
-                showNextImage
+                handleNextImage
               }
               aria-label={t(
+                'product.nextImage'
+              )}
+              title={t(
                 'product.nextImage'
               )}
             >
@@ -347,14 +573,6 @@ export default function ProductCard({
               {product.reference}
             </p>
           )}
-
-          {isOutOfStock && (
-            <p className="product-backorder-message">
-              {t(
-                'product.backorderCardMessage'
-              )}
-            </p>
-          )}
         </div>
 
         <div className="product-card-footer">
@@ -363,27 +581,39 @@ export default function ProductCard({
               product.price,
               locale
             )}{' '}
-            {t(
-              'common.currency'
-            )}
+            <span>
+              {t(
+                'common.currency'
+              )}
+            </span>
           </strong>
 
           <button
             type="button"
-            className={
+            className={[
+              'small-add',
+
               isOutOfStock
-                ? 'small-add is-backorder'
-                : 'small-add'
-            }
+                ? 'is-backorder'
+                : '',
+
+              recentlyAdded
+                ? 'is-success'
+                : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
             onClick={
               handleProductAction
             }
             aria-label={`${actionLabel} : ${product.name}`}
             title={actionLabel}
           >
-            {requiresConfiguration
-              ? '→'
-              : '+'}
+            {recentlyAdded ? (
+              <CheckIcon />
+            ) : (
+              <ShoppingBagIcon />
+            )}
           </button>
         </div>
       </div>

@@ -47,6 +47,7 @@
   },
   "home": {
     "eyebrow": "Maison & décoration",
+    "featuredKicker": "La sélection de la maison",
     "title": "Des pièces qui donnent du caractère à votre intérieur.",
     "subtitle": "Luminaires, décoration et accessoires sélectionnés pour créer un espace élégant, chaleureux et personnel.",
     "heroCta": "Explorer la boutique",
@@ -121,6 +122,8 @@
   "back": "Retour à la boutique",
   "previousImage": "Image précédente",
 "nextImage": "Image suivante",
+"outOfStockBadge": "Sur commande",
+"stockLimited": "Stock limité · {count} restantes",
 "imageGallery": "Galerie d’images du produit",
 "showImage": "Afficher l’image",
 "productName": "Produit",
