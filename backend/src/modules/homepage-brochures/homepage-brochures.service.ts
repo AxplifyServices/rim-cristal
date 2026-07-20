@@ -58,9 +58,19 @@ export class HomepageBrochuresService {
         ],
       });
 
-    return brochures.map(brochure =>
-      this.formatBrochure(brochure),
-    );
+const mediaVariants =
+  await this.getBrochureMediaVariants(
+    brochures.map(brochure =>
+      brochure.id,
+    ),
+  );
+
+return brochures.map(brochure =>
+  this.formatBrochure(
+    brochure,
+    mediaVariants,
+  ),
+);
   }
 
   /**
@@ -81,9 +91,19 @@ export class HomepageBrochuresService {
         ],
       });
 
-    return brochures.map(brochure =>
-      this.formatBrochure(brochure),
-    );
+const mediaVariants =
+  await this.getBrochureMediaVariants(
+    brochures.map(brochure =>
+      brochure.id,
+    ),
+  );
+
+return brochures.map(brochure =>
+  this.formatBrochure(
+    brochure,
+    mediaVariants,
+  ),
+);
   }
 
   async findById(id: number) {
@@ -102,7 +122,15 @@ export class HomepageBrochuresService {
       );
     }
 
-    return this.formatBrochure(brochure);
+const mediaVariants =
+  await this.getBrochureMediaVariants([
+    brochure.id,
+  ]);
+
+return this.formatBrochure(
+  brochure,
+  mediaVariants,
+);
   }
 
   async create(body: any, user?: any) {
@@ -176,8 +204,14 @@ try {
   );
 }
 
+const mediaVariants =
+  await this.getBrochureMediaVariants([
+    brochure.id,
+  ]);
+
 return this.formatBrochure(
   brochure,
+  mediaVariants,
 );
   }
 
@@ -269,8 +303,14 @@ try {
   );
 }
 
+const mediaVariants =
+  await this.getBrochureMediaVariants([
+    updated.id,
+  ]);
+
 return this.formatBrochure(
   updated,
+  mediaVariants,
 );
   }
 
@@ -912,61 +952,260 @@ return {
     return fallback;
   }
 
-  private formatBrochure(brochure: any) {
-    return {
-      id: brochure.id,
+private async getBrochureMediaVariants(
+  brochureIds: number[],
+) {
+  const normalizedIds = [
+    ...new Set(
+      brochureIds.filter(
+        id =>
+          Number.isInteger(id) &&
+          id > 0,
+      ),
+    ),
+  ];
 
-      imageUrl: brochure.image_url,
-      mobileImageUrl:
-        brochure.mobile_image_url || null,
+  if (normalizedIds.length === 0) {
+    return [];
+  }
 
-      altTextFr: brochure.alt_text_fr,
-      altTextEn: brochure.alt_text_en || null,
+  return this.prisma.media_variants.findMany({
+    where: {
+      owner_type:
+        'HOMEPAGE_BROCHURE',
 
-      linkUrl: brochure.link_url || null,
-      linkTarget:
-        brochure.link_target || '_self',
+      owner_id: {
+        in: normalizedIds,
+      },
 
-      sortOrder: brochure.sort_order,
-      isActive: brochure.is_active,
+      processing_status:
+        'READY',
+    },
 
-      desktopFit:
-        brochure.desktop_fit || 'cover',
-      desktopPositionX: this.decimalToNumber(
+    select: {
+      owner_id: true,
+      source_slot: true,
+      variant_type: true,
+      original_url: true,
+      variant_url: true,
+      width: true,
+      height: true,
+      file_size_bytes: true,
+      mime_type: true,
+    },
+
+    orderBy: [
+      {
+        owner_id: 'asc',
+      },
+      {
+        source_slot: 'asc',
+      },
+      {
+        variant_type: 'asc',
+      },
+    ],
+  });
+}
+
+private buildBrochureVariantGroup(
+  brochureId: number,
+  sourceSlot: string,
+  fallbackUrl: string | null,
+  mediaVariants: any[],
+) {
+  const rows =
+    mediaVariants.filter(
+      row =>
+        row.owner_id ===
+          brochureId &&
+        row.source_slot ===
+          sourceSlot,
+    );
+
+  const findVariant = (
+    type: string,
+  ) => {
+    const row = rows.find(
+      item =>
+        item.variant_type ===
+        type,
+    );
+
+    return row?.variant_url ||
+      null;
+  };
+
+  const original =
+    findVariant(
+      'ORIGINAL',
+    ) ||
+    fallbackUrl ||
+    null;
+
+  return {
+    original,
+
+    mobile:
+      findVariant(
+        'MOBILE',
+      ) ||
+      findVariant(
+        'TABLET',
+      ) ||
+      original,
+
+    tablet:
+      findVariant(
+        'TABLET',
+      ) ||
+      findVariant(
+        'DESKTOP',
+      ) ||
+      original,
+
+    desktop:
+      findVariant(
+        'DESKTOP',
+      ) ||
+      findVariant(
+        'LARGE',
+      ) ||
+      original,
+
+    large:
+      findVariant(
+        'LARGE',
+      ) ||
+      findVariant(
+        'DESKTOP',
+      ) ||
+      original,
+  };
+}  
+
+private formatBrochure(
+  brochure: any,
+  mediaVariants: any[] = [],
+) {
+  const desktopVariants =
+    this.buildBrochureVariantGroup(
+      brochure.id,
+      'BROCHURE_DESKTOP',
+      brochure.image_url,
+      mediaVariants,
+    );
+
+  const mobileVariants =
+    this.buildBrochureVariantGroup(
+      brochure.id,
+      'BROCHURE_MOBILE',
+      brochure.mobile_image_url ||
+        brochure.image_url,
+      mediaVariants,
+    );
+
+  return {
+    id: brochure.id,
+
+    /*
+     * Champs historiques conservés pour compatibilité.
+     */
+    imageUrl:
+      desktopVariants.desktop ||
+      brochure.image_url,
+
+    mobileImageUrl:
+      mobileVariants.mobile ||
+      brochure.mobile_image_url ||
+      desktopVariants.desktop ||
+      brochure.image_url,
+
+    /*
+     * Nouveau format détaillé.
+     */
+    imageVariants:
+      desktopVariants,
+
+    mobileImageVariants:
+      mobileVariants,
+
+    altTextFr:
+      brochure.alt_text_fr,
+
+    altTextEn:
+      brochure.alt_text_en ||
+      null,
+
+    linkUrl:
+      brochure.link_url ||
+      null,
+
+    linkTarget:
+      brochure.link_target ||
+      '_self',
+
+    sortOrder:
+      brochure.sort_order,
+
+    isActive:
+      brochure.is_active,
+
+    desktopFit:
+      brochure.desktop_fit ||
+      'cover',
+
+    desktopPositionX:
+      this.decimalToNumber(
         brochure.desktop_position_x,
         50,
       ),
-      desktopPositionY: this.decimalToNumber(
+
+    desktopPositionY:
+      this.decimalToNumber(
         brochure.desktop_position_y,
         50,
       ),
-      desktopZoom: this.decimalToNumber(
+
+    desktopZoom:
+      this.decimalToNumber(
         brochure.desktop_zoom,
         1,
       ),
 
-      mobileFit:
-        brochure.mobile_fit || 'cover',
-      mobilePositionX: this.decimalToNumber(
+    mobileFit:
+      brochure.mobile_fit ||
+      'cover',
+
+    mobilePositionX:
+      this.decimalToNumber(
         brochure.mobile_position_x,
         50,
       ),
-      mobilePositionY: this.decimalToNumber(
+
+    mobilePositionY:
+      this.decimalToNumber(
         brochure.mobile_position_y,
         50,
       ),
-      mobileZoom: this.decimalToNumber(
+
+    mobileZoom:
+      this.decimalToNumber(
         brochure.mobile_zoom,
         1,
       ),
 
-      createdByUserId:
-        brochure.created_by_user_id || null,
+    createdByUserId:
+      brochure.created_by_user_id ||
+      null,
 
-      createdAt: brochure.created_at,
-      updatedAt: brochure.updated_at,
-    };
-  }
+    createdAt:
+      brochure.created_at,
+
+    updatedAt:
+      brochure.updated_at,
+  };
+}
 
   private decimalToNumber(
     value: unknown,

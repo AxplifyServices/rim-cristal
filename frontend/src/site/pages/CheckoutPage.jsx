@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -551,14 +552,18 @@ export default function CheckoutPage() {
                           : 'checkout-summary-item'
                       }
                     >
-                      <img
-                        src={
-                          item.image
-                        }
-                        alt={
-                          item.name
-                        }
-                      />
+<div className="checkout-summary-item-image">
+  <Image
+    src={
+      item.image ||
+      '/images/product-placeholder.svg'
+    }
+    alt={item.name}
+    fill
+    sizes="72px"
+    quality={70}
+  />
+</div>
 
                       <div>
                         <strong>

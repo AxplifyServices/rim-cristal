@@ -26,30 +26,123 @@ function normalizeTarget(value) {
     : '_self'
 }
 
+function normalizeImageUrl(
+  value
+) {
+  return String(
+    value || ''
+  ).trim()
+}
+
 function normalizeBrochure(
   brochure
 ) {
+  const desktopVariants = {
+    original:
+      normalizeImageUrl(
+        brochure
+          ?.imageVariants
+          ?.original
+      ),
+
+    tablet:
+      normalizeImageUrl(
+        brochure
+          ?.imageVariants
+          ?.tablet
+      ),
+
+    desktop:
+      normalizeImageUrl(
+        brochure
+          ?.imageVariants
+          ?.desktop
+      ),
+
+    large:
+      normalizeImageUrl(
+        brochure
+          ?.imageVariants
+          ?.large
+      ),
+  }
+
+  const mobileVariants = {
+    original:
+      normalizeImageUrl(
+        brochure
+          ?.mobileImageVariants
+          ?.original
+      ),
+
+    mobile:
+      normalizeImageUrl(
+        brochure
+          ?.mobileImageVariants
+          ?.mobile
+      ),
+
+    tablet:
+      normalizeImageUrl(
+        brochure
+          ?.mobileImageVariants
+          ?.tablet
+      ),
+  }
+
+  const imageUrl =
+    desktopVariants.desktop ||
+    desktopVariants.large ||
+    desktopVariants.tablet ||
+    normalizeImageUrl(
+      brochure?.imageUrl
+    ) ||
+    desktopVariants.original
+
+  const mobileImageUrl =
+    mobileVariants.mobile ||
+    mobileVariants.tablet ||
+    normalizeImageUrl(
+      brochure?.mobileImageUrl
+    ) ||
+    mobileVariants.original ||
+    imageUrl
+
   return {
-    id: Number(brochure?.id),
+    id: Number(
+      brochure?.id
+    ),
 
-    imageUrl:
-      String(
-        brochure?.imageUrl || ''
-      ).trim(),
+    imageUrl,
+    mobileImageUrl,
 
-    mobileImageUrl:
-      String(
-        brochure?.mobileImageUrl || ''
-      ).trim() || null,
+    imageVariants:
+      desktopVariants,
+
+    mobileImageVariants:
+      mobileVariants,
 
     altTextFr:
       String(
         brochure?.altTextFr || ''
       ).trim(),
 
+    /*
+     * Le projet utilise maintenant FR/AR.
+     * On accepte encore altTextEn pour compatibilité
+     * avec la structure historique.
+     */
+    altTextAr:
+      String(
+        brochure?.altTextAr ||
+        brochure?.altTextEn ||
+        ''
+      ).trim() || null,
+
     altTextEn:
       String(
-        brochure?.altTextEn || ''
+        brochure?.altTextEn ||
+        ''
       ).trim() || null,
 
     linkUrl:

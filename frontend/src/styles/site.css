@@ -2522,6 +2522,21 @@ a {
   font-size: 13px;
 }
 
+.checkout-summary-item-image {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f3f1ed;
+}
+
+.checkout-summary-item-image img {
+  object-fit: cover;
+  object-position: center;
+}
+
 .checkout-summary-total {
   display: flex;
   justify-content: space-between;
@@ -6269,6 +6284,7 @@ html[dir='rtl'] .site-footer {
 
 .cart-item-image {
   position: relative;
+  overflow: hidden;
 }
 
 .cart-item-stock-badge {

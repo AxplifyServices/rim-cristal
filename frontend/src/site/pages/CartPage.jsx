@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 
 import SiteLayout from '../components/SiteLayout'
@@ -100,14 +101,19 @@ export default function CartPage() {
                           href={`/product/${item.slug}`}
                           className="cart-item-image"
                         >
-                          <img
-                            src={
-                              item.image
-                            }
-                            alt={
-                              item.name
-                            }
-                          />
+<Image
+  src={
+    item.image ||
+    '/images/product-placeholder.svg'
+  }
+  alt={item.name}
+  fill
+  sizes="
+    (max-width: 640px) 92px,
+    120px
+  "
+  quality={72}
+/>
 
                           {item.isBackorder && (
                             <span className="cart-item-stock-badge">

@@ -49,6 +49,11 @@ export function CartProvider({
           saved.map(item => ({
             ...item,
 
+image:
+  item.thumbnailImage ||
+  item.image ||
+  '/images/product-placeholder.svg',            
+
             selectedColor:
               item.selectedColor ||
               null,
@@ -159,8 +164,28 @@ export function CartProvider({
               price:
                 product.price,
 
-              image:
-                product.image,
+image:
+  product.thumbnailImage ||
+  product.imageVariants?.[0]
+    ?.thumbnail ||
+  product.cardImage ||
+  product.image ||
+  '/images/product-placeholder.svg',
+
+detailImage:
+  product.detailImage ||
+  product.imageVariants?.[0]
+    ?.detail ||
+  product.image ||
+  null,
+
+largeImage:
+  product.largeImage ||
+  product.imageVariants?.[0]
+    ?.large ||
+  product.detailImage ||
+  product.image ||
+  null,  
 
               selectedColor,
 

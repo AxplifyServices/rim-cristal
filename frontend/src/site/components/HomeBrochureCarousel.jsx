@@ -49,10 +49,11 @@ function BrochureImage({
     4
   )
 
-  const altText =
-    brochure.altTextFr ||
-    brochure.altTextEn ||
-    ''
+const altText =
+  brochure.altTextFr ||
+  brochure.altTextAr ||
+  brochure.altTextEn ||
+  ''
 
   const sharedStyle = {
     '--brochure-desktop-fit':
@@ -96,11 +97,30 @@ function BrochureImage({
       mobileZoom,
   }
 
+  const desktopSource =
+    brochure.imageVariants
+      ?.desktop ||
+    brochure.imageVariants
+      ?.large ||
+    brochure.imageVariants
+      ?.tablet ||
+    brochure.imageUrl
+
+  const mobileSource =
+    brochure
+      .mobileImageVariants
+      ?.mobile ||
+    brochure
+      .mobileImageVariants
+      ?.tablet ||
+    brochure.mobileImageUrl ||
+    desktopSource
+
   const {
     props: desktopImageProps,
   } = getImageProps({
-    src:
-      brochure.imageUrl,
+src:
+  desktopSource,
     alt: altText,
     fill: true,
     sizes: '100vw',
@@ -108,11 +128,11 @@ function BrochureImage({
     priority,
   })
 
-  const mobileImage =
-    brochure.mobileImageUrl
-      ? getImageProps({
-          src:
-            brochure.mobileImageUrl,
+const mobileImage =
+  mobileSource
+    ? getImageProps({
+        src:
+          mobileSource,
           alt: altText,
           fill: true,
           sizes: '100vw',
@@ -190,9 +210,9 @@ function BrochureContent({
         href={brochure.linkUrl}
         className="home-brochure-link"
         aria-label={
-brochure.altTextFr ||
-brochure.altTextEn ||
-''
+          brochure.altTextFr ||
+          brochure.altTextEn ||
+          ''
         }
       >
         {image}
@@ -213,13 +233,15 @@ brochure.altTextEn ||
           : undefined
       }
       className="home-brochure-link"
-      aria-label={
-        locale === 'en'
-          ? brochure.altTextEn ||
-            brochure.altTextFr
-          : brochure.altTextFr ||
-            brochure.altTextEn
-      }
+aria-label={
+  locale === 'ar'
+    ? brochure.altTextAr ||
+      brochure.altTextFr ||
+      brochure.altTextEn
+    : brochure.altTextFr ||
+      brochure.altTextAr ||
+      brochure.altTextEn
+}
     >
       {image}
     </a>

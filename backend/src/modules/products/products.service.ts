@@ -433,13 +433,238 @@ private normalizeSizeVariants(
   };
 }
 
-private serializeProduct(product: any) {
+private async getProductMediaVariants(
+  productIds: number[],
+) {
+  const normalizedIds = [
+    ...new Set(
+      productIds.filter(
+        id =>
+          Number.isInteger(id) &&
+          id > 0,
+      ),
+    ),
+  ];
+
+  if (normalizedIds.length === 0) {
+    return [];
+  }
+
+  return this.prisma.media_variants.findMany({
+    where: {
+      owner_type: 'PRODUCT',
+
+      owner_id: {
+        in: normalizedIds,
+      },
+
+      processing_status: 'READY',
+    },
+
+    select: {
+      owner_id: true,
+      source_slot: true,
+      variant_type: true,
+      original_url: true,
+      variant_url: true,
+      width: true,
+      height: true,
+      file_size_bytes: true,
+      mime_type: true,
+    },
+
+    orderBy: [
+      {
+        owner_id: 'asc',
+      },
+      {
+        source_slot: 'asc',
+      },
+      {
+        variant_type: 'asc',
+      },
+    ],
+  });
+}
+
+private buildProductImages(
+  product: any,
+  mediaVariants: any[],
+) {
+  const slotDefinitions = [
+    {
+      slot: 'PRODUCT_IMAGE_1',
+      legacyUrl:
+        product.url_image1,
+    },
+    {
+      slot: 'PRODUCT_IMAGE_2',
+      legacyUrl:
+        product.url_image2,
+    },
+    {
+      slot: 'PRODUCT_IMAGE_3',
+      legacyUrl:
+        product.url_image3,
+    },
+    {
+      slot: 'PRODUCT_IMAGE_4',
+      legacyUrl:
+        product.url_image4,
+    },
+    {
+      slot: 'PRODUCT_IMAGE_5',
+      legacyUrl:
+        product.url_image5,
+    },
+  ];
+
+  return slotDefinitions
+    .filter(definition =>
+      Boolean(
+        String(
+          definition.legacyUrl || '',
+        ).trim(),
+      ),
+    )
+    .map((definition, index) => {
+      const rows =
+        mediaVariants.filter(
+          row =>
+            row.owner_id ===
+              product.id &&
+            row.source_slot ===
+              definition.slot,
+        );
+
+      const findVariant = (
+        variantType: string,
+      ) => {
+        const row = rows.find(
+          item =>
+            item.variant_type ===
+            variantType,
+        );
+
+        return row?.variant_url ||
+          null;
+      };
+
+      const original =
+        findVariant(
+          'ORIGINAL',
+        ) ||
+        definition.legacyUrl;
+
+      const thumbnail =
+        findVariant(
+          'THUMBNAIL',
+        ) ||
+        findVariant(
+          'CARD',
+        ) ||
+        original;
+
+      const card =
+        findVariant(
+          'CARD',
+        ) ||
+        findVariant(
+          'DETAIL',
+        ) ||
+        original;
+
+      const detail =
+        findVariant(
+          'DETAIL',
+        ) ||
+        findVariant(
+          'LARGE',
+        ) ||
+        original;
+
+      const large =
+        findVariant(
+          'LARGE',
+        ) ||
+        detail ||
+        original;
+
+      return {
+        slot:
+          definition.slot,
+
+        displayOrder:
+          index,
+
+        original,
+        thumbnail,
+        card,
+        detail,
+        large,
+      };
+    });
+}
+
+private serializeProduct(
+  product: any,
+  mediaVariants: any[] = [],
+) {
   if (!product) {
     return product;
   }
 
+  const images =
+    this.buildProductImages(
+      product,
+      mediaVariants,
+    );
+
   return {
     ...product,
+
+    /*
+     * Compatibilité avec le frontend et l'admin actuels.
+     * Ces champs ne sont pas supprimés.
+     */
+    url_image1:
+      product.url_image1,
+    url_image2:
+      product.url_image2,
+    url_image3:
+      product.url_image3,
+    url_image4:
+      product.url_image4,
+    url_image5:
+      product.url_image5,
+
+    /*
+     * Nouveau format optimisé.
+     */
+    images,
+
+    image_urls: {
+      thumbnail:
+        images[0]?.thumbnail ||
+        product.url_image1 ||
+        null,
+
+      card:
+        images[0]?.card ||
+        product.url_image1 ||
+        null,
+
+      detail:
+        images[0]?.detail ||
+        product.url_image1 ||
+        null,
+
+      large:
+        images[0]?.large ||
+        product.url_image1 ||
+        null,
+    },
+
     product_size_variants:
       Array.isArray(
         product.product_size_variants,
@@ -447,30 +672,46 @@ private serializeProduct(product: any) {
         ? product.product_size_variants.map(
             (variant: any) => ({
               ...variant,
-              id: String(variant.id),
-              product_id: Number(
-                variant.product_id,
-              ),
-              price: Number(
-                variant.price,
-              ),
-              price_wholesale: Number(
-                variant.price_wholesale,
-              ),
+
+              id:
+                String(
+                  variant.id,
+                ),
+
+              product_id:
+                Number(
+                  variant.product_id,
+                ),
+
+              price:
+                Number(
+                  variant.price,
+                ),
+
+              price_wholesale:
+                Number(
+                  variant.price_wholesale,
+                ),
+
               width_cm:
-                variant.width_cm === null
+                variant.width_cm ===
+                null
                   ? null
                   : Number(
                       variant.width_cm,
                     ),
+
               depth_cm:
-                variant.depth_cm === null
+                variant.depth_cm ===
+                null
                   ? null
                   : Number(
                       variant.depth_cm,
                     ),
+
               height_cm:
-                variant.height_cm === null
+                variant.height_cm ===
+                null
                   ? null
                   : Number(
                       variant.height_cm,
@@ -962,13 +1203,25 @@ const [items, total] =
     }),
   ]);
 
+const mediaVariants =
+  await this.getProductMediaVariants(
+    items.map(item =>
+      item.id,
+    ),
+  );
+
 return {
   items: items.map(item =>
-    this.serializeProduct(item),
+    this.serializeProduct(
+      item,
+      mediaVariants,
+    ),
   ),
+
   total,
   page,
   page_size: pageSize,
+
   pages: Math.ceil(
     total / pageSize,
   ),
@@ -1003,9 +1256,15 @@ async findById(id: number) {
     );
   }
 
-  return this.serializeProduct(
-    product,
-  );
+const mediaVariants =
+  await this.getProductMediaVariants([
+    product.id,
+  ]);
+
+return this.serializeProduct(
+  product,
+  mediaVariants,
+);
 }
 
 async findBySlug(
@@ -1041,9 +1300,15 @@ async findBySlug(
     );
   }
 
-  return this.serializeProduct(
-    product,
-  );
+const mediaVariants =
+  await this.getProductMediaVariants([
+    product.id,
+  ]);
+
+return this.serializeProduct(
+  product,
+  mediaVariants,
+);
 }
 
 async create(body: any) {
@@ -1403,9 +1668,15 @@ try {
   );
 }
 
-    return this.serializeProduct(
-      product,
-    );
+const mediaVariants =
+  await this.getProductMediaVariants([
+    product.id,
+  ]);
+
+return this.serializeProduct(
+  product,
+  mediaVariants,
+);
   } catch (error) {
     const message =
       error instanceof Error
@@ -2091,9 +2362,15 @@ try {
   );
 }
 
-    return this.serializeProduct(
-      product,
-    );
+const mediaVariants =
+  await this.getProductMediaVariants([
+    product.id,
+  ]);
+
+return this.serializeProduct(
+  product,
+  mediaVariants,
+);
   } catch (error) {
     const message =
       error instanceof Error

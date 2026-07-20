@@ -165,21 +165,50 @@ export default function ProductCard({
   const addedTimerRef =
     useRef(null)
 
-  const productImages = [
-    ...new Set(
-      (
-        Array.isArray(
-          product.images
-        ) &&
-        product.images.length > 0
-          ? product.images
-          : [
-              product.image ||
-                '/images/product-placeholder.svg',
-            ]
-      ).filter(Boolean)
-    ),
-  ]
+  const productImages =
+    Array.isArray(
+      product.imageVariants
+    ) &&
+    product.imageVariants.length > 0
+      ? product.imageVariants
+          .map(image => {
+            return (
+              image.card ||
+              image.detail ||
+              image.original
+            )
+          })
+          .filter(Boolean)
+          .filter(
+            (
+              image,
+              index,
+              list
+            ) => {
+              return (
+                list.indexOf(
+                  image
+                ) === index
+              )
+            }
+          )
+      : [
+          ...new Set(
+            (
+              Array.isArray(
+                product.images
+              ) &&
+              product.images.length >
+                0
+                ? product.images
+                : [
+                    product.cardImage ||
+                      product.image ||
+                      '/images/product-placeholder.svg',
+                  ]
+            ).filter(Boolean)
+          ),
+        ]
 
   const currentImage =
     productImages[imageIndex] ||

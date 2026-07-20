@@ -166,21 +166,169 @@ function nullableNumber(value) {
     : null
 }
 
+function normalizeProductImage(
+  image,
+  fallbackUrl = null
+) {
+  const original = resolveImageUrl(
+    image?.original ||
+      fallbackUrl
+  )
+
+  const thumbnail =
+    resolveImageUrl(
+      image?.thumbnail ||
+        image?.card ||
+        image?.detail ||
+        image?.large ||
+        original
+    )
+
+  const card = resolveImageUrl(
+    image?.card ||
+      image?.detail ||
+      image?.large ||
+      image?.thumbnail ||
+      original
+  )
+
+  const detail =
+    resolveImageUrl(
+      image?.detail ||
+        image?.large ||
+        image?.card ||
+        original
+    )
+
+  const large = resolveImageUrl(
+    image?.large ||
+      image?.detail ||
+      image?.card ||
+      original
+  )
+
+  return {
+    slot:
+      String(
+        image?.slot || ''
+      ).trim(),
+
+    displayOrder:
+      Number.isFinite(
+        Number(
+          image?.displayOrder
+        )
+      )
+        ? Number(
+            image.displayOrder
+          )
+        : 0,
+
+    original,
+    thumbnail,
+    card,
+    detail,
+    large,
+  }
+}
+
 export function mapProduct(
   product
 ) {
-const images = [
-  product.url_image1,
-  product.url_image2,
-  product.url_image3,
-  product.url_image4,
-  product.url_image5,
-]
-  .filter(Boolean)
-  .map(resolveImageUrl)
-  .filter((image, index, list) => {
-    return list.indexOf(image) === index
-  })
+  const legacyImageUrls = [
+    product.url_image1,
+    product.url_image2,
+    product.url_image3,
+    product.url_image4,
+    product.url_image5,
+  ]
+    .map(value => {
+      return String(
+        value || ''
+      ).trim()
+    })
+    .filter(Boolean)
+
+  const apiImages =
+    Array.isArray(
+      product.images
+    )
+      ? product.images
+      : []
+
+  const normalizedImages =
+    apiImages.length > 0
+      ? apiImages
+          .map(
+            (
+              image,
+              index
+            ) => {
+              return normalizeProductImage(
+                image,
+                legacyImageUrls[
+                  index
+                ] ||
+                  legacyImageUrls[0] ||
+                  null
+              )
+            }
+          )
+          .sort(
+            (first, second) => {
+              return (
+                first.displayOrder -
+                second.displayOrder
+              )
+            }
+          )
+      : legacyImageUrls.map(
+          (url, index) => {
+            return normalizeProductImage(
+              {
+                slot:
+                  `PRODUCT_IMAGE_${index + 1}`,
+
+                displayOrder:
+                  index,
+
+                original: url,
+                thumbnail: url,
+                card: url,
+                detail: url,
+                large: url,
+              },
+              url
+            )
+          }
+        )
+
+  const uniqueImages =
+    normalizedImages.filter(
+      (
+        image,
+        index,
+        list
+      ) => {
+        return (
+          list.findIndex(
+            candidate =>
+              candidate.original ===
+              image.original
+          ) === index
+        )
+      }
+    )
+
+  const primaryImage =
+    uniqueImages[0] ||
+    normalizeProductImage({
+      slot:
+        'PRODUCT_IMAGE_1',
+
+      original:
+        '/images/product-placeholder.svg',
+    })
 
   const categoryName =
     product.categorie ||
@@ -260,16 +408,39 @@ const images = [
         product.height_cm
       ),
 
-    images:
-      images.length > 0
-        ? images
-        : [
-            '/images/product-placeholder.svg',
-          ],
+imageVariants:
+  uniqueImages,
 
-    image:
-      images[0] ||
-      '/images/product-placeholder.svg',
+/*
+ * Compatibilité avec les composants
+ * qui attendent encore une liste d'URL.
+ *
+ * Sur les cartes, on utilise les variantes CARD.
+ */
+images:
+  uniqueImages.map(
+    image =>
+      image.card
+  ),
+
+/*
+ * Image légère pour les cartes et
+ * ajout au panier.
+ */
+image:
+  primaryImage.card,
+
+thumbnailImage:
+  primaryImage.thumbnail,
+
+cardImage:
+  primaryImage.card,
+
+detailImage:
+  primaryImage.detail,
+
+largeImage:
+  primaryImage.large,
 
     badge:
       product.badge || '',
