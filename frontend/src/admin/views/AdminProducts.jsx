@@ -3296,6 +3296,58 @@ export default function AdminProducts() {
   )
 }
 
+function ProductThumbnail({
+  src,
+  alt,
+}) {
+  const [
+    imageError,
+    setImageError,
+  ] = useState(false)
+
+  useEffect(() => {
+    setImageError(false)
+  }, [src])
+
+  if (
+    !src ||
+    imageError
+  ) {
+    return (
+      <div
+        style={
+          styles.productThumbnailFallback
+        }
+        role="img"
+        aria-label={
+          alt
+            ? `Aucune image disponible pour ${alt}`
+            : 'Aucune image disponible'
+        }
+      >
+        <span aria-hidden="true">
+          ◻
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt || ''}
+      loading="lazy"
+      decoding="async"
+      onError={() =>
+        setImageError(true)
+      }
+      style={
+        styles.productThumbnail
+      }
+    />
+  )
+}
+
 function SelectField({
   label,
   value,
