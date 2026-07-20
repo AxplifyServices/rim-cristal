@@ -151,10 +151,18 @@ export default function ProductCard({
   const [imageIndex, setImageIndex] =
     useState(0)
 
+const [
+  shouldPreloadAdjacent,
+  setShouldPreloadAdjacent,
+] = useState(false)    
+
   const [
     recentlyAdded,
     setRecentlyAdded,
   ] = useState(false)
+
+const cardRef =
+  useRef(null)  
 
   const touchStartXRef =
     useRef(null)
@@ -217,6 +225,46 @@ export default function ProductCard({
   const hasMultipleImages =
     productImages.length > 1
 
+const previousImageIndex =
+  imageIndex === 0
+    ? productImages.length - 1
+    : imageIndex - 1
+
+const nextImageIndex =
+  imageIndex ===
+  productImages.length - 1
+    ? 0
+    : imageIndex + 1
+
+const adjacentImages =
+  hasMultipleImages
+    ? [
+        productImages[
+          previousImageIndex
+        ],
+
+        productImages[
+          nextImageIndex
+        ],
+      ]
+        .filter(Boolean)
+        .filter(
+          (
+            image,
+            index,
+            list
+          ) => {
+            return (
+              image !==
+                currentImage &&
+              list.indexOf(
+                image
+              ) === index
+            )
+          }
+        )
+    : []    
+
   const productIsFavorite =
     isFavorite(product.id)
 
@@ -247,10 +295,75 @@ export default function ProductCard({
         product.colors.length > 0
     )
 
-  useEffect(() => {
-    setImageIndex(0)
-    setRecentlyAdded(false)
-  }, [product.id])
+useEffect(() => {
+  setImageIndex(0)
+  setRecentlyAdded(false)
+  setShouldPreloadAdjacent(false)
+}, [product.id])
+
+useEffect(() => {
+  const cardElement =
+    cardRef.current
+
+  if (
+    !cardElement ||
+    !hasMultipleImages
+  ) {
+    return undefined
+  }
+
+  if (
+    typeof IntersectionObserver ===
+    'undefined'
+  ) {
+    setShouldPreloadAdjacent(
+      true
+    )
+
+    return undefined
+  }
+
+  const observer =
+    new IntersectionObserver(
+      entries => {
+        const entry =
+          entries[0]
+
+        if (
+          !entry?.isIntersecting
+        ) {
+          return
+        }
+
+        setShouldPreloadAdjacent(
+          true
+        )
+
+        observer.disconnect()
+      },
+      {
+        /*
+         * On commence le téléchargement avant que
+         * la carte entre complètement dans l'écran.
+         */
+        rootMargin:
+          '220px 0px',
+
+        threshold: 0.01,
+      }
+    )
+
+  observer.observe(
+    cardElement
+  )
+
+  return () => {
+    observer.disconnect()
+  }
+}, [
+  product.id,
+  hasMultipleImages,
+])
 
   useEffect(() => {
     return () => {
@@ -295,6 +408,10 @@ export default function ProductCard({
     event.preventDefault()
     event.stopPropagation()
 
+setShouldPreloadAdjacent(
+  true
+)
+
     showPreviousImage()
   }
 
@@ -303,6 +420,10 @@ export default function ProductCard({
   ) {
     event.preventDefault()
     event.stopPropagation()
+
+setShouldPreloadAdjacent(
+  true
+)
 
     showNextImage()
   }
@@ -313,6 +434,10 @@ export default function ProductCard({
     if (!hasMultipleImages) {
       return
     }
+
+setShouldPreloadAdjacent(
+  true
+)    
 
     touchStartXRef.current =
       event.touches[0]?.clientX ??
@@ -456,8 +581,9 @@ export default function ProductCard({
         )
 
   return (
-    <article
-      className={[
+<article
+  ref={cardRef}
+  className={[
         'product-card',
 
         isOutOfStock
@@ -488,24 +614,46 @@ export default function ProductCard({
             handleImageLinkClick
           }
         >
-          <Image
-            key={`${product.id}-${currentImage}`}
-            src={currentImage}
-            alt={product.name}
-            fill
-            sizes="
-              (max-width: 520px) 50vw,
-              (max-width: 900px) 33vw,
-              (max-width: 1280px) 25vw,
-              320px
-            "
-            priority={
-              imagePriority &&
-              imageIndex === 0
-            }
-            quality={76}
-            className="product-image"
-          />
+<Image
+  key={`${product.id}-${currentImage}`}
+  src={currentImage}
+  alt={product.name}
+  fill
+  sizes="
+    (max-width: 520px) 50vw,
+    (max-width: 900px) 33vw,
+    (max-width: 1280px) 25vw,
+    320px
+  "
+  priority={
+    imagePriority &&
+    imageIndex === 0
+  }
+  quality={76}
+  className="product-image product-image-current"
+/>
+
+{shouldPreloadAdjacent &&
+  adjacentImages.map(
+    image => (
+      <Image
+        key={`preload-${product.id}-${image}`}
+        src={image}
+        alt=""
+        aria-hidden="true"
+        fill
+        sizes="
+          (max-width: 520px) 50vw,
+          (max-width: 900px) 33vw,
+          (max-width: 1280px) 25vw,
+          320px
+        "
+        quality={76}
+        loading="eager"
+        className="product-image product-image-preload"
+      />
+    )
+  )}
         </Link>
 
         <button
