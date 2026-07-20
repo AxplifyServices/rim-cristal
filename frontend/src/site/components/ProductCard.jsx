@@ -19,7 +19,6 @@ import {
 import { useSiteI18n } from '../i18n/SiteI18nProvider'
 import { formatPrice } from '../lib/products'
 
-const STOCK_COUNTER_THRESHOLD = 10
 const SWIPE_THRESHOLD = 42
 const ADDED_FEEDBACK_DURATION = 1100
 
@@ -280,11 +279,6 @@ const adjacentImages =
 
   const isOutOfStock =
     stock <= 0
-
-  const showStockCounter =
-    stock > 0 &&
-    stock <=
-      STOCK_COUNTER_THRESHOLD
 
   const requiresConfiguration =
     Boolean(
@@ -568,17 +562,7 @@ setShouldPreloadAdjacent(
             'common.addToCart'
           )
 
-  const stockBadgeLabel =
-    isOutOfStock
-      ? t(
-          'product.outOfStockBadge'
-        )
-      : t(
-          'product.stockLimited',
-          {
-            count: stock,
-          }
-        )
+
 
   return (
 <article
@@ -691,20 +675,7 @@ setShouldPreloadAdjacent(
           />
         </button>
 
-        {(isOutOfStock ||
-          showStockCounter) && (
-          <span
-            className={[
-              'product-stock-badge',
 
-              isOutOfStock
-                ? 'is-out'
-                : 'is-available',
-            ].join(' ')}
-          >
-            {stockBadgeLabel}
-          </span>
-        )}
 
         {hasMultipleImages && (
           <>

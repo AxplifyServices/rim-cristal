@@ -195,6 +195,7 @@ model products {
   depth_cm                                                       Decimal?                   @db.Decimal(10, 2)
   height_cm                                                      Decimal?                   @db.Decimal(10, 2)
   has_size_variants                                              Boolean                    @default(false)
+  promotion_percentage                                           Decimal?                   @db.Decimal(5, 2)
   order_items                                                    order_items[]
   point_of_sale_sale_items                                       point_of_sale_sale_items[]
   point_of_sale_stocks                                           point_of_sale_stocks[]
