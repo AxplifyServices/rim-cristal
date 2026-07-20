@@ -11,6 +11,8 @@ import { useAdminI18n } from '../i18n/AdminI18nProvider'
 import { getAdminUser } from '../lib/adminAuth'
 import { adminApi } from '../lib/adminApi'
 
+const PRODUCTS_PAGE_SIZE = 10
+
 const PRODUCT_RUBRIQUE_OPTIONS = [
   {
     value: 'Mobilier',
@@ -339,6 +341,20 @@ export default function AdminProducts() {
   const [products, setProducts] =
     useState([])
 
+  const [page, setPage] =
+    useState(1)
+
+  const [
+    pagination,
+    setPagination,
+  ] = useState({
+    page: 1,
+    pages: 1,
+    total: 0,
+    pageSize:
+      PRODUCTS_PAGE_SIZE,
+  })
+
   const [loading, setLoading] =
     useState(true)
 
@@ -426,7 +442,14 @@ export default function AdminProducts() {
       )
     }, [locale])
 
-  async function load() {
+  async function load(
+    requestedPage = page
+  ) {
+    const safePage = Math.max(
+      Number(requestedPage) || 1,
+      1
+    )
+
     setLoading(true)
     setError('')
 
@@ -445,7 +468,7 @@ export default function AdminProducts() {
             '/point-of-sale/products'
           )
 
-        setProducts(
+        const allProducts =
           Array.isArray(data)
             ? data.map(row => ({
                 ...row.products,
@@ -458,22 +481,139 @@ export default function AdminProducts() {
                   null,
               }))
             : []
+
+        const total =
+          allProducts.length
+
+        const pages =
+          Math.max(
+            Math.ceil(
+              total /
+                PRODUCTS_PAGE_SIZE
+            ),
+            1
+          )
+
+        const resolvedPage =
+          Math.min(
+            safePage,
+            pages
+          )
+
+        const offset =
+          (resolvedPage - 1) *
+          PRODUCTS_PAGE_SIZE
+
+        setProducts(
+          allProducts.slice(
+            offset,
+            offset +
+              PRODUCTS_PAGE_SIZE
+          )
         )
+
+        setPagination({
+          page: resolvedPage,
+          pages,
+          total,
+          pageSize:
+            PRODUCTS_PAGE_SIZE,
+        })
+
+        if (
+          resolvedPage !==
+          safePage
+        ) {
+          setPage(
+            resolvedPage
+          )
+        }
 
         return
       }
 
+      const query =
+        new URLSearchParams({
+          include_inactive:
+            'true',
+
+          include_unavailable_on_site:
+            'true',
+
+          page:
+            String(safePage),
+
+          page_size:
+            String(
+              PRODUCTS_PAGE_SIZE
+            ),
+        })
+
       const data =
         await adminApi.get(
-          '/products?include_inactive=true&include_unavailable_on_site=true&page_size=20'
+          `/products?${query.toString()}`
         )
 
-      setProducts(
-        Array.isArray(data?.items)
+      const items =
+        Array.isArray(
+          data?.items
+        )
           ? data.items
           : []
-      )
+
+      const total =
+        Number(data?.total || 0)
+
+      const pages =
+        Math.max(
+          Number(data?.pages || 1),
+          1
+        )
+
+      const resolvedPage =
+        Math.min(
+          Math.max(
+            Number(
+              data?.page ||
+                safePage
+            ),
+            1
+          ),
+          pages
+        )
+
+      setProducts(items)
+
+      setPagination({
+        page: resolvedPage,
+        pages,
+        total,
+        pageSize:
+          Number(
+            data?.page_size ||
+              PRODUCTS_PAGE_SIZE
+          ),
+      })
+
+      if (
+        resolvedPage !==
+        safePage
+      ) {
+        setPage(
+          resolvedPage
+        )
+      }
     } catch (loadError) {
+      setProducts([])
+
+      setPagination({
+        page: safePage,
+        pages: 1,
+        total: 0,
+        pageSize:
+          PRODUCTS_PAGE_SIZE,
+      })
+
       setError(
         loadError.message
       )
@@ -483,8 +623,74 @@ export default function AdminProducts() {
   }
 
   useEffect(() => {
-    load()
-  }, [])
+    load(page)
+  }, [page])
+
+  function goToPage(
+    nextPage
+  ) {
+    if (loading) {
+      return
+    }
+
+    const safePage =
+      Math.min(
+        Math.max(
+          Number(nextPage) || 1,
+          1
+        ),
+        pagination.pages
+      )
+
+    if (
+      safePage === page
+    ) {
+      return
+    }
+
+    setPage(safePage)
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    })
+  }
+
+  function getVisiblePages() {
+    const totalPages =
+      pagination.pages
+
+    const visiblePages = []
+
+    const startPage =
+      Math.max(
+        1,
+        Math.min(
+          page - 2,
+          totalPages - 4
+        )
+      )
+
+    const endPage =
+      Math.min(
+        totalPages,
+        startPage + 4
+      )
+
+    for (
+      let currentPage =
+        startPage;
+      currentPage <=
+      endPage;
+      currentPage += 1
+    ) {
+      visiblePages.push(
+        currentPage
+      )
+    }
+
+    return visiblePages
+  }  
 
   useEffect(() => {
     if (!formOpen) {
@@ -1448,7 +1654,7 @@ export default function AdminProducts() {
         createEmptyForm()
       )
 
-      await load()
+      await load(page)
     } catch (saveError) {
       setError(
         saveError.message
@@ -1480,7 +1686,21 @@ export default function AdminProducts() {
         `/products/${product.id}`
       )
 
-      await load()
+      const shouldGoBack =
+        products.length === 1 &&
+        page > 1
+
+      if (shouldGoBack) {
+        setPage(
+          currentPage =>
+            Math.max(
+              currentPage - 1,
+              1
+            )
+        )
+      } else {
+        await load(page)
+      }
     } catch (deleteError) {
       setError(
         deleteError.message
@@ -1590,11 +1810,12 @@ export default function AdminProducts() {
             {t('common.empty')}
           </div>
         ) : (
-          <div
-            style={
-              styles.tableWrap
-            }
-          >
+          <>
+            <div
+              style={
+                styles.tableWrap
+              }
+            >
             <table
               style={styles.table}
             >
@@ -1696,23 +1917,46 @@ export default function AdminProducts() {
                             styles.td
                           }
                         >
-                          <strong>
-                            {
-                              product.name
-                            }
-                          </strong>
-
-                          <br />
-
-                          <span
+                          <div
                             style={
-                              styles.muted
+                              styles.productIdentity
                             }
                           >
-                            {
-                              product.reference
-                            }
-                          </span>
+                            <ProductThumbnail
+                              src={
+                                product.url_image1
+                              }
+                              alt={
+                                product.name
+                              }
+                            />
+
+                            <div
+                              style={
+                                styles.productIdentityText
+                              }
+                            >
+                              <strong
+                                style={
+                                  styles.productName
+                                }
+                              >
+                                {
+                                  product.name
+                                }
+                              </strong>
+
+                              <span
+                                style={
+                                  styles.muted
+                                }
+                              >
+                                {
+                                  product.reference
+                                }
+                              </span>
+                            </div>
+                          </div>
                         </td>
 
                         <td
@@ -1877,8 +2121,146 @@ export default function AdminProducts() {
                   }
                 )}
               </tbody>
-            </table>
-          </div>
+              </table>
+            </div>
+
+            <nav
+              aria-label={t(
+                'products.paginationLabel'
+              )}
+              style={
+                styles.pagination
+              }
+            >
+              <div
+                style={
+                  styles.paginationSummary
+                }
+              >
+                {t(
+                  'products.paginationSummary',
+                  {
+                    start:
+                      Math.min(
+                        (pagination.page -
+                          1) *
+                          pagination.pageSize +
+                          1,
+                        pagination.total
+                      ),
+
+                    end:
+                      Math.min(
+                        pagination.page *
+                          pagination.pageSize,
+                        pagination.total
+                      ),
+
+                    total:
+                      pagination.total,
+                  }
+                )}
+              </div>
+
+              {pagination.pages >
+                1 && (
+                <div
+                  style={
+                    styles.paginationControls
+                  }
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      goToPage(
+                        page - 1
+                      )
+                    }
+                    disabled={
+                      loading ||
+                      page <= 1
+                    }
+                    style={{
+                      ...styles.paginationButton,
+
+                      ...(page <= 1
+                        ? styles.paginationButtonDisabled
+                        : {}),
+                    }}
+                    aria-label={t(
+                      'products.previousPage'
+                    )}
+                  >
+                    ‹
+                  </button>
+
+                  {getVisiblePages().map(
+                    pageNumber => (
+                      <button
+                        key={
+                          pageNumber
+                        }
+                        type="button"
+                        onClick={() =>
+                          goToPage(
+                            pageNumber
+                          )
+                        }
+                        disabled={
+                          loading
+                        }
+                        aria-current={
+                          pageNumber ===
+                          page
+                            ? 'page'
+                            : undefined
+                        }
+                        style={{
+                          ...styles.paginationButton,
+
+                          ...(pageNumber ===
+                          page
+                            ? styles.paginationButtonActive
+                            : {}),
+                        }}
+                      >
+                        {
+                          pageNumber
+                        }
+                      </button>
+                    )
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      goToPage(
+                        page + 1
+                      )
+                    }
+                    disabled={
+                      loading ||
+                      page >=
+                        pagination.pages
+                    }
+                    style={{
+                      ...styles.paginationButton,
+
+                      ...(page >=
+                      pagination.pages
+                        ? styles.paginationButtonDisabled
+                        : {}),
+                    }}
+                    aria-label={t(
+                      'products.nextPage'
+                    )}
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
+            </nav>
+          </>
         )}
       </div>
 
@@ -2616,38 +2998,119 @@ export default function AdminProducts() {
                           `url_image${index}`
 
                         return (
-                          <label
+                          <div
                             key={
                               field
                             }
                             style={
-                              styles.field
+                              styles.imageField
                             }
                           >
-                            <span
+                            <div
                               style={
-                                styles.label
+                                styles.imageFieldHeader
                               }
                             >
-                              {t(
-                                'products.image'
-                              )}{' '}
-                              {index}
-                            </span>
+                              <span
+                                style={
+                                  styles.label
+                                }
+                              >
+                                {t(
+                                  'products.image'
+                                )}{' '}
+                                {index}
+                              </span>
 
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={event =>
-                                uploadImage(
-                                  event,
-                                  field
-                                )
-                              }
+                              {form[field] && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateForm(
+                                      field,
+                                      ''
+                                    )
+                                  }
+                                  disabled={
+                                    saving
+                                  }
+                                  style={
+                                    styles.removeImageButton
+                                  }
+                                >
+                                  {t(
+                                    'products.removeImage'
+                                  )}
+                                </button>
+                              )}
+                            </div>
+
+                            <div
                               style={
-                                styles.fileInput
+                                styles.imagePreview
                               }
-                            />
+                            >
+                              {form[field] ? (
+                                <img
+                                  src={
+                                    form[field]
+                                  }
+                                  alt={`${form.name || t(
+                                    'products.product'
+                                  )} - ${t(
+                                    'products.image'
+                                  )} ${index}`}
+                                  loading="lazy"
+                                  decoding="async"
+                                  style={
+                                    styles.imagePreviewPicture
+                                  }
+                                />
+                              ) : (
+                                <div
+                                  style={
+                                    styles.imagePreviewEmpty
+                                  }
+                                >
+                                  {t(
+                                    'products.noImage'
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            <label
+                              style={
+                                styles.imageUploadButton
+                              }
+                            >
+                              <span>
+                                {form[field]
+                                  ? t(
+                                      'products.replaceImage'
+                                    )
+                                  : t(
+                                      'products.addImage'
+                                    )}
+                              </span>
+
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/avif"
+                                onChange={event =>
+                                  uploadImage(
+                                    event,
+                                    field
+                                  )
+                                }
+                                disabled={
+                                  saving
+                                }
+                                style={
+                                  styles.hiddenFileInput
+                                }
+                              />
+                            </label>
 
                             {form[field] && (
                               <span
@@ -2660,7 +3123,7 @@ export default function AdminProducts() {
                                 )}
                               </span>
                             )}
-                          </label>
+                          </div>
                         )
                       }
                     )}
@@ -3211,6 +3674,54 @@ const styles = {
     overflowX: 'auto',
   },
 
+  productIdentity: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    minWidth: 210,
+  },
+
+  productIdentityText: {
+    display: 'grid',
+    gap: 4,
+    minWidth: 0,
+  },
+
+  productName: {
+    display: '-webkit-box',
+    overflow: 'hidden',
+    WebkitBoxOrient:
+      'vertical',
+    WebkitLineClamp: 2,
+    lineHeight: 1.35,
+  },
+
+  productThumbnail: {
+    width: 58,
+    height: 58,
+    flex: '0 0 58px',
+    display: 'block',
+    borderRadius: 12,
+    border:
+      '1px solid #eee6dc',
+    background: '#f7f3ed',
+    objectFit: 'contain',
+  },
+
+  productThumbnailFallback: {
+    width: 58,
+    height: 58,
+    flex: '0 0 58px',
+    display: 'grid',
+    placeItems: 'center',
+    borderRadius: 12,
+    border:
+      '1px dashed #d8cfc3',
+    background: '#f7f3ed',
+    color: '#a69a8c',
+    fontSize: 20,
+  },  
+
   table: {
     width: '100%',
     borderCollapse:
@@ -3275,6 +3786,59 @@ const styles = {
     color: '#8a7f72',
     textAlign: 'center',
   },
+
+  pagination: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent:
+      'space-between',
+    gap: 14,
+    flexWrap: 'wrap',
+    paddingTop: 14,
+    marginTop: 4,
+    borderTop:
+      '1px solid #eee6dc',
+  },
+
+  paginationSummary: {
+    color: '#8a7f72',
+    fontSize: 12,
+  },
+
+  paginationControls: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent:
+      'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+
+  paginationButton: {
+    width: 40,
+    height: 40,
+    display: 'grid',
+    placeItems: 'center',
+    border:
+      '1px solid #e6ded2',
+    borderRadius: 12,
+    background: '#fff',
+    color: '#1f1a14',
+    fontSize: 13,
+    fontWeight: 900,
+    cursor: 'pointer',
+  },
+
+  paginationButtonActive: {
+    borderColor: '#1f1a14',
+    background: '#1f1a14',
+    color: '#fff',
+  },
+
+  paginationButtonDisabled: {
+    opacity: 0.4,
+    cursor: 'not-allowed',
+  },  
 
   modalOverlay: {
     position: 'fixed',
@@ -3388,6 +3952,99 @@ const styles = {
       'repeat(auto-fit, minmax(210px, 1fr))',
     gap: 12,
   },
+
+  imageField: {
+    display: 'grid',
+    gap: 10,
+    minWidth: 0,
+    padding: 12,
+    border:
+      '1px solid #eee6dc',
+    borderRadius: 18,
+    background: '#faf8f5',
+  },
+
+  imageFieldHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent:
+      'space-between',
+    gap: 10,
+  },
+
+  imagePreview: {
+    width: '100%',
+    aspectRatio: '4 / 3',
+    overflow: 'hidden',
+    borderRadius: 14,
+    border:
+      '1px solid #e6ded2',
+    background: '#fff',
+  },
+
+  imagePreviewPicture: {
+    width: '100%',
+    height: '100%',
+    display: 'block',
+    objectFit: 'contain',
+  },
+
+  imagePreviewEmpty: {
+    width: '100%',
+    height: '100%',
+    minHeight: 150,
+    display: 'grid',
+    placeItems: 'center',
+    padding: 16,
+    boxSizing:
+      'border-box',
+    color: '#8a7f72',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+
+  imageUploadButton: {
+    minHeight: 44,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent:
+      'center',
+    border:
+      '1px dashed #cbbfaf',
+    borderRadius: 14,
+    background: '#fff',
+    color: '#1f1a14',
+    padding: '10px 12px',
+    boxSizing:
+      'border-box',
+    fontSize: 12,
+    fontWeight: 900,
+    cursor: 'pointer',
+    textAlign: 'center',
+  },
+
+  hiddenFileInput: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    overflow: 'hidden',
+    clip:
+      'rect(0 0 0 0)',
+    whiteSpace: 'nowrap',
+    clipPath:
+      'inset(50%)',
+  },
+
+  removeImageButton: {
+    border: 'none',
+    background:
+      'transparent',
+    color: '#c0392b',
+    padding: 0,
+    fontSize: 11,
+    fontWeight: 900,
+    cursor: 'pointer',
+  },  
 
   field: {
     display: 'grid',
