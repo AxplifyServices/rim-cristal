@@ -19,6 +19,13 @@ type SupportedImage = {
     | 'image/avif';
 };
 
+export type StoredMediaObject = {
+  objectKey: string;
+  url: string;
+  contentType: string;
+  size: number;
+};
+
 @Injectable()
 export class StorageService implements OnModuleInit {
   private readonly logger = new Logger(StorageService.name);
@@ -267,6 +274,131 @@ async uploadHomepageBrochureImage(
     );
   }
 }
+
+  async readObjectFromUrl(
+    url: string,
+  ): Promise<Buffer> {
+    const objectKey = this.extractObjectKey(url);
+
+    if (!objectKey) {
+      throw new BadRequestException(
+        `L’URL ne correspond pas au stockage MinIO configuré : ${url}`,
+      );
+    }
+
+    try {
+      const stream = await this.client.getObject(
+        this.bucketName,
+        objectKey,
+      );
+
+      const chunks: Buffer[] = [];
+
+      for await (const chunk of stream) {
+        chunks.push(
+          Buffer.isBuffer(chunk)
+            ? chunk
+            : Buffer.from(chunk),
+        );
+      }
+
+      const buffer = Buffer.concat(chunks);
+
+      if (buffer.length === 0) {
+        throw new Error(
+          'L’objet récupéré depuis MinIO est vide.',
+        );
+      }
+
+      return buffer;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : String(error);
+
+      this.logger.error(
+        `Impossible de lire l’objet MinIO "${objectKey}" : ${message}`,
+      );
+
+      throw new InternalServerErrorException(
+        'Impossible de lire l’image source depuis le stockage.',
+      );
+    }
+  }
+
+  async uploadGeneratedImage(params: {
+    buffer: Buffer;
+    objectKey: string;
+    contentType?: string;
+  }): Promise<StoredMediaObject> {
+    const {
+      buffer,
+      objectKey,
+      contentType = 'image/webp',
+    } = params;
+
+    if (!buffer || buffer.length === 0) {
+      throw new BadRequestException(
+        'La variante générée est vide.',
+      );
+    }
+
+    const normalizedObjectKey = String(
+      objectKey || '',
+    )
+      .trim()
+      .replace(/^\/+/, '');
+
+    if (!normalizedObjectKey) {
+      throw new BadRequestException(
+        'La clé de stockage de la variante est invalide.',
+      );
+    }
+
+    if (
+      normalizedObjectKey.includes('..') ||
+      normalizedObjectKey.includes('\\')
+    ) {
+      throw new BadRequestException(
+        'La clé de stockage contient un chemin interdit.',
+      );
+    }
+
+    try {
+      await this.client.putObject(
+        this.bucketName,
+        normalizedObjectKey,
+        buffer,
+        buffer.length,
+        {
+          'Content-Type': contentType,
+          'Cache-Control':
+            'public, max-age=31536000, immutable',
+        },
+      );
+
+      return {
+        objectKey: normalizedObjectKey,
+        url: `${this.publicUrl}/${normalizedObjectKey}`,
+        contentType,
+        size: buffer.length,
+      };
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : String(error);
+
+      this.logger.error(
+        `Impossible de stocker la variante "${normalizedObjectKey}" : ${message}`,
+      );
+
+      throw new InternalServerErrorException(
+        'Impossible de stocker la variante optimisée.',
+      );
+    }
+  }
 
   async removeObjectFromUrl(url: string | null | undefined): Promise<void> {
     const objectKey = this.extractObjectKey(url);

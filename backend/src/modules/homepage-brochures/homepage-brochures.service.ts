@@ -1,11 +1,17 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { StorageService } from '../storage/storage.service';
+
+import {
+  MediaRegistryService,
+} from '../media-processing/media-registry.service';
+
 import {
   BROCHURE_IMAGE_FITS,
   BROCHURE_LINK_TARGETS,
@@ -17,9 +23,17 @@ import {
 
 @Injectable()
 export class HomepageBrochuresService {
+  private readonly logger =
+    new Logger(
+      HomepageBrochuresService.name,
+    );
+
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly storageService: StorageService,
+    private readonly prisma:
+      PrismaService,
+
+    private readonly mediaRegistryService:
+      MediaRegistryService,
   ) {}
 
   /**
@@ -139,7 +153,32 @@ export class HomepageBrochuresService {
         },
       });
 
-    return this.formatBrochure(brochure);
+try {
+  await this.mediaRegistryService
+    .syncBrochureImages(
+      brochure.id,
+      {
+        desktopImageUrl:
+          brochure.image_url,
+
+        mobileImageUrl:
+          brochure.mobile_image_url,
+      },
+    );
+} catch (error) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : String(error);
+
+  this.logger.warn(
+    `La brochure ${brochure.id} a été créée, mais l’enregistrement de ses variantes médias a échoué : ${message}`,
+  );
+}
+
+return this.formatBrochure(
+  brochure,
+);
   }
 
   async update(
@@ -162,10 +201,6 @@ export class HomepageBrochuresService {
     }
 
     const payload = this.normalizePayload(body, existing);
-
-    const oldDesktopImageUrl = existing.image_url;
-    const oldMobileImageUrl =
-      existing.mobile_image_url;
 
     const updated =
       await this.prisma.homepage_brochures.update({
@@ -211,32 +246,32 @@ export class HomepageBrochuresService {
         },
       });
 
-    /**
-     * Les anciennes images ne sont supprimées qu'après la réussite
-     * de la mise à jour en base.
-     */
-    const urlsToDelete = new Set<string>();
+try {
+  await this.mediaRegistryService
+    .syncBrochureImages(
+      updated.id,
+      {
+        desktopImageUrl:
+          updated.image_url,
 
-    if (
-      oldDesktopImageUrl &&
-      oldDesktopImageUrl !== updated.image_url
-    ) {
-      urlsToDelete.add(oldDesktopImageUrl);
-    }
+        mobileImageUrl:
+          updated.mobile_image_url,
+      },
+    );
+} catch (error) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : String(error);
 
-    if (
-      oldMobileImageUrl &&
-      oldMobileImageUrl !== updated.mobile_image_url &&
-      oldMobileImageUrl !== updated.image_url
-    ) {
-      urlsToDelete.add(oldMobileImageUrl);
-    }
+  this.logger.warn(
+    `La brochure ${updated.id} a été modifiée, mais la synchronisation de ses variantes médias a échoué : ${message}`,
+  );
+}
 
-    for (const url of urlsToDelete) {
-      await this.storageService.removeObjectFromUrl(url);
-    }
-
-    return this.formatBrochure(updated);
+return this.formatBrochure(
+  updated,
+);
   }
 
   async remove(id: number) {
@@ -255,30 +290,38 @@ export class HomepageBrochuresService {
       );
     }
 
-    await this.prisma.homepage_brochures.delete({
-      where: {
-        id: normalizedId,
-      },
-    });
+await this.prisma.homepage_brochures.delete({
+  where: {
+    id: normalizedId,
+  },
+});
 
-    const urlsToDelete = new Set<string>();
+let imageCleanupWarning = false;
 
-    if (existing.image_url) {
-      urlsToDelete.add(existing.image_url);
-    }
+try {
+  await this.mediaRegistryService
+    .removeBrochureMedia(
+      normalizedId,
+    );
+} catch (error) {
+  imageCleanupWarning = true;
 
-    if (existing.mobile_image_url) {
-      urlsToDelete.add(existing.mobile_image_url);
-    }
+  const message =
+    error instanceof Error
+      ? error.message
+      : String(error);
 
-    for (const url of urlsToDelete) {
-      await this.storageService.removeObjectFromUrl(url);
-    }
+  this.logger.warn(
+    `La brochure ${normalizedId} a été supprimée, mais le nettoyage de ses médias a échoué : ${message}`,
+  );
+}
 
-    return {
-      success: true,
-      id: normalizedId,
-    };
+return {
+  success: true,
+  id: normalizedId,
+  image_cleanup_warning:
+    imageCleanupWarning,
+};
   }
 
   /**

@@ -5,8 +5,12 @@ import {
   useRef,
   useState,
 } from 'react'
+
+import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import {
+  useRouter,
+} from 'next/navigation'
 
 import { useCart } from '../context/CartContext'
 import {
@@ -131,6 +135,7 @@ function CheckIcon() {
 
 export default function ProductCard({
   product,
+  imagePriority = false,
 }) {
   const router = useRouter()
   const { add } = useCart()
@@ -454,15 +459,23 @@ export default function ProductCard({
             handleImageLinkClick
           }
         >
-          <img
+          <Image
             key={`${product.id}-${currentImage}`}
             src={currentImage}
-            alt={`${product.name} - ${
-              imageIndex + 1
-            }`}
+            alt={product.name}
+            fill
+            sizes="
+              (max-width: 520px) 50vw,
+              (max-width: 900px) 33vw,
+              (max-width: 1280px) 25vw,
+              320px
+            "
+            priority={
+              imagePriority &&
+              imageIndex === 0
+            }
+            quality={76}
             className="product-image"
-            loading="lazy"
-            draggable="false"
           />
         </Link>
 

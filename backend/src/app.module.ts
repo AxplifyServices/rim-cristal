@@ -10,6 +10,7 @@ import { PointOfSaleModule } from './modules/point-of-sale/point-of-sale.module'
 import { ProductsModule } from './modules/products/products.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { MediaProcessingModule } from './modules/media-processing/media-processing.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { PrismaModule } from './prisma/prisma.module';
     PointOfSaleModule,
     ContactsModule,
     HomepageBrochuresModule,
+    MediaProcessingModule,
   ],
 })
 export class AppModule {}

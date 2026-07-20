@@ -11,16 +11,22 @@ import {
   PRODUCT_RUBRIQUES,
 } from './product-rubriques';
 
-import { StorageService } from '../storage/storage.service';
+
+import {
+  MediaRegistryService,
+} from '../media-processing/media-registry.service';
 
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
 
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly storageService: StorageService,
-  ) {}
+constructor(
+  private readonly prisma:
+    PrismaService,
+
+  private readonly mediaRegistryService:
+    MediaRegistryService,
+) {}
 
 private normalizeProductColors(
   hasColorVariants: boolean,
@@ -1359,6 +1365,44 @@ async create(body: any) {
         },
       );
 
+    if (!product) {
+      throw new InternalServerErrorException(
+        'Le produit a été créé mais sa lecture a échoué.',
+      );
+    }
+
+try {
+  await this.mediaRegistryService
+    .syncProductImages(
+      product.id,
+      {
+        urlImage1:
+          product.url_image1,
+
+        urlImage2:
+          product.url_image2,
+
+        urlImage3:
+          product.url_image3,
+
+        urlImage4:
+          product.url_image4,
+
+        urlImage5:
+          product.url_image5,
+      },
+    );
+} catch (error) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : String(error);
+
+  this.logger.warn(
+    `Le produit ${product.id} a été créé, mais l’enregistrement de ses variantes médias a échoué : ${message}`,
+  );
+}
+
     return this.serializeProduct(
       product,
     );
@@ -2009,6 +2053,44 @@ async update(
         },
       );
 
+    if (!product) {
+      throw new InternalServerErrorException(
+        'Le produit a été modifié mais sa lecture a échoué.',
+      );
+    }
+
+try {
+  await this.mediaRegistryService
+    .syncProductImages(
+      product.id,
+      {
+        urlImage1:
+          product.url_image1,
+
+        urlImage2:
+          product.url_image2,
+
+        urlImage3:
+          product.url_image3,
+
+        urlImage4:
+          product.url_image4,
+
+        urlImage5:
+          product.url_image5,
+      },
+    );
+} catch (error) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : String(error);
+
+  this.logger.warn(
+    `Le produit ${product.id} a été modifié, mais la synchronisation de ses variantes médias a échoué : ${message}`,
+  );
+}
+
     return this.serializeProduct(
       product,
     );
@@ -2040,15 +2122,7 @@ async update(
 }
 
 async remove(id: number) {
-  const product = await this.findById(id);
-
-  const imageUrls = [
-    product.url_image1,
-    product.url_image2,
-    product.url_image3,
-    product.url_image4,
-    product.url_image5,
-  ].filter((url): url is string => Boolean(url));
+  await this.findById(id);
 
   try {
     await this.prisma.$transaction(async tx => {
@@ -2146,35 +2220,31 @@ await tx
     );
   }
 
-  /*
-   * Les fichiers MinIO sont supprimés après validation de la transaction.
-   * Une erreur MinIO ne doit pas restaurer un produit déjà supprimé.
-   */
-  const imageDeletionResults =
-    await Promise.allSettled(
-      imageUrls.map(url =>
-        this.storageService.removeObjectFromUrl(url),
-      ),
-    );
+let imageCleanupWarning = false;
 
-  const failedImageDeletions =
-    imageDeletionResults.filter(
-      result => result.status === 'rejected',
-    ).length;
+try {
+  await this.mediaRegistryService
+    .removeProductMedia(id);
+} catch (error) {
+  imageCleanupWarning = true;
 
-  if (failedImageDeletions > 0) {
-    this.logger.warn(
-      `${failedImageDeletions} image(s) MinIO du produit ${id} n’ont pas pu être supprimées.`,
-    );
-  }
+  const message =
+    error instanceof Error
+      ? error.message
+      : String(error);
 
-  return {
-    success: true,
-    deleted_product_id: id,
-    detached_order_items: true,
-    detached_point_of_sale_sale_items: true,
-    image_cleanup_warning:
-      failedImageDeletions > 0,
-  };
+  this.logger.warn(
+    `Le produit ${id} a été supprimé, mais le nettoyage de ses médias a échoué : ${message}`,
+  );
+}
+
+return {
+  success: true,
+  deleted_product_id: id,
+  detached_order_items: true,
+  detached_point_of_sale_sale_items: true,
+  image_cleanup_warning:
+    imageCleanupWarning,
+};
 }
 }

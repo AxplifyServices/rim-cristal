@@ -496,15 +496,31 @@ export async function getProductsPage(
   const query =
     buildProductsQuery(options)
 
+  const isServer =
+    typeof window ===
+    'undefined'
+
   const response = await fetch(
     `${PUBLIC_API_BASE}/products?${query}`,
     {
       method: 'GET',
+
       headers: {
         Accept:
           'application/json',
       },
-      cache: 'no-store',
+
+      cache: isServer
+        ? 'force-cache'
+        : 'no-store',
+
+      ...(isServer
+        ? {
+            next: {
+              revalidate: 60,
+            },
+          }
+        : {}),
     }
   )
 

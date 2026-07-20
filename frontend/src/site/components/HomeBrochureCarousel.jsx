@@ -1,5 +1,8 @@
 'use client'
 
+import {
+  getImageProps,
+} from 'next/image'
 import Link from 'next/link'
 import {
   useCallback,
@@ -8,9 +11,7 @@ import {
   useState,
 } from 'react'
 import { useSiteI18n } from '../i18n/SiteI18nProvider'
-import {
-  getHomepageBrochures,
-} from '../lib/homepageBrochures'
+
 
 const AUTOPLAY_DELAY = 6000
 const SWIPE_THRESHOLD = 45
@@ -34,7 +35,7 @@ function clamp(
 
 function BrochureImage({
   brochure,
-  locale,
+  priority = false,
 }) {
   const desktopZoom = clamp(
     brochure.desktopZoom,
@@ -48,68 +49,108 @@ function BrochureImage({
     4
   )
 
-const altText =
-  brochure.altTextFr ||
-  brochure.altTextEn ||
-  ''
+  const altText =
+    brochure.altTextFr ||
+    brochure.altTextEn ||
+    ''
+
+  const sharedStyle = {
+    '--brochure-desktop-fit':
+      brochure.desktopFit,
+
+    '--brochure-desktop-position-x':
+      `${clamp(
+        brochure.desktopPositionX,
+        0,
+        100
+      )}%`,
+
+    '--brochure-desktop-position-y':
+      `${clamp(
+        brochure.desktopPositionY,
+        0,
+        100
+      )}%`,
+
+    '--brochure-desktop-zoom':
+      desktopZoom,
+
+    '--brochure-mobile-fit':
+      brochure.mobileFit,
+
+    '--brochure-mobile-position-x':
+      `${clamp(
+        brochure.mobilePositionX,
+        0,
+        100
+      )}%`,
+
+    '--brochure-mobile-position-y':
+      `${clamp(
+        brochure.mobilePositionY,
+        0,
+        100
+      )}%`,
+
+    '--brochure-mobile-zoom':
+      mobileZoom,
+  }
+
+  const {
+    props: desktopImageProps,
+  } = getImageProps({
+    src:
+      brochure.imageUrl,
+    alt: altText,
+    fill: true,
+    sizes: '100vw',
+    quality: 82,
+    priority,
+  })
+
+  const mobileImage =
+    brochure.mobileImageUrl
+      ? getImageProps({
+          src:
+            brochure.mobileImageUrl,
+          alt: altText,
+          fill: true,
+          sizes: '100vw',
+          quality: 78,
+          priority,
+        }).props
+      : null
 
   return (
     <picture className="home-brochure-picture">
-      {brochure.mobileImageUrl && (
+      {mobileImage && (
         <source
           media="(max-width: 760px)"
           srcSet={
-            brochure.mobileImageUrl
+            mobileImage.srcSet
+          }
+          sizes={
+            mobileImage.sizes
           }
         />
       )}
 
       <img
-        src={brochure.imageUrl}
+        {...desktopImageProps}
         alt={altText}
         draggable={false}
+        fetchPriority={
+          priority
+            ? 'high'
+            : 'auto'
+        }
+        loading={
+          priority
+            ? 'eager'
+            : 'lazy'
+        }
         className="home-brochure-image"
-        style={{
-          '--brochure-desktop-fit':
-            brochure.desktopFit,
-
-          '--brochure-desktop-position-x':
-            `${clamp(
-              brochure.desktopPositionX,
-              0,
-              100
-            )}%`,
-
-          '--brochure-desktop-position-y':
-            `${clamp(
-              brochure.desktopPositionY,
-              0,
-              100
-            )}%`,
-
-          '--brochure-desktop-zoom':
-            desktopZoom,
-
-          '--brochure-mobile-fit':
-            brochure.mobileFit,
-
-          '--brochure-mobile-position-x':
-            `${clamp(
-              brochure.mobilePositionX,
-              0,
-              100
-            )}%`,
-
-          '--brochure-mobile-position-y':
-            `${clamp(
-              brochure.mobilePositionY,
-              0,
-              100
-            )}%`,
-
-          '--brochure-mobile-zoom':
-            mobileZoom,
-        }}
+        style={sharedStyle}
       />
     </picture>
   )
@@ -119,11 +160,12 @@ function BrochureContent({
   brochure,
   locale,
   clickable,
+  priority,
 }) {
   const image = (
     <BrochureImage
       brochure={brochure}
-      locale={locale}
+      priority={priority}
     />
   )
 
@@ -184,23 +226,33 @@ brochure.altTextEn ||
   )
 }
 
-export default function HomeBrochureCarousel() {
+export default function HomeBrochureCarousel({
+  initialBrochures = [],
+  initialLoadFailed = false,
+}) {
   const {
     locale,
     t,
   } = useSiteI18n()
 
-  const [brochures, setBrochures] =
-    useState([])
+  const brochures =
+    Array.isArray(
+      initialBrochures
+    )
+      ? initialBrochures
+      : []
 
   const [activeIndex, setActiveIndex] =
     useState(0)
 
-  const [loading, setLoading] =
-    useState(true)
+  const loading = false
 
-  const [error, setError] =
-    useState('')
+  const error =
+    initialLoadFailed
+      ? t(
+          'home.brochuresLoadError'
+        )
+      : ''
 
   const [paused, setPaused] =
     useState(false)
@@ -253,53 +305,6 @@ export default function HomeBrochureCarousel() {
       activeIndex,
       goToSlide,
     ])
-
-  useEffect(() => {
-    const controller =
-      new AbortController()
-
-    async function loadBrochures() {
-      setLoading(true)
-      setError('')
-
-      try {
-        const items =
-          await getHomepageBrochures(
-            controller.signal
-          )
-
-        setBrochures(items)
-        setActiveIndex(0)
-      } catch (loadError) {
-        if (
-          loadError?.name ===
-          'AbortError'
-        ) {
-          return
-        }
-
-        console.error(loadError)
-
-        setError(
-          t(
-            'home.brochuresLoadError'
-          )
-        )
-      } finally {
-        if (
-          !controller.signal.aborted
-        ) {
-          setLoading(false)
-        }
-      }
-    }
-
-    loadBrochures()
-
-    return () => {
-      controller.abort()
-    }
-  }, [t])
 
   useEffect(() => {
     if (
@@ -570,6 +575,9 @@ export default function HomeBrochureCarousel() {
                   locale={locale}
                   clickable={
                     isActive
+                  }
+                  priority={
+                    index === 0
                   }
                 />
               </article>

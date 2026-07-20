@@ -496,3 +496,27 @@ model homepage_brochures {
   @@index([is_active, sort_order, id], map: "idx_homepage_brochures_public")
   @@index([sort_order, id], map: "idx_homepage_brochures_sort_order")
 }
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model media_variants {
+  id                 Int      @id @default(autoincrement())
+  owner_type         String   @db.VarChar(40)
+  owner_id           Int
+  source_slot        String   @db.VarChar(40)
+  variant_type       String   @db.VarChar(30)
+  original_url       String
+  variant_url        String
+  storage_object_key String?
+  width              Int?
+  height             Int?
+  file_size_bytes    BigInt?
+  mime_type          String?  @db.VarChar(100)
+  processing_status  String   @default("READY") @db.VarChar(20)
+  processing_error   String?
+  created_at         DateTime @default(now()) @db.Timestamp(6)
+  updated_at         DateTime @default(now()) @db.Timestamp(6)
+
+  @@unique([owner_type, owner_id, source_slot, variant_type], map: "uq_media_variants_owner_slot_variant")
+  @@index([original_url], map: "idx_media_variants_original_url")
+  @@index([owner_type, owner_id, source_slot], map: "idx_media_variants_owner")
+}

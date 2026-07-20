@@ -119,15 +119,37 @@ function normalizeBrochure(
 export async function getHomepageBrochures(
   signal
 ) {
+  const isServer =
+    typeof window ===
+    'undefined'
+
   const response = await fetch(
     `${PUBLIC_API_BASE}/homepage-brochures`,
     {
       method: 'GET',
+
       headers: {
-        Accept: 'application/json',
+        Accept:
+          'application/json',
       },
-      cache: 'no-store',
-      signal,
+
+      cache: isServer
+        ? 'force-cache'
+        : 'no-store',
+
+      ...(isServer
+        ? {
+            next: {
+              revalidate: 60,
+            },
+          }
+        : {}),
+
+      ...(signal
+        ? {
+            signal,
+          }
+        : {}),
     }
   )
 
@@ -174,7 +196,10 @@ export async function getHomepageBrochures(
         a.sortOrder -
         b.sortOrder
 
-      if (orderDifference !== 0) {
+      if (
+        orderDifference !==
+        0
+      ) {
         return orderDifference
       }
 
