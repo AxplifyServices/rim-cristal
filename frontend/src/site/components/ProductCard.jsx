@@ -280,6 +280,35 @@ const adjacentImages =
   const isOutOfStock =
     stock <= 0
 
+  const hasPromotion =
+    Boolean(
+      product.hasPromotion
+    ) &&
+    Number(
+      product.promotionPercentage
+    ) > 0 &&
+    Number(
+      product.originalPrice
+    ) >
+      Number(
+        product.price
+      )
+
+  const promotionLabel =
+    hasPromotion
+      ? `-${new Intl.NumberFormat(
+          locale === 'ar'
+            ? 'ar-MA'
+            : 'fr-MA',
+          {
+            maximumFractionDigits:
+              2,
+          }
+        ).format(
+          product.promotionPercentage
+        )}%`
+      : ''
+
   const requiresConfiguration =
     Boolean(
       product.hasColorVariants &&
@@ -590,6 +619,11 @@ setShouldPreloadAdjacent(
           handleTouchEnd
         }
       >
+        {hasPromotion && (
+          <span className="product-promotion-badge">
+            {promotionLabel}
+          </span>
+        )}        
         <Link
           href={`/product/${product.slug}`}
           className="product-image-link"
@@ -737,17 +771,40 @@ setShouldPreloadAdjacent(
         </div>
 
         <div className="product-card-footer">
-          <strong className="product-price">
-            {formatPrice(
-              product.price,
-              locale
-            )}{' '}
-            <span>
-              {t(
-                'common.currency'
-              )}
-            </span>
-          </strong>
+          <div
+            className={[
+              'product-card-prices',
+              hasPromotion
+                ? 'has-promotion'
+                : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            {hasPromotion && (
+              <span className="product-old-price">
+                {formatPrice(
+                  product.originalPrice,
+                  locale
+                )}{' '}
+                {t(
+                  'common.currency'
+                )}
+              </span>
+            )}
+
+            <strong className="product-price">
+              {formatPrice(
+                product.price,
+                locale
+              )}{' '}
+              <span>
+                {t(
+                  'common.currency'
+                )}
+              </span>
+            </strong>
+          </div>
 
           <button
             type="button"

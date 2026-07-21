@@ -80,6 +80,45 @@ private serializeBigInt(value: any): any {
   return value;
 }
 
+private calculateWebPromotionalPrice(
+  originalPrice: unknown,
+  promotionPercentage: unknown,
+): number {
+  const price = Number(
+    originalPrice || 0,
+  );
+
+  const percentage = Number(
+    promotionPercentage || 0,
+  );
+
+  if (
+    !Number.isFinite(price) ||
+    price < 0
+  ) {
+    throw new BadRequestException(
+      'Invalid product price',
+    );
+  }
+
+  if (
+    !Number.isFinite(percentage) ||
+    percentage <= 0 ||
+    percentage >= 100
+  ) {
+    return price;
+  }
+
+  return (
+    Math.ceil(
+      (
+        price *
+        (1 - percentage / 100)
+      ) / 10,
+    ) * 10
+  );
+}
+
 private formatOrder(order: any) {
   if (!order) {
     return order;
@@ -818,6 +857,9 @@ private async createOrder({
         has_size_variants:
           true,
 
+promotion_percentage:
+  true,          
+
         product_size_variants: {
           where: {
             is_active: true,
@@ -1053,31 +1095,52 @@ private async createOrder({
         );
       }
 
-      const retailPrice =
-        Number(
-          item.variant.price,
-        );
+const originalRetailPrice =
+  Number(
+    item.variant.price,
+  );
 
-      const wholesalePrice =
-        Number(
-          item.variant
-            .price_wholesale ||
-            0,
-        );
+const promotionalRetailPrice =
+  context.orderOrigin ===
+  'website'
+    ? this.calculateWebPromotionalPrice(
+        originalRetailPrice,
+        item.product
+          .promotion_percentage,
+      )
+    : originalRetailPrice;
 
-      const wholesaleMinQty =
-        Number(
-          item.variant
-            .wholesale_min_qty ||
-            1,
-        );
+const wholesalePrice =
+  Number(
+    item.variant
+      .price_wholesale ||
+      0,
+  );
 
-      const unitPrice =
-        wholesalePrice > 0 &&
+const wholesaleMinQty =
+  Number(
+    item.variant
+      .wholesale_min_qty ||
+      1,
+  );
+
+/*
+ * Les promotions sont appliquées uniquement
+ * aux commandes provenant du site web.
+ *
+ * Les commandes admin et POS conservent :
+ * - le prix normal ;
+ * - ou le prix de gros si le seuil est atteint.
+ */
+const unitPrice =
+  context.orderOrigin ===
+  'website'
+    ? promotionalRetailPrice
+    : wholesalePrice > 0 &&
         item.quantity >=
           wholesaleMinQty
-          ? wholesalePrice
-          : retailPrice;
+      ? wholesalePrice
+      : originalRetailPrice;
 
       return {
         product_id:

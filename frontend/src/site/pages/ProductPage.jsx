@@ -301,9 +301,38 @@ function handleTouchEnd(event) {
   const isOutOfStock =
     Number(product.stock || 0) <= 0
 
-const showStockCounter =
-  Number(product.stock || 0) > 0 &&
-  Number(product.stock || 0) <= 10
+  const hasPromotion =
+    Boolean(
+      product.hasPromotion
+    ) &&
+    Number(
+      product.promotionPercentage
+    ) > 0 &&
+    Number(
+      product.originalPrice
+    ) >
+      Number(
+        product.price
+      )
+
+  const promotionLabel =
+    hasPromotion
+      ? `-${new Intl.NumberFormat(
+          locale === 'ar'
+            ? 'ar-MA'
+            : 'fr-MA',
+          {
+            maximumFractionDigits:
+              2,
+          }
+        ).format(
+          product.promotionPercentage
+        )}%`
+      : ''
+
+  const showStockCounter =
+    Number(product.stock || 0) > 0 &&
+    Number(product.stock || 0) <= 10
 
   const canAddToCart =
     !colorChoiceRequired ||
@@ -347,6 +376,12 @@ const showStockCounter =
     onTouchStart={handleTouchStart}
     onTouchEnd={handleTouchEnd}
   >
+    {hasPromotion && (
+      <span className="product-promotion-badge product-promotion-badge-detail">
+        {promotionLabel}
+      </span>
+    )}
+
     <div className="product-main-image">
       <img
         src={selectedImage}
@@ -437,14 +472,37 @@ const showStockCounter =
 
               <h1>{product.name}</h1>
 
-              <div className="detail-price">
-                {formatPrice(
-                  product.price,
-                  locale
-                )}{' '}
-                {t(
-                  'common.currency'
+              <div
+                className={[
+                  'detail-price',
+                  hasPromotion
+                    ? 'has-promotion'
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
+                {hasPromotion && (
+                  <span className="detail-old-price">
+                    {formatPrice(
+                      product.originalPrice,
+                      locale
+                    )}{' '}
+                    {t(
+                      'common.currency'
+                    )}
+                  </span>
                 )}
+
+                <strong className="detail-current-price">
+                  {formatPrice(
+                    product.price,
+                    locale
+                  )}{' '}
+                  {t(
+                    'common.currency'
+                  )}
+                </strong>
               </div>
 
               <div

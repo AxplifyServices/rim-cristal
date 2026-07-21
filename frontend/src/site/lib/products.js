@@ -342,6 +342,44 @@ export function mapProduct(
       false
     )
 
+  const originalPrice =
+    Number(
+      product.price || 0
+    )
+
+  const promotionPercentage =
+    product.promotion_percentage ===
+      null ||
+    product.promotion_percentage ===
+      undefined ||
+    product.promotion_percentage ===
+      ''
+      ? null
+      : Number(
+          product.promotion_percentage
+        )
+
+  const promotionalPrice =
+    Number(
+      product.promotional_price ??
+      originalPrice
+    )
+
+  const hasPromotion =
+    Boolean(
+      product.has_promotion
+    ) &&
+    Number.isFinite(
+      promotionPercentage
+    ) &&
+    promotionPercentage > 0 &&
+    promotionPercentage < 100 &&
+    Number.isFinite(
+      promotionalPrice
+    ) &&
+    promotionalPrice <
+      originalPrice    
+
   return {
     id: product.id,
 
@@ -371,10 +409,24 @@ export function mapProduct(
     description:
       product.description || '',
 
-    price:
-      Number(
-        product.price || 0
-      ),
+price:
+  hasPromotion
+    ? promotionalPrice
+    : originalPrice,
+
+originalPrice,
+
+promotionalPrice:
+  hasPromotion
+    ? promotionalPrice
+    : originalPrice,
+
+promotionPercentage:
+  hasPromotion
+    ? promotionPercentage
+    : null,
+
+hasPromotion,
 
     stock:
       Math.max(

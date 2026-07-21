@@ -153,6 +153,9 @@ function createEmptyForm() {
     colors: [],
 
     badge: '',
+
+    promotion_percentage: '',
+
     is_active: true,
     is_available_on_site: true,
     is_bestseller: false,
@@ -964,6 +967,10 @@ export default function AdminProducts() {
       badge:
         product.badge || '',
 
+      promotion_percentage:
+        product.promotion_percentage ??
+        '',
+
       is_active:
         product.is_active !==
         false,
@@ -1159,6 +1166,31 @@ export default function AdminProducts() {
         )
       }
     )
+    if (
+      form.promotion_percentage !==
+        '' &&
+      form.promotion_percentage !==
+        null &&
+      form.promotion_percentage !==
+        undefined
+    ) {
+      const promotionPercentage =
+        Number(
+          form.promotion_percentage
+        )
+
+      if (
+        !Number.isFinite(
+          promotionPercentage
+        ) ||
+        promotionPercentage <= 0 ||
+        promotionPercentage >= 100
+      ) {
+        throw new Error(
+          'La promotion doit être supérieure à 0 % et inférieure à 100 %.'
+        )
+      }
+    }    
   }
 
   function formToPayload() {
@@ -1381,6 +1413,18 @@ export default function AdminProducts() {
       badge:
         form.badge.trim() ||
         null,
+
+      promotion_percentage:
+        form.promotion_percentage ===
+          '' ||
+        form.promotion_percentage ===
+          null ||
+        form.promotion_percentage ===
+          undefined
+          ? null
+          : Number(
+              form.promotion_percentage
+            ),
 
       is_active:
         Boolean(
@@ -2542,130 +2586,146 @@ export default function AdminProducts() {
                   </div>
                 </section>
 
-                <section
-                  style={
-                    styles.formSection
-                  }
-                >
-                  <div
-                    style={
-                      styles.sectionHeading
-                    }
-                  >
-                    <h2
-                      style={
-                        styles.sectionTitle
-                      }
-                    >
-                      Disponibilité et options
-                    </h2>
-                  </div>
+<section
+  style={
+    styles.formSection
+  }
+>
+  <div
+    style={
+      styles.sectionHeading
+    }
+  >
+    <h2
+      style={
+        styles.sectionTitle
+      }
+    >
+      Disponibilité et options
+    </h2>
+  </div>
 
-                  <div
-                    style={
-                      styles.formGrid
-                    }
-                  >
-                    <BooleanField
-                      label="Disponible en plusieurs tailles"
-                      value={
-                        form.has_size_variants
-                      }
-                      onChange={value =>
-                        updateForm(
-                          'has_size_variants',
-                          value
-                        )
-                      }
-                    />
+  <div
+    style={
+      styles.formGrid
+    }
+  >
+    <NumberField
+      label="Promotion (%)"
+      value={
+        form.promotion_percentage
+      }
+      onChange={value =>
+        updateForm(
+          'promotion_percentage',
+          value
+        )
+      }
+      min="0.01"
+    />
 
-                    <BooleanField
-                      label={t(
-                        'products.hasColorVariants'
-                      )}
-                      value={
-                        form.has_color_variants
-                      }
-                      onChange={value =>
-                        updateForm(
-                          'has_color_variants',
-                          value
-                        )
-                      }
-                    />
+    <BooleanField
+      label="Disponible en plusieurs tailles"
+      value={
+        form.has_size_variants
+      }
+      onChange={value =>
+        updateForm(
+          'has_size_variants',
+          value
+        )
+      }
+    />
 
-                    <BooleanField
-                      label={t(
-                        'products.status'
-                      )}
-                      value={
-                        form.is_active
-                      }
-                      onChange={value =>
-                        updateForm(
-                          'is_active',
-                          value
-                        )
-                      }
-                      trueLabel={t(
-                        'products.active'
-                      )}
-                      falseLabel={t(
-                        'products.inactive'
-                      )}
-                    />
+    <BooleanField
+      label={t(
+        'products.hasColorVariants'
+      )}
+      value={
+        form.has_color_variants
+      }
+      onChange={value =>
+        updateForm(
+          'has_color_variants',
+          value
+        )
+      }
+    />
 
-                    <BooleanField
-                      label={t(
-                        'products.availableOnSite'
-                      )}
-                      value={
-                        form.is_available_on_site
-                      }
-                      onChange={value =>
-                        updateForm(
-                          'is_available_on_site',
-                          value
-                        )
-                      }
-                    />
+    <BooleanField
+      label={t(
+        'products.status'
+      )}
+      value={
+        form.is_active
+      }
+      onChange={value =>
+        updateForm(
+          'is_active',
+          value
+        )
+      }
+      trueLabel={t(
+        'products.active'
+      )}
+      falseLabel={t(
+        'products.inactive'
+      )}
+    />
 
-                    <BooleanField
-                      label={t(
-                        'products.bestseller'
-                      )}
-                      value={
-                        form.is_bestseller
-                      }
-                      onChange={value =>
-                        updateForm(
-                          'is_bestseller',
-                          value
-                        )
-                      }
-                    />
-                  </div>
+    <BooleanField
+      label={t(
+        'products.availableOnSite'
+      )}
+      value={
+        form.is_available_on_site
+      }
+      onChange={value =>
+        updateForm(
+          'is_available_on_site',
+          value
+        )
+      }
+    />
 
-                  {form.has_color_variants && (
-                    <MultiSelectField
-                      label={t(
-                        'products.colors'
-                      )}
-                      value={
-                        form.colors
-                      }
-                      options={
-                        COLOR_OPTIONS
-                      }
-                      onChange={value =>
-                        updateForm(
-                          'colors',
-                          value
-                        )
-                      }
-                    />
-                  )}
-                </section>
+    <BooleanField
+      label={t(
+        'products.bestseller'
+      )}
+      value={
+        form.is_bestseller
+      }
+      onChange={value =>
+        updateForm(
+          'is_bestseller',
+          value
+        )
+      }
+    />
+  </div>
+
+
+
+  {form.has_color_variants && (
+    <MultiSelectField
+      label={t(
+        'products.colors'
+      )}
+      value={
+        form.colors
+      }
+      options={
+        COLOR_OPTIONS
+      }
+      onChange={value =>
+        updateForm(
+          'colors',
+          value
+        )
+      }
+    />
+  )}
+</section>
 
                 <section
                   style={

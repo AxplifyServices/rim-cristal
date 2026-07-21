@@ -160,6 +160,130 @@ private parseBoolean(
   ].includes(normalized);
 }
 
+private normalizePromotionPercentage(
+  value: unknown,
+): number | null {
+  if (
+    value === undefined ||
+    value === null ||
+    String(value).trim() === ''
+  ) {
+    return null;
+  }
+
+  const percentage = Number(value);
+
+  if (!Number.isFinite(percentage)) {
+    throw new BadRequestException(
+      'promotion_percentage must be a valid number',
+    );
+  }
+
+  if (
+    percentage <= 0 ||
+    percentage >= 100
+  ) {
+    throw new BadRequestException(
+      'promotion_percentage must be greater than 0 and lower than 100',
+    );
+  }
+
+  return Math.round(
+    percentage * 100,
+  ) / 100;
+}
+
+private calculatePromotionalPrice(
+  originalPrice: unknown,
+  promotionPercentage: unknown,
+): number {
+  const price = Number(
+    originalPrice || 0,
+  );
+
+  const percentage = Number(
+    promotionPercentage || 0,
+  );
+
+  if (
+    !Number.isFinite(price) ||
+    price <= 0 ||
+    !Number.isFinite(percentage) ||
+    percentage <= 0 ||
+    percentage >= 100
+  ) {
+    return Math.max(
+      price,
+      0,
+    );
+  }
+
+  const rawDiscountedPrice =
+    price *
+    (1 - percentage / 100);
+
+  /*
+   * Majoration vers le prochain multiple de 10.
+   *
+   * 847 DH -> 850 DH
+   * 840 DH -> 840 DH
+   */
+  return (
+    Math.ceil(
+      rawDiscountedPrice / 10,
+    ) * 10
+  );
+}
+
+private buildPromotionData(
+  originalPrice: unknown,
+  promotionPercentage: unknown,
+) {
+  const originalPriceNumber =
+    Number(
+      originalPrice || 0,
+    );
+
+  const percentage =
+    promotionPercentage === null ||
+    promotionPercentage === undefined
+      ? null
+      : Number(
+          promotionPercentage,
+        );
+
+  const hasPromotion =
+    Number.isFinite(
+      percentage,
+    ) &&
+    Number(percentage) > 0 &&
+    Number(percentage) < 100;
+
+  const promotionalPrice =
+    hasPromotion
+      ? this.calculatePromotionalPrice(
+          originalPriceNumber,
+          percentage,
+        )
+      : originalPriceNumber;
+
+  return {
+    has_promotion:
+      hasPromotion,
+
+    promotion_percentage:
+      hasPromotion
+        ? Number(percentage)
+        : null,
+
+    original_price:
+      originalPriceNumber,
+
+    promotional_price:
+      promotionalPrice,
+  };
+}
+
 private buildSizeLabel(
   widthCm: number | null,
   depthCm: number | null,
@@ -620,8 +744,15 @@ private serializeProduct(
       mediaVariants,
     );
 
+  const productPromotion =
+    this.buildPromotionData(
+      product.price,
+      product.promotion_percentage,
+    );    
+
   return {
     ...product,
+    ...productPromotion,
 
     /*
      * Compatibilité avec le frontend et l'admin actuels.
@@ -665,60 +796,78 @@ private serializeProduct(
         null,
     },
 
-    product_size_variants:
-      Array.isArray(
-        product.product_size_variants,
+product_size_variants:
+  Array.isArray(
+    product.product_size_variants,
+  )
+    ? product.product_size_variants.map(
+        (variant: any) => {
+          /*
+           * La promotion appartient au produit,
+           * mais elle est recalculée séparément
+           * pour chaque prix de taille.
+           */
+          const variantPromotion =
+            this.buildPromotionData(
+              variant.price,
+              product.promotion_percentage,
+            );
+
+          return {
+            ...variant,
+
+            id:
+              String(
+                variant.id,
+              ),
+
+            product_id:
+              Number(
+                variant.product_id,
+              ),
+
+            /*
+             * Ajoute :
+             * - has_promotion
+             * - promotion_percentage
+             * - original_price
+             * - promotional_price
+             * - price, avec le tarif promotionnel
+             */
+            ...variantPromotion,
+
+            price_wholesale:
+              Number(
+                variant.price_wholesale,
+              ),
+
+            width_cm:
+              variant.width_cm ===
+              null
+                ? null
+                : Number(
+                    variant.width_cm,
+                  ),
+
+            depth_cm:
+              variant.depth_cm ===
+              null
+                ? null
+                : Number(
+                    variant.depth_cm,
+                  ),
+
+            height_cm:
+              variant.height_cm ===
+              null
+                ? null
+                : Number(
+                    variant.height_cm,
+                  ),
+          };
+        },
       )
-        ? product.product_size_variants.map(
-            (variant: any) => ({
-              ...variant,
-
-              id:
-                String(
-                  variant.id,
-                ),
-
-              product_id:
-                Number(
-                  variant.product_id,
-                ),
-
-              price:
-                Number(
-                  variant.price,
-                ),
-
-              price_wholesale:
-                Number(
-                  variant.price_wholesale,
-                ),
-
-              width_cm:
-                variant.width_cm ===
-                null
-                  ? null
-                  : Number(
-                      variant.width_cm,
-                    ),
-
-              depth_cm:
-                variant.depth_cm ===
-                null
-                  ? null
-                  : Number(
-                      variant.depth_cm,
-                    ),
-
-              height_cm:
-                variant.height_cm ===
-                null
-                  ? null
-                  : Number(
-                      variant.height_cm,
-                    ),
-            }),
-          )
-        : [],
+    : [],
   };
 }
 
@@ -1402,6 +1551,11 @@ async create(body: any) {
                  */
                 price:
                   primaryVariant.price,
+
+promotion_percentage:
+  this.normalizePromotionPercentage(
+    body.promotion_percentage,
+  ),                  
 
                 price_wholesale:
                   primaryVariant
@@ -2182,15 +2336,23 @@ async update(
                     : null,
               }),
 
-              ...(body.badge !==
-                undefined && {
-                badge:
-                  body.badge ||
-                  null,
-              }),
+...(body.badge !==
+  undefined && {
+  badge:
+    body.badge ||
+    null,
+}),
 
-              ...(body.is_active !==
-                undefined && {
+...(body.promotion_percentage !==
+  undefined && {
+  promotion_percentage:
+    this.normalizePromotionPercentage(
+      body.promotion_percentage,
+    ),
+}),
+
+...(body.is_active !==
+  undefined && {
                 is_active:
                   this.parseBoolean(
                     body.is_active,
