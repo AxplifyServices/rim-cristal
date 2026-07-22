@@ -16,10 +16,12 @@ const CartContext =
 
 function createCartItemKey(
   productId,
+  productSizeVariantId,
   selectedColor
 ) {
   return [
     productId,
+    productSizeVariantId || '',
     selectedColor || '',
   ].join(':')
 }
@@ -54,21 +56,32 @@ image:
   item.image ||
   '/images/product-placeholder.svg',            
 
-            selectedColor:
-              item.selectedColor ||
-              null,
+productSizeVariantId:
+  item.productSizeVariantId
+    ? String(
+        item.productSizeVariantId
+      )
+    : null,
 
-            isBackorder:
-              Boolean(
-                item.isBackorder
-              ),              
+selectedSize:
+  item.selectedSize ||
+  null,
 
-            cartItemKey:
-              item.cartItemKey ||
-              createCartItemKey(
-                item.id,
-                item.selectedColor
-              ),
+selectedColor:
+  item.selectedColor ||
+  null,
+
+isBackorder:
+  Boolean(
+    item.isBackorder
+  ),
+
+cartItemKey:
+  createCartItemKey(
+    item.id,
+    item.productSizeVariantId,
+    item.selectedColor
+  ),
           }))
 
         setItems(normalized)
@@ -112,15 +125,27 @@ image:
         quantity = 1
       ) {
         setItems(current => {
-          const selectedColor =
-            product.selectedColor ||
-            null
+const productSizeVariantId =
+  product.productSizeVariantId
+    ? String(
+        product.productSizeVariantId
+      )
+    : null
 
-          const cartItemKey =
-            createCartItemKey(
-              product.id,
-              selectedColor
-            )
+const selectedSize =
+  product.selectedSize ||
+  null
+
+const selectedColor =
+  product.selectedColor ||
+  null
+
+const cartItemKey =
+  createCartItemKey(
+    product.id,
+    productSizeVariantId,
+    selectedColor
+  )
 
           const existing =
             current.find(
@@ -187,12 +212,16 @@ largeImage:
   product.image ||
   null,  
 
-              selectedColor,
+productSizeVariantId,
 
-              isBackorder:
-                Boolean(
-                  product.isBackorder
-                ),
+selectedSize,
+
+selectedColor,
+
+isBackorder:
+  Boolean(
+    product.isBackorder
+  ),
 
               quantity,
             },

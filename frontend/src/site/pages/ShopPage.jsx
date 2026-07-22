@@ -809,50 +809,109 @@ export default function ShopPage() {
       resetFilters,
   }
 
-  return (
-    <SiteLayout>
-<section className="page-hero compact">
-  <div className="container">
-    <h1>
-      {selectedSectionLabel ||
-        t('shop.title')}
-    </h1>
+return (
+  <SiteLayout>
+    <section className="shop-hero">
+      <div className="container">
+        <div className="shop-hero-inner">
+          <div className="shop-hero-copy">
+            <span className="shop-hero-eyebrow">
+              Casa Luxury Decor
+            </span>
 
-    <p>
-      {selectedSectionLabel
-        ? t(
-            'shop.sectionSubtitle',
-            {
-              section:
-                selectedSectionLabel,
-            }
-          )
-        : t('shop.subtitle')}
-    </p>
-  </div>
-</section>
+            <h1>
+              {selectedSectionLabel ||
+                t('shop.title')}
+            </h1>
 
-<section className="section shop-section">
-        <div className="container">
-          <div className="shop-toolbar">
-            <label className="search-field">
-              <span className="sr-only">
-                {t('shop.search')}
-              </span>
-
-              <input
-                type="search"
-                value={search}
-                onChange={event => {
-                  setSearch(
-                    event.target.value
+            <p>
+              {selectedSectionLabel
+                ? t(
+                    'shop.sectionSubtitle',
+                    {
+                      section:
+                        selectedSectionLabel,
+                    }
                   )
+                : t('shop.subtitle')}
+            </p>
+          </div>
+
+          <div
+            className="shop-hero-decoration"
+            aria-hidden="true"
+          >
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section className="section shop-section">
+      <div className="container">
+        <div className="shop-toolbar">
+          <label className="shop-search-field">
+            <span className="sr-only">
+              {t('shop.search')}
+            </span>
+
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="7"
+              />
+
+              <path d="m20 20-4.2-4.2" />
+            </svg>
+
+            <input
+              type="search"
+              value={search}
+              onChange={event => {
+                setSearch(
+                  event.target.value
+                )
+              }}
+              placeholder={t(
+                'shop.search'
+              )}
+            />
+
+            {search && (
+              <button
+                type="button"
+                className="shop-search-clear"
+                onClick={() => {
+                  setSearch('')
                 }}
-                placeholder={t(
+                aria-label={t(
                   'shop.search'
                 )}
-              />
-            </label>
+              >
+                ×
+              </button>
+            )}
+          </label>
+
+          <div className="shop-toolbar-actions">
+            <div
+              className="shop-results-count"
+              aria-live="polite"
+            >
+              <span>
+                {total}
+              </span>
+
+              <small>
+                {t('shop.results')}
+              </small>
+            </div>
 
             <button
               type="button"
@@ -875,13 +934,9 @@ export default function ShopPage() {
                 viewBox="0 0 24 24"
                 aria-hidden="true"
               >
-                <path
-                  d="M4 5h16l-6.2 7.1v5.1l-3.6 1.8v-6.9L4 5Z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinejoin="round"
-                />
+                <path d="M4 6h16" />
+                <path d="M7 12h10" />
+                <path d="M10 18h4" />
               </svg>
 
               <span>
@@ -891,208 +946,256 @@ export default function ShopPage() {
               </span>
             </button>
           </div>
+        </div>
 
-          <div
-            className="shop-results-heading"
-            aria-live="polite"
-          >
-            <strong>
-              {total}{' '}
-              {t('shop.results')}
-            </strong>
-          </div>
+        <div className="shop-layout">
+          <aside className="desktop-shop-filters">
+            {!filtersLoading ? (
+              <ShopFilters
+                {...filtersProps}
+              />
+            ) : (
+              <div className="shop-filter-skeleton">
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+            )}
+          </aside>
 
-          <div className="shop-layout">
-            <aside className="desktop-shop-filters">
-              {!filtersLoading && (
-                <ShopFilters
-                  {...filtersProps}
-                />
-              )}
-            </aside>
+          <main className="shop-products-column">
+            {loading && (
+              <div className="shop-products-loading">
+                {Array.from(
+                  {
+                    length: 6,
+                  },
+                  (_, index) => (
+                    <div
+                      key={index}
+                      className="shop-card-skeleton"
+                    >
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  )
+                )}
+              </div>
+            )}
 
-            <div className="shop-products-column">
-              {loading && (
-                <div className="empty-block">
-                  {t(
-                    'common.loading'
-                  )}
+            {!loading && error && (
+              <div className="shop-state-card">
+                <div className="shop-state-icon">
+                  !
                 </div>
+
+                <h2>
+                  {t('common.error')}
+                </h2>
+
+                <p>
+                  {error}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={retryLoading}
+                >
+                  {t('common.retry')}
+                </button>
+              </div>
+            )}
+
+            {!loading &&
+              !error &&
+              products.length > 0 && (
+                <>
+                  <div className="product-grid shop-product-grid">
+                    {products.map(
+                      product => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                        />
+                      )
+                    )}
+                  </div>
+
+                  {pages > 1 && (
+                    <nav
+                      className="pagination"
+                      aria-label="Pagination"
+                    >
+                      <button
+                        type="button"
+                        className="pagination-direction"
+                        disabled={
+                          currentPage === 1
+                        }
+                        onClick={() => {
+                          changePage(
+                            currentPage - 1
+                          )
+                        }}
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path d="m15 18-6-6 6-6" />
+                        </svg>
+
+                        <span>
+                          {t(
+                            'shop.previous'
+                          )}
+                        </span>
+                      </button>
+
+                      <div className="pagination-pages">
+                        {visiblePages.map(
+                          pageNumber => (
+                            <button
+                              key={pageNumber}
+                              type="button"
+                              className={
+                                pageNumber ===
+                                currentPage
+                                  ? 'pagination-page is-active'
+                                  : 'pagination-page'
+                              }
+                              aria-current={
+                                pageNumber ===
+                                currentPage
+                                  ? 'page'
+                                  : undefined
+                              }
+                              onClick={() => {
+                                changePage(
+                                  pageNumber
+                                )
+                              }}
+                            >
+                              {pageNumber}
+                            </button>
+                          )
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        className="pagination-direction"
+                        disabled={
+                          currentPage ===
+                          pages
+                        }
+                        onClick={() => {
+                          changePage(
+                            currentPage + 1
+                          )
+                        }}
+                      >
+                        <span>
+                          {t(
+                            'shop.next'
+                          )}
+                        </span>
+
+                        <svg
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path d="m9 18 6-6-6-6" />
+                        </svg>
+                      </button>
+                    </nav>
+                  )}
+
+                  <p className="pagination-summary">
+                    {t('shop.page')}{' '}
+                    {currentPage}{' '}
+                    {t('shop.of')}{' '}
+                    {pages}
+                  </p>
+                </>
               )}
 
-              {!loading && error && (
-                <div className="error-block">
-                  <p>{error}</p>
+            {!loading &&
+              !error &&
+              products.length === 0 && (
+                <div className="shop-state-card">
+                  <div className="shop-state-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <circle
+                        cx="11"
+                        cy="11"
+                        r="7"
+                      />
+
+                      <path d="m20 20-4.2-4.2" />
+                    </svg>
+                  </div>
+
+                  <h2>
+                    {t('shop.empty')}
+                  </h2>
 
                   <button
                     type="button"
-                    onClick={
-                      retryLoading
-                    }
+                    onClick={resetFilters}
                   >
                     {t(
-                      'common.retry'
+                      'shop.filters.reset'
                     )}
                   </button>
                 </div>
               )}
+          </main>
+        </div>
 
-              {!loading &&
-                !error &&
-                products.length > 0 && (
-                  <>
-                    <div className="product-grid shop-product-grid">
-                      {products.map(
-                        product => (
-                          <ProductCard
-                            key={
-                              product.id
-                            }
-                            product={
-                              product
-                            }
-                          />
-                        )
-                      )}
-                    </div>
+        {filtersOpen && (
+          <>
+            <button
+              type="button"
+              className="filter-drawer-backdrop"
+              aria-label={t(
+                'shop.filters.close'
+              )}
+              onClick={() => {
+                setFiltersOpen(false)
+              }}
+            />
 
-                    {pages > 1 && (
-                      <nav
-                        className="pagination"
-                        aria-label="Pagination"
-                      >
-                        <button
-                          type="button"
-                          className="pagination-direction"
-                          disabled={
-                            currentPage ===
-                            1
-                          }
-                          onClick={() => {
-                            changePage(
-                              currentPage -
-                                1
-                            )
-                          }}
-                        >
-                          {t(
-                            'shop.previous'
-                          )}
-                        </button>
-
-                        <div className="pagination-pages">
-                          {visiblePages.map(
-                            pageNumber => (
-                              <button
-                                key={
-                                  pageNumber
-                                }
-                                type="button"
-                                className={
-                                  pageNumber ===
-                                  currentPage
-                                    ? 'pagination-page is-active'
-                                    : 'pagination-page'
-                                }
-                                aria-current={
-                                  pageNumber ===
-                                  currentPage
-                                    ? 'page'
-                                    : undefined
-                                }
-                                onClick={() => {
-                                  changePage(
-                                    pageNumber
-                                  )
-                                }}
-                              >
-                                {pageNumber}
-                              </button>
-                            )
-                          )}
-                        </div>
-
-                        <button
-                          type="button"
-                          className="pagination-direction"
-                          disabled={
-                            currentPage ===
-                            pages
-                          }
-                          onClick={() => {
-                            changePage(
-                              currentPage +
-                                1
-                            )
-                          }}
-                        >
-                          {t(
-                            'shop.next'
-                          )}
-                        </button>
-                      </nav>
-                    )}
-
-                    <p className="pagination-summary">
-                      {t('shop.page')}{' '}
-                      {currentPage}{' '}
-                      {t('shop.of')}{' '}
-                      {pages}
-                    </p>
-                  </>
-                )}
-
-              {!loading &&
-                !error &&
-                products.length ===
-                  0 && (
-                  <div className="empty-block">
-                    {t(
-                      'shop.empty'
-                    )}
-                  </div>
-                )}
-            </div>
-          </div>
-
-          {filtersOpen && (
-            <>
-              <button
-                type="button"
-                className="filter-drawer-backdrop"
-                aria-label={t(
-                  'shop.filters.close'
-                )}
-                onClick={() => {
+            <aside
+              id="mobile-shop-filters"
+              className="mobile-shop-filters is-open"
+              aria-modal="true"
+              role="dialog"
+              aria-label={t(
+                'shop.filters.title'
+              )}
+            >
+              <ShopFilters
+                {...filtersProps}
+                mobile
+                onReset={() => {
+                  resetFilters()
+                  setFiltersOpen(false)
+                }}
+                onClose={() => {
                   setFiltersOpen(false)
                 }}
               />
-
-              <aside
-                id="mobile-shop-filters"
-                className="mobile-shop-filters is-open"
-                aria-modal="true"
-                role="dialog"
-                aria-label={t(
-                  'shop.filters.title'
-                )}
-              >
-                <ShopFilters
-                  {...filtersProps}
-                  mobile
-                  onReset={() => {
-                    resetFilters()
-                    setFiltersOpen(false)
-                  }}
-                  onClose={() => {
-                    setFiltersOpen(false)
-                  }}
-                />
-              </aside>
-            </>
-          )}
-        </div>
-      </section>
-    </SiteLayout>
-  )
+            </aside>
+          </>
+        )}
+      </div>
+    </section>
+  </SiteLayout>
+)
 }

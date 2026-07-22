@@ -63,8 +63,23 @@ const [
     setSelectedColor,
   ] = useState('')
 
+const [
+  selectedSizeVariantId,
+  setSelectedSizeVariantId,
+] = useState('')  
+
   const [quantity, setQuantity] =
     useState(1)
+    
+const [
+  isImageViewerOpen,
+  setIsImageViewerOpen,
+] = useState(false)
+
+const [
+  imageZoom,
+  setImageZoom,
+] = useState(1)    
 
   const [loading, setLoading] =
     useState(true)
@@ -89,6 +104,15 @@ useEffect(() => {
 
       setProduct(result)
       setSelectedImageIndex(0)
+
+const defaultSizeVariant =
+  result.primarySizeVariant ||
+  result.sizeVariants?.[0] ||
+  null
+
+setSelectedSizeVariantId(
+  defaultSizeVariant?.id || ''
+)      
 
       setSelectedColor(
         result.hasColorVariants &&
@@ -121,11 +145,116 @@ useEffect(() => {
 }, [slug, t])
 
 
+
+const selectedSizeVariant =
+  useMemo(() => {
+    if (
+      !product?.hasSizeVariants
+    ) {
+      return null
+    }
+
+    return (
+      product.sizeVariants.find(
+        variant =>
+          String(variant.id) ===
+          String(
+            selectedSizeVariantId
+          )
+      ) ||
+      product.primarySizeVariant ||
+      product.sizeVariants[0] ||
+      null
+    )
+  }, [
+    product,
+    selectedSizeVariantId,
+  ])
+
+const displayedPrice =
+  selectedSizeVariant
+    ? selectedSizeVariant.price
+    : product?.price || 0
+
+const displayedOriginalPrice =
+  selectedSizeVariant
+    ? selectedSizeVariant.originalPrice
+    : product?.originalPrice || 0
+
+const displayedPromotionPercentage =
+  selectedSizeVariant
+    ? selectedSizeVariant
+        .promotionPercentage
+    : product
+        ?.promotionPercentage
+
+const displayedHasPromotion =
+  selectedSizeVariant
+    ? Boolean(
+        selectedSizeVariant
+          .hasPromotion
+      ) &&
+      Number(
+        selectedSizeVariant
+          .originalPrice
+      ) >
+        Number(
+          selectedSizeVariant.price
+        )
+    : Boolean(
+        product?.hasPromotion
+      ) &&
+      Number(
+        product?.originalPrice
+      ) >
+        Number(
+          product?.price
+        )
+
+const displayedStock =
+  selectedSizeVariant
+    ? selectedSizeVariant.stock
+    : Number(
+        product?.stock || 0
+      )
+
+const selectedSizeLabel =
+  selectedSizeVariant?.label ||
+  ''
+
+
   const formattedDimensions =
     useMemo(() => {
       if (!product) {
         return ''
       }
+
+if (selectedSizeVariant) {
+  const variantDimensions = [
+    selectedSizeVariant.widthCm,
+    selectedSizeVariant.depthCm,
+    selectedSizeVariant.heightCm,
+  ]
+    .filter(value => {
+      return (
+        value !== null &&
+        value !== undefined &&
+        Number.isFinite(
+          Number(value)
+        )
+      )
+    })
+    .map(formatDimension)
+    .filter(Boolean)
+
+  if (
+    variantDimensions.length > 0
+  ) {
+    return `${variantDimensions.join(
+      ' × '
+    )} cm`
+  }
+}      
 
       const dimensions = [
         product.widthCm,
@@ -149,7 +278,10 @@ useEffect(() => {
             ' × '
           )} cm`
         : ''
-    }, [product])
+}, [
+  product,
+  selectedSizeVariant,
+])
 
 const productImages =
   useMemo(() => {
@@ -201,6 +333,75 @@ function showNextImage() {
       : currentIndex + 1
   })
 }
+
+useEffect(() => {
+  if (!isImageViewerOpen) {
+    return undefined
+  }
+
+  function handleKeyDown(event) {
+    if (event.key === 'Escape') {
+      setIsImageViewerOpen(false)
+      setImageZoom(1)
+      return
+    }
+
+    if (
+      event.key === 'ArrowLeft' &&
+      hasMultipleImages
+    ) {
+      setSelectedImageIndex(
+        currentIndex =>
+          currentIndex === 0
+            ? productImages.length - 1
+            : currentIndex - 1
+      )
+
+      setImageZoom(1)
+      return
+    }
+
+    if (
+      event.key === 'ArrowRight' &&
+      hasMultipleImages
+    ) {
+      setSelectedImageIndex(
+        currentIndex =>
+          currentIndex ===
+          productImages.length - 1
+            ? 0
+            : currentIndex + 1
+      )
+
+      setImageZoom(1)
+    }
+  }
+
+  const previousOverflow =
+    document.body.style.overflow
+
+  document.body.style.overflow =
+    'hidden'
+
+  window.addEventListener(
+    'keydown',
+    handleKeyDown
+  )
+
+  return () => {
+    document.body.style.overflow =
+      previousOverflow
+
+    window.removeEventListener(
+      'keydown',
+      handleKeyDown
+    )
+  }
+}, [
+  isImageViewerOpen,
+  hasMultipleImages,
+  productImages.length,
+])
 
 function handleTouchStart(event) {
   setTouchStartX(
@@ -298,51 +499,55 @@ function handleTouchEnd(event) {
     product.hasColorVariants &&
     product.colors.length > 0
 
-  const isOutOfStock =
-    Number(product.stock || 0) <= 0
+const sizeChoiceRequired =
+  product.hasSizeVariants &&
+  product.sizeVariants.length > 0
 
-  const hasPromotion =
+const isOutOfStock =
+  displayedStock <= 0
+
+const hasPromotion =
+  displayedHasPromotion
+
+const promotionLabel =
+  hasPromotion
+    ? `-${new Intl.NumberFormat(
+        locale === 'ar'
+          ? 'ar-MA'
+          : 'fr-MA',
+        {
+          maximumFractionDigits:
+            2,
+        }
+      ).format(
+        displayedPromotionPercentage
+      )}%`
+    : ''
+
+const showStockCounter =
+  displayedStock > 0 &&
+  displayedStock <= 10
+
+const canAddToCart =
+  (
+    !sizeChoiceRequired ||
     Boolean(
-      product.hasPromotion
-    ) &&
-    Number(
-      product.promotionPercentage
-    ) > 0 &&
-    Number(
-      product.originalPrice
-    ) >
-      Number(
-        product.price
-      )
-
-  const promotionLabel =
-    hasPromotion
-      ? `-${new Intl.NumberFormat(
-          locale === 'ar'
-            ? 'ar-MA'
-            : 'fr-MA',
-          {
-            maximumFractionDigits:
-              2,
-          }
-        ).format(
-          product.promotionPercentage
-        )}%`
-      : ''
-
-  const showStockCounter =
-    Number(product.stock || 0) > 0 &&
-    Number(product.stock || 0) <= 10
-
-  const canAddToCart =
+      selectedSizeVariant
+    )
+  ) &&
+  (
     !colorChoiceRequired ||
     Boolean(selectedColor)
+  )
 
   const whatsappMessageParts = [
     t('product.whatsappMessage'),
     '',
     `${t('product.reference')} : ${product.reference || '-'}`,
     `${t('product.productName')} : ${product.name}`,
+    selectedSizeLabel
+  ? `${t('product.size')} : ${selectedSizeLabel}`
+  : '',
     selectedColor
       ? `${t('product.selectedColor')} : ${selectedColor}`
       : '',
@@ -382,14 +587,45 @@ function handleTouchEnd(event) {
       </span>
     )}
 
-    <div className="product-main-image">
-      <img
-        src={selectedImage}
-        alt={`${product.name} - ${
-          selectedImageIndex + 1
-        }`}
+<button
+  type="button"
+  className="product-main-image"
+  onClick={() => {
+    setImageZoom(1)
+    setIsImageViewerOpen(true)
+  }}
+  aria-label={t(
+    'product.enlargeImage'
+  )}
+>
+  <img
+    src={selectedImage}
+    alt={`${product.name} - ${
+      selectedImageIndex + 1
+    }`}
+  />
+
+  <span className="product-image-zoom-hint">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <circle
+        cx="11"
+        cy="11"
+        r="7"
       />
-    </div>
+
+      <path d="m20 20-4.2-4.2" />
+
+      <path d="M11 8v6M8 11h6" />
+    </svg>
+
+    <span>
+      {t('product.enlargeImage')}
+    </span>
+  </span>
+</button>
 
     {hasMultipleImages && (
       <>
@@ -415,11 +651,6 @@ function handleTouchEnd(event) {
           ›
         </button>
 
-        <div className="product-image-counter">
-          {selectedImageIndex + 1}
-          {' / '}
-          {productImages.length}
-        </div>
       </>
     )}
   </div>
@@ -463,6 +694,163 @@ function handleTouchEnd(event) {
   )}
 </div>
 
+{isImageViewerOpen && (
+  <div
+    className="product-image-viewer"
+    role="dialog"
+    aria-modal="true"
+    aria-label={t(
+      'product.imageViewer'
+    )}
+    onMouseDown={event => {
+      if (
+        event.target ===
+        event.currentTarget
+      ) {
+        setIsImageViewerOpen(
+          false
+        )
+
+        setImageZoom(1)
+      }
+    }}
+  >
+    <div className="product-image-viewer-panel">
+      <div className="product-image-viewer-toolbar">
+        <div className="product-image-viewer-counter">
+          {selectedImageIndex + 1}
+          {' / '}
+          {productImages.length}
+        </div>
+
+        <div className="product-image-viewer-actions">
+          <button
+            type="button"
+            onClick={() => {
+              setImageZoom(current =>
+                Math.max(
+                  1,
+                  Number(
+                    (
+                      current - 0.25
+                    ).toFixed(2)
+                  )
+                )
+              )
+            }}
+            disabled={imageZoom <= 1}
+            aria-label={t(
+              'product.zoomOut'
+            )}
+          >
+            −
+          </button>
+
+          <span>
+            {Math.round(
+              imageZoom * 100
+            )}
+            %
+          </span>
+
+          <button
+            type="button"
+            onClick={() => {
+              setImageZoom(current =>
+                Math.min(
+                  3,
+                  Number(
+                    (
+                      current + 0.25
+                    ).toFixed(2)
+                  )
+                )
+              )
+            }}
+            disabled={imageZoom >= 3}
+            aria-label={t(
+              'product.zoomIn'
+            )}
+          >
+            +
+          </button>
+
+          <button
+            type="button"
+            className="product-image-viewer-reset"
+            onClick={() =>
+              setImageZoom(1)
+            }
+          >
+            {t('product.resetZoom')}
+          </button>
+
+          <button
+            type="button"
+            className="product-image-viewer-close"
+            onClick={() => {
+              setIsImageViewerOpen(
+                false
+              )
+
+              setImageZoom(1)
+            }}
+            aria-label={t(
+              'product.closeViewer'
+            )}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+
+      <div className="product-image-viewer-stage">
+        <img
+          src={selectedImage}
+          alt={`${product.name} - ${
+            selectedImageIndex + 1
+          }`}
+          style={{
+            transform: `scale(${imageZoom})`,
+          }}
+        />
+      </div>
+
+      {hasMultipleImages && (
+        <>
+          <button
+            type="button"
+            className="product-image-viewer-navigation is-previous"
+            onClick={() => {
+              showPreviousImage()
+              setImageZoom(1)
+            }}
+            aria-label={t(
+              'product.previousImage'
+            )}
+          >
+            ‹
+          </button>
+
+          <button
+            type="button"
+            className="product-image-viewer-navigation is-next"
+            onClick={() => {
+              showNextImage()
+              setImageZoom(1)
+            }}
+            aria-label={t(
+              'product.nextImage'
+            )}
+          >
+            ›
+          </button>
+        </>
+      )}
+    </div>
+  </div>
+)}
+
             <div className="product-information">
               {product.marque && (
                 <p className="section-eyebrow">
@@ -484,10 +872,10 @@ function handleTouchEnd(event) {
               >
                 {hasPromotion && (
                   <span className="detail-old-price">
-                    {formatPrice(
-                      product.originalPrice,
-                      locale
-                    )}{' '}
+{formatPrice(
+  displayedOriginalPrice,
+  locale
+)}{' '}
                     {t(
                       'common.currency'
                     )}
@@ -495,10 +883,10 @@ function handleTouchEnd(event) {
                 )}
 
                 <strong className="detail-current-price">
-                  {formatPrice(
-                    product.price,
-                    locale
-                  )}{' '}
+{formatPrice(
+  displayedPrice,
+  locale
+)}{' '}
                   {t(
                     'common.currency'
                   )}
@@ -522,7 +910,7 @@ function handleTouchEnd(event) {
                           'product.stockRemaining',
                           {
                             count:
-                              product.stock,
+                              displayedStock
                           }
                         )
                       : t(
@@ -617,144 +1005,275 @@ function handleTouchEnd(event) {
                 )}
               </dl>
 
-              {colorChoiceRequired && (
-                <div className="product-color-section">
-                  <div className="product-color-heading">
-                    <span>
-                      {t(
-                        'product.availableColors'
-                      )}
-                    </span>
+{sizeChoiceRequired && (
+  <details
+    className="product-option-section"
+  >
+    <summary className="product-option-summary">
+      <span className="product-option-summary-copy">
+        <span className="product-option-summary-label">
+          {t(
+            'product.availableSizes'
+          )}
+        </span>
 
-                    {selectedColor && (
-                      <strong>
-                        {selectedColor}
-                      </strong>
-                    )}
-                  </div>
+        <small>
+          {selectedSizeLabel ||
+            t(
+              'product.selectSizeHelp'
+            )}
+        </small>
+      </span>
 
-                  <div
-                    className="product-color-grid"
-                    role="radiogroup"
-                    aria-label={t(
-                      'product.availableColors'
-                    )}
-                  >
-                    {product.colors.map(
-                      color => {
-                        const selected =
-                          selectedColor ===
-                          color
+      <span
+        className="product-option-summary-chevron"
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 24 24">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </span>
+    </summary>
 
-                        return (
-                          <button
-                            key={color}
-                            type="button"
-                            role="radio"
-                            aria-checked={
-                              selected
-                            }
-                            className={
-                              selected
-                                ? 'product-color-button is-active'
-                                : 'product-color-button'
-                            }
-                            onClick={() =>
-                              setSelectedColor(
-                                color
-                              )
-                            }
-                          >
-                            {color}
-                          </button>
-                        )
+    <div className="product-option-content">
+      <div
+        className="product-size-grid"
+        role="radiogroup"
+        aria-label={t(
+          'product.availableSizes'
+        )}
+      >
+        {product.sizeVariants.map(
+          variant => {
+            const selected =
+              String(
+                selectedSizeVariant?.id
+              ) ===
+              String(variant.id)
+
+            const unavailable =
+              variant.stock <= 0
+
+            return (
+              <button
+                key={variant.id}
+                type="button"
+                role="radio"
+                aria-checked={
+                  selected
+                }
+                className={[
+                  'product-size-button',
+                  selected
+                    ? 'is-active'
+                    : '',
+                  unavailable
+                    ? 'is-unavailable'
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={() => {
+                  setSelectedSizeVariantId(
+                    variant.id
+                  )
+
+                  setQuantity(1)
+                }}
+              >
+                <span className="product-size-button-main">
+                  <strong>
+                    {variant.label}
+                  </strong>
+
+                  {variant.reference && (
+                    <small>
+                      {
+                        variant.reference
                       }
-                    )}
-                  </div>
-                </div>
-              )}
+                    </small>
+                  )}
+                </span>
+
+                <span className="product-size-button-price">
+                  {formatPrice(
+                    variant.price,
+                    locale
+                  )}{' '}
+                  {t(
+                    'common.currency'
+                  )}
+                </span>
+
+                <span
+                  className={
+                    unavailable
+                      ? 'product-size-stock is-unavailable'
+                      : 'product-size-stock'
+                  }
+                >
+                  {unavailable
+                    ? t(
+                        'product.sizeOnOrder'
+                      )
+                    : t(
+                        'product.sizeAvailable'
+                      )}
+                </span>
+              </button>
+            )
+          }
+        )}
+      </div>
+    </div>
+  </details>
+)}
+
+{colorChoiceRequired && (
+  <details
+    className="product-color-section"
+    
+  >
+    <summary className="product-option-summary">
+      <span className="product-option-summary-copy">
+        <span className="product-option-summary-label">
+          {t(
+            'product.availableColors'
+          )}
+        </span>
+
+        <small>
+          {selectedColor ||
+            t(
+              'product.selectColorHelp'
+            )}
+        </small>
+      </span>
+
+      <span
+        className="product-option-summary-chevron"
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 24 24">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </span>
+    </summary>
+
+    <div className="product-option-content">
+      <div
+        className="product-color-grid"
+        role="radiogroup"
+        aria-label={t(
+          'product.availableColors'
+        )}
+      >
+        {product.colors.map(
+          color => {
+            const selected =
+              selectedColor ===
+              color
+
+            return (
+              <button
+                key={color}
+                type="button"
+                role="radio"
+                aria-checked={
+                  selected
+                }
+                className={
+                  selected
+                    ? 'product-color-button is-active'
+                    : 'product-color-button'
+                }
+                onClick={() =>
+                  setSelectedColor(
+                    color
+                  )
+                }
+              >
+                {color}
+              </button>
+            )
+          }
+        )}
+      </div>
+    </div>
+  </details>
+)}
 
               <div className="buy-row">
-                <label className="quantity-field">
-                  <span>
-                    {t(
-                      'product.quantity'
-                    )}
-                  </span>
+<label className="product-quantity-field">
+  <span>
+    {t('product.quantity')}
+  </span>
 
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuantity(
-                          current =>
-                            Math.max(
-                              1,
-                              current -
-                                1
-                            )
-                        )
-                      }}
-                    >
-                      −
-                    </button>
+  <div>
+    <button
+      type="button"
+      onClick={() => {
+        setQuantity(current =>
+          Math.max(
+            1,
+            current - 1
+          )
+        )
+      }}
+    >
+      −
+    </button>
 
-                    <input
-                      type="number"
-                      min="1"
-                      max={
-                        isOutOfStock
-                          ? undefined
-                          : product.stock
-                      }
-                      value={quantity}
-                      onChange={event => {
-                        const requestedQuantity =
-                          Math.max(
-                            1,
-                            Number(
-                              event
-                                .target
-                                .value
-                            ) || 1
-                          )
+    <input
+      type="number"
+      min="1"
+      max={
+        isOutOfStock
+          ? undefined
+          : displayedStock
+      }
+      value={quantity}
+      onChange={event => {
+        const requestedQuantity =
+          Math.max(
+            1,
+            Number(
+              event.target.value
+            ) || 1
+          )
 
-                        setQuantity(
-                          isOutOfStock
-                            ? requestedQuantity
-                            : Math.min(
-                                requestedQuantity,
-                                product.stock
-                              )
-                        )
-                      }}
-                    />
+        setQuantity(
+          isOutOfStock
+            ? requestedQuantity
+            : Math.min(
+                requestedQuantity,
+                displayedStock
+              )
+        )
+      }}
+    />
 
-                    <button
-                      type="button"
-                      disabled={
-                        !isOutOfStock &&
-                        quantity >=
-                          product.stock
-                      }
-                      onClick={() => {
-                        setQuantity(
-                          current =>
-                            isOutOfStock
-                              ? current +
-                                1
-                              : Math.min(
-                                  current +
-                                    1,
-                                  product.stock
-                                )
-                        )
-                      }}
-                    >
-                      +
-                    </button>
-                  </div>
-                </label>
+    <button
+      type="button"
+      disabled={
+        !isOutOfStock &&
+        quantity >= displayedStock
+      }
+      onClick={() => {
+        setQuantity(current =>
+          isOutOfStock
+            ? current + 1
+            : Math.min(
+                current + 1,
+                displayedStock
+              )
+        )
+      }}
+    >
+      +
+    </button>
+  </div>
+</label>
 
                 <button
                   type="button"
@@ -763,19 +1282,36 @@ function handleTouchEnd(event) {
                   }
                   className="primary-button add-cart-button"
                   onClick={() => {
-                    add(
-                      {
-                        ...product,
+add(
+  {
+    ...product,
 
-                        selectedColor:
-                          selectedColor ||
-                          null,
+    price:
+      displayedPrice,
 
-                        isBackorder:
-                          isOutOfStock,
-                      },
-                      quantity
-                    )
+    originalPrice:
+      displayedOriginalPrice,
+
+    productSizeVariantId:
+      selectedSizeVariant?.id ||
+      null,
+
+    selectedSize:
+      selectedSizeLabel ||
+      null,
+
+    selectedColor:
+      selectedColor ||
+      null,
+
+    stock:
+      displayedStock,
+
+    isBackorder:
+      isOutOfStock,
+  },
+  quantity
+)
                   }}
                 >
                   {t(
@@ -845,100 +1381,7 @@ function handleTouchEnd(event) {
         </div>
       </section>
 
-      <style jsx>{`
-        .product-color-section {
-          display: grid;
-          gap: 12px;
-          padding: 18px 0;
-          border-top: 1px solid
-            #e6ded2;
-          border-bottom: 1px solid
-            #e6ded2;
-        }
 
-        .product-color-heading {
-          display: flex;
-          align-items: center;
-          justify-content:
-            space-between;
-          gap: 12px;
-          font-size: 14px;
-        }
-
-        .product-color-heading span {
-          color: #8a7f72;
-          font-weight: 800;
-        }
-
-        .product-color-heading strong {
-          color: #1f1a14;
-        }
-
-        .product-color-grid {
-          display: grid;
-          grid-template-columns:
-            repeat(
-              auto-fit,
-              minmax(110px, 1fr)
-            );
-          gap: 10px;
-        }
-
-        .product-color-button {
-          min-height: 46px;
-          padding: 10px 12px;
-          border: 1px solid
-            #e6ded2;
-          border-radius: 14px;
-          background: #fff;
-          color: #1f1a14;
-          font: inherit;
-          font-size: 13px;
-          font-weight: 800;
-          cursor: pointer;
-          transition:
-            border-color 0.2s ease,
-            background 0.2s ease,
-            color 0.2s ease,
-            transform 0.2s ease;
-        }
-
-        .product-color-button:hover {
-          border-color: #1f1a14;
-        }
-
-        .product-color-button.is-active {
-          border-color: #1f1a14;
-          background: #1f1a14;
-          color: #fff;
-        }
-
-        .product-color-button:focus-visible {
-          outline: 3px solid
-            rgba(
-              31,
-              26,
-              20,
-              0.2
-            );
-          outline-offset: 2px;
-        }
-
-        @media (max-width: 640px) {
-          .product-color-grid {
-            grid-template-columns:
-              repeat(
-                2,
-                minmax(0, 1fr)
-              );
-          }
-
-          .product-color-button {
-            min-height: 44px;
-            padding: 9px 8px;
-          }
-        }
-      `}</style>
     </SiteLayout>
   )
 }

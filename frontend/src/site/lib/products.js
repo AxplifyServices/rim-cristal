@@ -380,6 +380,198 @@ export function mapProduct(
     promotionalPrice <
       originalPrice    
 
+const sizeVariants =
+  Array.isArray(
+    product.product_size_variants
+  )
+    ? product.product_size_variants
+        .map(variant => {
+          const widthCm =
+            nullableNumber(
+              variant.width_cm
+            )
+
+          const depthCm =
+            nullableNumber(
+              variant.depth_cm
+            )
+
+          const heightCm =
+            nullableNumber(
+              variant.height_cm
+            )
+
+          const dimensions = [
+            widthCm,
+            depthCm,
+            heightCm,
+          ]
+            .filter(value => {
+              return (
+                value !== null &&
+                value !== undefined
+              )
+            })
+            .map(value => {
+              return new Intl.NumberFormat(
+                'fr-MA',
+                {
+                  maximumFractionDigits:
+                    2,
+                }
+              ).format(value)
+            })
+
+          const generatedLabel =
+            dimensions.length > 0
+              ? `${dimensions.join(
+                  ' × '
+                )} cm`
+              : ''
+
+          return {
+            id:
+              String(
+                variant.id
+              ),
+
+            productId:
+              Number(
+                variant.product_id ||
+                  product.id
+              ),
+
+            label:
+              String(
+                variant.label ||
+                  generatedLabel ||
+                  variant.reference ||
+                  ''
+              ).trim(),
+
+            reference:
+              String(
+                variant.reference || ''
+              ).trim(),
+
+            widthCm,
+
+            depthCm,
+
+            heightCm,
+
+            price:
+              Number(
+                variant.price || 0
+              ),
+
+            originalPrice:
+              Number(
+                variant.original_price ??
+                  variant.price ??
+                  0
+              ),
+
+            promotionalPrice:
+              Number(
+                variant.promotional_price ??
+                  variant.price ??
+                  0
+              ),
+
+            promotionPercentage:
+              variant
+                .promotion_percentage ===
+                null ||
+              variant
+                .promotion_percentage ===
+                undefined
+                ? null
+                : Number(
+                    variant
+                      .promotion_percentage
+                  ),
+
+            hasPromotion:
+              Boolean(
+                variant.has_promotion
+              ),
+
+            stock:
+              Math.max(
+                Number(
+                  variant.stock || 0
+                ),
+                0
+              ),
+
+            isPrimary:
+              toBoolean(
+                variant.is_primary,
+                false
+              ),
+
+            isActive:
+              toBoolean(
+                variant.is_active,
+                true
+              ),
+
+            displayOrder:
+              Number(
+                variant.display_order ||
+                  0
+              ),
+          }
+        })
+        .filter(variant => {
+          return variant.isActive
+        })
+        .sort(
+          (
+            firstVariant,
+            secondVariant
+          ) => {
+            if (
+              firstVariant.isPrimary !==
+              secondVariant.isPrimary
+            ) {
+              return firstVariant.isPrimary
+                ? -1
+                : 1
+            }
+
+            if (
+              firstVariant.displayOrder !==
+              secondVariant.displayOrder
+            ) {
+              return (
+                firstVariant.displayOrder -
+                secondVariant.displayOrder
+              )
+            }
+
+            return firstVariant.id.localeCompare(
+              secondVariant.id
+            )
+          }
+        )
+    : []
+
+const hasSizeVariants =
+  toBoolean(
+    product.has_size_variants,
+    false
+  ) &&
+  sizeVariants.length > 0
+
+const primarySizeVariant =
+  sizeVariants.find(
+    variant => variant.isPrimary
+  ) ||
+  sizeVariants[0] ||
+  null      
+
   return {
     id: product.id,
 
@@ -428,15 +620,24 @@ promotionPercentage:
 
 hasPromotion,
 
-    stock:
-      Math.max(
+stock:
+  hasSizeVariants &&
+  primarySizeVariant
+    ? primarySizeVariant.stock
+    : Math.max(
         Number(
           product.stock || 0
         ),
         0
       ),
 
-    hasColorVariants,
+hasSizeVariants,
+
+sizeVariants,
+
+primarySizeVariant,
+
+hasColorVariants,
 
     colors:
       hasColorVariants
@@ -525,13 +726,23 @@ largeImage:
         true
       ),
 
-    inStock:
-      Number(
+inStock:
+  hasSizeVariants
+    ? sizeVariants.some(
+        variant =>
+          variant.stock > 0
+      )
+    : Number(
         product.stock || 0
       ) > 0,
 
-    isOutOfStock:
-      Number(
+isOutOfStock:
+  hasSizeVariants
+    ? sizeVariants.every(
+        variant =>
+          variant.stock <= 0
+      )
+    : Number(
         product.stock || 0
       ) <= 0,
   }
