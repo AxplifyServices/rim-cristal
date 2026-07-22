@@ -23,7 +23,8 @@
     "open": "Open menu",
     "collapse": "Collapse menu",
     "expand": "Expand menu",
-    "contacts": "Asking for contact"
+    "contacts": "Asking for contact",
+    "reviews": "Customer reviews"
   },
   "contacts": {
   "title": "Contact requests",
@@ -59,7 +60,8 @@
     "sales": "SA",
     "stock": "ST",
     "orders": "OR",
-    "contacts": "CT"
+    "contacts": "CT",
+    "reviews": "RV"
   },
   "roles": {
     "admin": "Administrator",

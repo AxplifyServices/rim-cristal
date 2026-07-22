@@ -1,10 +1,16 @@
 import HomePage from '../src/site/pages/HomePage'
+
 import {
   getHomepageBrochures,
 } from '../src/site/lib/homepageBrochures'
+
 import {
   getProductsPage,
 } from '../src/site/lib/products'
+
+import {
+  getHomeReviews,
+} from '../src/site/lib/reviews'
 
 const HOME_PRODUCTS_PAGE_SIZE = 6
 
@@ -27,9 +33,17 @@ export default async function Page() {
     bestsellersResult,
     promotionsResult,
     recentProductsResult,
+    reviewsResult,
   ] = await Promise.allSettled([
+    /*
+     * Brochures de la page d'accueil.
+     */
     getHomepageBrochures(),
 
+    /*
+     * Best sellers :
+     * 6 produits par page.
+     */
     getProductsPage({
       page: 1,
       pageSize:
@@ -37,6 +51,10 @@ export default async function Page() {
       bestseller: true,
     }),
 
+    /*
+     * Produits avec une promotion active :
+     * 6 produits par page.
+     */
     getProductsPage({
       page: 1,
       pageSize:
@@ -45,9 +63,9 @@ export default async function Page() {
     }),
 
     /*
-     * Le backend limite automatiquement
-     * cette requête aux 18 produits les
-     * plus récemment créés.
+     * Nouveautés :
+     * le backend limite cette sélection
+     * aux 18 produits les plus récents.
      */
     getProductsPage({
       page: 1,
@@ -55,6 +73,12 @@ export default async function Page() {
         HOME_PRODUCTS_PAGE_SIZE,
       recent: true,
     }),
+
+    /*
+     * Avis approuvés et sélectionnés
+     * par l'administrateur pour la home.
+     */
+    getHomeReviews(),
   ])
 
   const initialBrochures =
@@ -81,6 +105,12 @@ export default async function Page() {
       ? recentProductsResult.value
       : createEmptyProductsResult()
 
+  const initialReviews =
+    reviewsResult.status ===
+    'fulfilled'
+      ? reviewsResult.value
+      : []
+
   const brochuresLoadFailed =
     brochuresResult.status ===
     'rejected'
@@ -95,6 +125,10 @@ export default async function Page() {
 
   const recentProductsLoadFailed =
     recentProductsResult.status ===
+    'rejected'
+
+  const reviewsLoadFailed =
+    reviewsResult.status ===
     'rejected'
 
   if (brochuresLoadFailed) {
@@ -127,6 +161,13 @@ export default async function Page() {
     )
   }
 
+  if (reviewsLoadFailed) {
+    console.error(
+      'Erreur de chargement des avis clients :',
+      reviewsResult.reason
+    )
+  }
+
   return (
     <HomePage
       initialBrochures={
@@ -140,6 +181,9 @@ export default async function Page() {
       }
       initialRecentProducts={
         initialRecentProducts
+      }
+      initialReviews={
+        initialReviews
       }
       brochuresLoadFailed={
         brochuresLoadFailed

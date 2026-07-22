@@ -1,3 +1,5 @@
+import { randomBytes } from 'node:crypto';
+
 import {
   BadRequestException,
   ForbiddenException,
@@ -1393,11 +1395,19 @@ const unitPrice =
           }
         }
 
-        const createdOrder =
-          await tx.orders.create({
-            data: {
-              order_number:
-                this.createOrderNumber(),
+const reviewToken =
+  context.orderOrigin === 'website'
+    ? randomBytes(32).toString('hex')
+    : null;
+
+const createdOrder =
+  await tx.orders.create({
+    data: {
+      order_number:
+        this.createOrderNumber(),
+
+      review_token:
+        reviewToken,
 
               user_id:
                 body.user_id !==
@@ -1700,9 +1710,18 @@ const unitPrice =
       },
     );
 
-  return this.formatOrder(
+const formattedOrder =
+  this.formatOrder(
     order,
   );
+
+return {
+  ...formattedOrder,
+
+  review_token:
+    order.review_token ||
+    null,
+};
 }
 
   async track(

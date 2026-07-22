@@ -219,5 +219,28 @@
 "facebook": "Facebook",
 "instagram": "Instagram",
 "whatsapp": "WhatsApp"
-  }
+  },
+
+  "reviews": {
+  "kicker": "Votre expérience compte",
+  "formTitle": "Partagez votre avis",
+  "formSubtitle": "Votre retour nous aide à améliorer notre service et à guider les autres clients.",
+  "name": "Votre nom",
+  "rating": "Votre note",
+  "ratingValue": "{rating} étoile(s) sur 5",
+  "comment": "Votre commentaire",
+  "submit": "Envoyer mon avis",
+  "thankYou": "Merci pour votre avis.",
+  "moderationNotice": "Votre commentaire sera visible après validation par notre équipe.",
+  "alreadySubmitted": "Un avis a déjà été envoyé pour cette commande.",
+  "invalidInvitation": "Le lien permettant de déposer cet avis n’est pas valide.",
+  "submitError": "Votre avis n’a pas pu être envoyé."
+},
+"homeReviews": {
+  "kicker": "Ils nous font confiance",
+  "title": "L’avis de nos clients",
+  "subtitle": "Découvrez les expériences partagées par nos clients après leur commande.",
+  "verified": "Achat vérifié",
+  "rating": "Note de {rating} sur 5"
+}
 }

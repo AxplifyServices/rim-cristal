@@ -11,6 +11,7 @@ import { ProductsModule } from './modules/products/products.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { MediaProcessingModule } from './modules/media-processing/media-processing.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 
 @Module({
   imports: [
@@ -30,6 +31,9 @@ import { MediaProcessingModule } from './modules/media-processing/media-processi
     ContactsModule,
     HomepageBrochuresModule,
     MediaProcessingModule,
+    HomepageBrochuresModule,
+ReviewsModule,
+MediaProcessingModule,
   ],
 })
 export class AppModule {}

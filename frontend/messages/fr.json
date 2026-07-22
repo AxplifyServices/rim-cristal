@@ -23,7 +23,8 @@
     "collapse": "Réduire le menu",
     "expand": "Agrandir le menu",
     "contacts": "Demandes de contact",
-    "brochures": "Brochures d'accueil"
+    "brochures": "Brochures d'accueil",
+    "reviews": "Avis clients"
   },
   "navShort": {
     "dashboard": "TB",
@@ -33,7 +34,8 @@
     "sales": "VE",
     "stock": "ST",
     "orders": "CO",
-    "contacts": "CT"
+    "contacts": "CT",
+    "reviews": "AV"
   },
   "roles": {
     "admin": "Administrateur",

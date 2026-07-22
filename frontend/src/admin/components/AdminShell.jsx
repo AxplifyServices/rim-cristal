@@ -29,6 +29,7 @@ const adminOnlyPaths = [
   '/admin/stock',
   '/admin/contacts',
   '/admin/brochures',
+  '/admin/reviews',
 ]
 
     if (user.role !== 'admin' && adminOnlyPaths.includes(pathname)) {
@@ -57,6 +58,13 @@ const all = [
   href: '/admin/brochures',
   label: t('nav.brochures'),
   shortLabel: t('navShort.brochures'),
+  roles: ['admin'],
+},
+
+{
+  href: '/admin/reviews',
+  label: t('nav.reviews'),
+  shortLabel: t('navShort.reviews'),
   roles: ['admin'],
 },
 

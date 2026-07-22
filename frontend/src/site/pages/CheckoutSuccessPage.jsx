@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import SiteLayout from '../components/SiteLayout'
 import { useSiteI18n } from '../i18n/SiteI18nProvider'
+import OrderReviewForm from '../components/OrderReviewForm'
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams()
@@ -11,6 +12,9 @@ export default function CheckoutSuccessPage() {
 
   const orderNumber =
     searchParams.get('order') || '-'
+
+const reviewToken =
+  searchParams.get('review') || ''    
 
   return (
     <SiteLayout>
@@ -42,6 +46,9 @@ export default function CheckoutSuccessPage() {
               {t('checkoutSuccess.back')}
             </Link>
           </div>
+<OrderReviewForm
+  token={reviewToken}
+/>          
         </div>
       </section>
     </SiteLayout>

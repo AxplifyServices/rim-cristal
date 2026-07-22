@@ -6,6 +6,7 @@ import SiteLayout from '../components/SiteLayout'
 import {
   useSiteI18n,
 } from '../i18n/SiteI18nProvider'
+import HomeReviewsCarousel from '../components/HomeReviewsCarousel'
 
 export default function HomePage({
   initialBrochures = [],
@@ -16,6 +17,7 @@ export default function HomePage({
   bestsellersLoadFailed = false,
   promotionsLoadFailed = false,
   recentProductsLoadFailed = false,
+  initialReviews = [],
 }) {
   const { t } =
     useSiteI18n()
@@ -108,6 +110,10 @@ export default function HomePage({
         }}
         viewAllHref="/shop"
       />
+
+      <HomeReviewsCarousel
+  reviews={initialReviews}
+/>
     </SiteLayout>
   )
 }

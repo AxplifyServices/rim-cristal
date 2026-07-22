@@ -176,11 +176,22 @@ export default function CheckoutPage() {
 
       clear()
 
-      router.replace(
-        `/checkout/success?order=${encodeURIComponent(
-          data.order_number
-        )}`
-      )
+const successParams =
+  new URLSearchParams({
+    order:
+      data.order_number,
+  })
+
+if (data.review_token) {
+  successParams.set(
+    'review',
+    data.review_token
+  )
+}
+
+router.replace(
+  `/checkout/success?${successParams.toString()}`
+)
     } catch (submitError) {
       setError(
         submitError?.message ||
