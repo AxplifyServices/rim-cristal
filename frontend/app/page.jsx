@@ -6,22 +6,30 @@ import {
   getProductsPage,
 } from '../src/site/lib/products'
 
-const BESTSELLERS_LIMIT = 8
+const HOME_PRODUCTS_PAGE_SIZE = 6
 
 export const revalidate = 60
 
 export default async function Page() {
   const [
     brochuresResult,
-    productsResult,
+    bestsellersResult,
+    promotionsResult,
   ] = await Promise.allSettled([
     getHomepageBrochures(),
 
     getProductsPage({
       page: 1,
       pageSize:
-        BESTSELLERS_LIMIT,
+        HOME_PRODUCTS_PAGE_SIZE,
       bestseller: true,
+    }),
+
+    getProductsPage({
+      page: 1,
+      pageSize:
+        HOME_PRODUCTS_PAGE_SIZE,
+      promotion: true,
     }),
   ])
 
@@ -32,18 +40,41 @@ export default async function Page() {
       : []
 
   const initialBestsellers =
-    productsResult.status ===
+    bestsellersResult.status ===
     'fulfilled'
-      ? productsResult.value
-          ?.items || []
-      : []
+      ? bestsellersResult.value
+      : {
+          items: [],
+          total: 0,
+          page: 1,
+          pageSize:
+            HOME_PRODUCTS_PAGE_SIZE,
+          pages: 1,
+        }
+
+  const initialPromotions =
+    promotionsResult.status ===
+    'fulfilled'
+      ? promotionsResult.value
+      : {
+          items: [],
+          total: 0,
+          page: 1,
+          pageSize:
+            HOME_PRODUCTS_PAGE_SIZE,
+          pages: 1,
+        }
 
   const brochuresLoadFailed =
     brochuresResult.status ===
     'rejected'
 
-  const productsLoadFailed =
-    productsResult.status ===
+  const bestsellersLoadFailed =
+    bestsellersResult.status ===
+    'rejected'
+
+  const promotionsLoadFailed =
+    promotionsResult.status ===
     'rejected'
 
   if (brochuresLoadFailed) {
@@ -53,10 +84,17 @@ export default async function Page() {
     )
   }
 
-  if (productsLoadFailed) {
+  if (bestsellersLoadFailed) {
     console.error(
-      'Erreur de chargement des best-sellers :',
-      productsResult.reason
+      'Erreur de chargement des best sellers :',
+      bestsellersResult.reason
+    )
+  }
+
+  if (promotionsLoadFailed) {
+    console.error(
+      'Erreur de chargement des promotions :',
+      promotionsResult.reason
     )
   }
 
@@ -68,11 +106,17 @@ export default async function Page() {
       initialBestsellers={
         initialBestsellers
       }
+      initialPromotions={
+        initialPromotions
+      }
       brochuresLoadFailed={
         brochuresLoadFailed
       }
-      productsLoadFailed={
-        productsLoadFailed
+      bestsellersLoadFailed={
+        bestsellersLoadFailed
+      }
+      promotionsLoadFailed={
+        promotionsLoadFailed
       }
     />
   )

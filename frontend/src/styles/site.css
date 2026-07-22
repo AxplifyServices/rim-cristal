@@ -6815,6 +6815,171 @@ textarea,
     stretch;
 }
 
+/*
+ * Le chargement d’une nouvelle page
+ * conserve les produits affichés afin
+ * d’éviter un saut visuel brutal.
+ */
+.home-product-grid-loading {
+  pointer-events:
+    none;
+  opacity:
+    0.58;
+  transition:
+    opacity
+      var(--transition-fast);
+}
+
+/*
+ * Sépare visuellement la section
+ * Promotions de la section Best sellers
+ * sans changer la cohérence de la home.
+ */
+.home-products-section
+  + .home-products-section {
+  border-top:
+    1px solid
+    var(--line);
+}
+
+/*
+ * Conteneur du carrousel paginé.
+ * Les flèches sont placées à gauche
+ * et à droite de toute la grille.
+ */
+.home-products-carousel {
+  position:
+    relative;
+}
+
+/*
+ * Boutons latéraux communs aux sections
+ * Best sellers et Promotions.
+ */
+.home-products-arrow {
+  position:
+    absolute;
+  top:
+    50%;
+  z-index:
+    8;
+  display:
+    inline-flex;
+  align-items:
+    center;
+  justify-content:
+    center;
+  width:
+    48px;
+  height:
+    48px;
+  padding:
+    0;
+  border:
+    1px solid
+    rgba(34, 31, 28, 0.16);
+  border-radius:
+    50%;
+  color:
+    var(--ink);
+  background:
+    rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 10px 28px
+    rgba(34, 31, 28, 0.13);
+  cursor:
+    pointer;
+  transform:
+    translateY(-50%);
+  transition:
+    transform
+      var(--transition-fast),
+    background-color
+      var(--transition-fast),
+    border-color
+      var(--transition-fast),
+    color
+      var(--transition-fast),
+    opacity
+      var(--transition-fast);
+}
+
+.home-products-arrow-previous {
+  left:
+    -24px;
+}
+
+.home-products-arrow-next {
+  right:
+    -24px;
+}
+
+.home-products-arrow svg {
+  width:
+    23px;
+  height:
+    23px;
+}
+
+.home-products-arrow:hover:not(:disabled) {
+  color:
+    #fff;
+  border-color:
+    var(--ink);
+  background:
+    var(--ink);
+  transform:
+    translateY(-50%)
+    scale(1.06);
+}
+
+.home-products-arrow:active:not(:disabled) {
+  transform:
+    translateY(-50%)
+    scale(0.96);
+}
+
+.home-products-arrow:disabled {
+  cursor:
+    wait;
+  opacity:
+    0.45;
+}
+
+.home-products-arrow:focus-visible {
+  outline:
+    2px solid
+    var(--ink);
+  outline-offset:
+    4px;
+}
+
+/*
+ * Zone invisible utilisée uniquement
+ * par les lecteurs d'écran pendant
+ * le chargement d'une nouvelle page.
+ */
+.home-products-live-region {
+  position:
+    absolute;
+  width:
+    1px;
+  height:
+    1px;
+  padding:
+    0;
+  margin:
+    -1px;
+  overflow:
+    hidden;
+  clip:
+    rect(0, 0, 0, 0);
+  white-space:
+    nowrap;
+  border:
+    0;
+}
+
 
 /* ---------------------------------------------------------
    PRODUCT CARD PREMIUM
@@ -7596,6 +7761,27 @@ textarea,
   }
 }
 
+@media (
+  min-width: 641px
+) and (
+  max-width: 1100px
+) {
+  .home-products-carousel {
+    padding-inline:
+      22px;
+  }
+
+  .home-products-arrow-previous {
+    left:
+      -8px;
+  }
+
+  .home-products-arrow-next {
+    right:
+      -8px;
+  }
+}
+
 @media (max-width: 640px) {
   .home-products-section {
     padding:
@@ -7767,6 +7953,40 @@ textarea,
     box-shadow:
       none;
   }
+
+.home-products-carousel {
+  padding-inline:
+    18px;
+}
+
+.home-products-arrow {
+  width:
+    42px;
+  height:
+    42px;
+  border-color:
+    rgba(34, 31, 28, 0.2);
+  box-shadow:
+    0 8px 22px
+    rgba(34, 31, 28, 0.16);
+}
+
+.home-products-arrow-previous {
+  left:
+    -3px;
+}
+
+.home-products-arrow-next {
+  right:
+    -3px;
+}
+
+.home-products-arrow svg {
+  width:
+    21px;
+  height:
+    21px;
+}
 }
 
 @media (max-width: 390px) {
@@ -7793,7 +8013,31 @@ textarea,
     flex-basis:
       35px;
   }
+
+.home-products-carousel {
+  padding-inline:
+    14px;
 }
+
+.home-products-arrow {
+  width:
+    40px;
+  height:
+    40px;
+}
+
+.home-products-arrow-previous {
+  left:
+    -5px;
+}
+
+.home-products-arrow-next {
+  right:
+    -5px;
+}
+}
+
+
 
 /*
  * Respect des préférences

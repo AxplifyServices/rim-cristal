@@ -605,6 +605,7 @@ function buildProductsQuery({
   search = '',
   featured,
   bestseller,
+  promotion,
   isNew,
 } = {}) {
   const params =
@@ -692,18 +693,27 @@ function buildProductsQuery({
     )
   }
 
-  if (
-    bestseller !== undefined
-  ) {
-    params.set(
-      'bestseller',
-      String(bestseller)
-    )
-  }
+if (
+  bestseller !== undefined
+) {
+  params.set(
+    'bestseller',
+    String(bestseller)
+  )
+}
 
-  if (
-    isNew !== undefined
-  ) {
+if (
+  promotion !== undefined
+) {
+  params.set(
+    'promotion',
+    String(promotion)
+  )
+}
+
+if (
+  isNew !== undefined
+) {
     params.set(
       'is_new',
       String(isNew)

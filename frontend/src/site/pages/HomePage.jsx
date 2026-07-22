@@ -1,9 +1,7 @@
 'use client'
 
-import Link from 'next/link'
-
 import HomeBrochureCarousel from '../components/HomeBrochureCarousel'
-import ProductCard from '../components/ProductCard'
+import HomePaginatedProducts from '../components/HomePaginatedProducts'
 import SiteLayout from '../components/SiteLayout'
 import {
   useSiteI18n,
@@ -11,19 +9,14 @@ import {
 
 export default function HomePage({
   initialBrochures = [],
-  initialBestsellers = [],
+  initialBestsellers = null,
+  initialPromotions = null,
   brochuresLoadFailed = false,
-  productsLoadFailed = false,
+  bestsellersLoadFailed = false,
+  promotionsLoadFailed = false,
 }) {
   const { t } =
     useSiteI18n()
-
-  const bestsellers =
-    Array.isArray(
-      initialBestsellers
-    )
-      ? initialBestsellers
-      : []
 
   return (
     <SiteLayout>
@@ -36,97 +29,57 @@ export default function HomePage({
         }
       />
 
-      <section className="section section-light home-products-section">
-        <div className="container">
-          <div className="section-heading home-products-heading">
-            <div>
-              <span className="home-section-kicker">
-                {t(
-                  'home.featuredKicker'
-                )}
-              </span>
+      <HomePaginatedProducts
+        sectionId="best-sellers"
+        initialResult={
+          initialBestsellers
+        }
+        initialLoadFailed={
+          bestsellersLoadFailed
+        }
+        kicker={t(
+          'home.featuredKicker'
+        )}
+        title={t(
+          'home.featuredTitle'
+        )}
+        subtitle={t(
+          'home.featuredSubtitle'
+        )}
+        emptyMessage={t(
+          'home.noBestsellers'
+        )}
+        queryOptions={{
+          bestseller: true,
+        }}
+        viewAllHref="/shop"
+      />
 
-              <h2>
-                {t(
-                  'home.featuredTitle'
-                )}
-              </h2>
-
-              <p>
-                {t(
-                  'home.featuredSubtitle'
-                )}
-              </p>
-            </div>
-
-            <Link
-              href="/shop"
-              className="text-link"
-            >
-              {t(
-                'common.viewAll'
-              )}
-            </Link>
-          </div>
-
-          {productsLoadFailed && (
-            <div
-              className="error-block"
-              role="alert"
-            >
-              <p>
-                {t(
-                  'common.error'
-                )}
-              </p>
-
-              <Link
-                href="/shop"
-                className="primary-button"
-              >
-                {t(
-                  'common.viewAll'
-                )}
-              </Link>
-            </div>
-          )}
-
-          {!productsLoadFailed &&
-            bestsellers.length ===
-              0 && (
-              <div className="empty-block">
-                {t(
-                  'home.noBestsellers'
-                )}
-              </div>
-            )}
-
-          {!productsLoadFailed &&
-            bestsellers.length >
-              0 && (
-              <div className="product-grid home-product-grid">
-                {bestsellers.map(
-                  (
-                    product,
-                    index
-                  ) => (
-                    <ProductCard
-                      key={
-                        product.id
-                      }
-                      product={
-                        product
-                      }
-                      imagePriority={
-                        index < 4
-                      }
-                    />
-                  )
-                )}
-              </div>
-            )}
-        </div>
-      </section>
+      <HomePaginatedProducts
+        sectionId="promotions"
+        initialResult={
+          initialPromotions
+        }
+        initialLoadFailed={
+          promotionsLoadFailed
+        }
+        kicker={t(
+          'home.promotionsKicker'
+        )}
+        title={t(
+          'home.promotionsTitle'
+        )}
+        subtitle={t(
+          'home.promotionsSubtitle'
+        )}
+        emptyMessage={t(
+          'home.noPromotions'
+        )}
+        queryOptions={{
+          promotion: true,
+        }}
+        viewAllHref="/shop"
+      />
     </SiteLayout>
   )
 }

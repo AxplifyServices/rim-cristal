@@ -1297,13 +1297,60 @@ if (isPublicCatalog) {
       where.is_featured = String(query.featured) === 'true';
     }
 
-    if (query.bestseller !== undefined) {
-      where.is_bestseller = String(query.bestseller) === 'true';
-    }
+if (query.bestseller !== undefined) {
+  where.is_bestseller =
+    String(query.bestseller).toLowerCase() ===
+    'true';
+}
 
-    if (query.is_new !== undefined || query.new !== undefined) {
-      where.is_new = String(query.is_new || query.new) === 'true';
-    }  
+/*
+ * Une promotion est active lorsque :
+ * - promotion_percentage existe ;
+ * - elle est strictement supérieure à 0 ;
+ * - elle est strictement inférieure à 100.
+ *
+ * Le champ products.price reste toujours le prix initial.
+ * Le prix promotionnel est calculé uniquement lors de
+ * la sérialisation du produit.
+ */
+if (query.promotion !== undefined) {
+  const promotionRequested =
+    String(query.promotion).toLowerCase() ===
+    'true';
+
+  if (promotionRequested) {
+    where.promotion_percentage = {
+      gt: 0,
+      lt: 100,
+    };
+  } else {
+    where.OR = [
+      {
+        promotion_percentage: null,
+      },
+      {
+        promotion_percentage: {
+          lte: 0,
+        },
+      },
+      {
+        promotion_percentage: {
+          gte: 100,
+        },
+      },
+    ];
+  }
+}
+
+if (
+  query.is_new !== undefined ||
+  query.new !== undefined
+) {
+  where.is_new =
+    String(
+      query.is_new ?? query.new,
+    ).toLowerCase() === 'true';
+}
 
     const search = query.search || query.q;
 
