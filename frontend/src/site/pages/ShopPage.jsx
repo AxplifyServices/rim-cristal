@@ -18,7 +18,6 @@ import {
   getProductsPage,
 } from '../lib/products'
 import {
-  PRODUCT_SECTIONS,
   PRODUCT_SECTION_VALUES,
 } from '../constants/productSections'
 
@@ -128,23 +127,6 @@ export default function ShopPage() {
     pendingPrice,
     setPendingPrice,
   ] = useState(null)
-
-  const selectedSectionConfig =
-    selectedRubriques.length === 1
-      ? PRODUCT_SECTIONS.find(
-          section =>
-            section.value ===
-            selectedRubriques[0]
-        )
-      : null
-
-  const selectedSectionLabel =
-    selectedSectionConfig
-      ? t(
-          selectedSectionConfig
-            .translationKey
-        )
-      : ''
 
   useEffect(() => {
     setSearch(urlSearch)
@@ -811,43 +793,21 @@ export default function ShopPage() {
 
 return (
   <SiteLayout>
-    <section className="shop-hero">
-      <div className="container">
-        <div className="shop-hero-inner">
-          <div className="shop-hero-copy">
-            <span className="shop-hero-eyebrow">
-              Casa Luxury Decor
-            </span>
+<section className="shop-hero">
+  <div className="container">
+    <div className="shop-hero-inner">
+      <div className="shop-hero-copy">
+        <h1>
+          {t('shop.title')}
+        </h1>
 
-            <h1>
-              {selectedSectionLabel ||
-                t('shop.title')}
-            </h1>
-
-            <p>
-              {selectedSectionLabel
-                ? t(
-                    'shop.sectionSubtitle',
-                    {
-                      section:
-                        selectedSectionLabel,
-                    }
-                  )
-                : t('shop.subtitle')}
-            </p>
-          </div>
-
-          <div
-            className="shop-hero-decoration"
-            aria-hidden="true"
-          >
-            <span />
-            <span />
-            <span />
-          </div>
-        </div>
+        <p>
+          {t('shop.subtitle')}
+        </p>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
     <section className="section shop-section">
       <div className="container">
