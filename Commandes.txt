@@ -45,12 +45,12 @@ pdv123
 
 rim_cristal
 
-psql -U postgres -d rim_cristal -f database/schema/021_add_product_promotions.sql
+psql -U postgres -d rim_cristal -f database/schema/022_order_reviews.sql
 
 ** Exécution serveur : 
 
 cd /opt/apps/rim_cristal
 
-sudo -u postgres psql -d rim_cristal  -f database/schema/021_add_product_promotions.sql
+sudo -u postgres psql -d rim_cristal  -f database/schema/022_order_reviews.sql
 
 
