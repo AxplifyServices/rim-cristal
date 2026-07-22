@@ -11,9 +11,11 @@ export default function HomePage({
   initialBrochures = [],
   initialBestsellers = null,
   initialPromotions = null,
+  initialRecentProducts = null,
   brochuresLoadFailed = false,
   bestsellersLoadFailed = false,
   promotionsLoadFailed = false,
+  recentProductsLoadFailed = false,
 }) {
   const { t } =
     useSiteI18n()
@@ -77,6 +79,32 @@ export default function HomePage({
         )}
         queryOptions={{
           promotion: true,
+        }}
+        viewAllHref="/shop"
+      />
+
+      <HomePaginatedProducts
+        sectionId="new-arrivals"
+        initialResult={
+          initialRecentProducts
+        }
+        initialLoadFailed={
+          recentProductsLoadFailed
+        }
+        kicker={t(
+          'home.newArrivalsKicker'
+        )}
+        title={t(
+          'home.newArrivalsTitle'
+        )}
+        subtitle={t(
+          'home.newArrivalsSubtitle'
+        )}
+        emptyMessage={t(
+          'home.noNewArrivals'
+        )}
+        queryOptions={{
+          recent: true,
         }}
         viewAllHref="/shop"
       />

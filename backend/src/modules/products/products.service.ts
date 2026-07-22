@@ -1352,7 +1352,20 @@ if (
     ).toLowerCase() === 'true';
 }
 
-    const search = query.search || query.q;
+/*
+ * Le filtre recent=true est réservé à la section
+ * "Nos dernières nouveautés" de la page d'accueil.
+ *
+ * Il ne dépend pas du champ manuel is_new :
+ * les produits sont sélectionnés automatiquement
+ * selon leur date réelle de création.
+ */
+const recentRequested =
+  String(
+    query.recent ?? '',
+  ).toLowerCase() === 'true';
+
+const search = query.search || query.q;
 
     if (search) {
       where.OR = [
@@ -1377,27 +1390,74 @@ if (
       ];
     }
 
-const [items, total] =
+/*
+ * La section des nouveautés est limitée aux
+ * 18 produits publics les plus récemment créés.
+ */
+const recentProductsLimit = 18;
+
+const skip =
+  (page - 1) *
+  pageSize;
+
+const take = recentRequested
+  ? Math.max(
+      Math.min(
+        pageSize,
+        recentProductsLimit -
+          skip,
+      ),
+      0,
+    )
+  : pageSize;
+
+const [items, matchingTotal] =
   await this.prisma.$transaction([
     this.prisma.products.findMany({
       where,
+
       include:
         this.getProductSizeVariantsInclude(
           !isPublicCatalog,
         ),
-      orderBy: {
-        id: 'asc',
-      },
-      skip:
-        (page - 1) *
-        pageSize,
-      take: pageSize,
+
+      orderBy: recentRequested
+        ? [
+            {
+              created_at:
+                'desc',
+            },
+            {
+              id: 'desc',
+            },
+          ]
+        : [
+            {
+              id: 'asc',
+            },
+          ],
+
+      skip,
+
+      take,
     }),
 
     this.prisma.products.count({
       where,
     }),
   ]);
+
+/*
+ * Le catalogue général conserve son total réel.
+ * Seule la requête recent=true est plafonnée à 18.
+ */
+const total =
+  recentRequested
+    ? Math.min(
+        matchingTotal,
+        recentProductsLimit,
+      )
+    : matchingTotal;
 
 const mediaVariants =
   await this.getProductMediaVariants(
@@ -1418,8 +1478,11 @@ return {
   page,
   page_size: pageSize,
 
-  pages: Math.ceil(
-    total / pageSize,
+  pages: Math.max(
+    Math.ceil(
+      total / pageSize,
+    ),
+    1,
   ),
 };
   }

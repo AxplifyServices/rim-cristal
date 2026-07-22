@@ -10,11 +10,23 @@ const HOME_PRODUCTS_PAGE_SIZE = 6
 
 export const revalidate = 60
 
+function createEmptyProductsResult() {
+  return {
+    items: [],
+    total: 0,
+    page: 1,
+    pageSize:
+      HOME_PRODUCTS_PAGE_SIZE,
+    pages: 1,
+  }
+}
+
 export default async function Page() {
   const [
     brochuresResult,
     bestsellersResult,
     promotionsResult,
+    recentProductsResult,
   ] = await Promise.allSettled([
     getHomepageBrochures(),
 
@@ -31,6 +43,18 @@ export default async function Page() {
         HOME_PRODUCTS_PAGE_SIZE,
       promotion: true,
     }),
+
+    /*
+     * Le backend limite automatiquement
+     * cette requête aux 18 produits les
+     * plus récemment créés.
+     */
+    getProductsPage({
+      page: 1,
+      pageSize:
+        HOME_PRODUCTS_PAGE_SIZE,
+      recent: true,
+    }),
   ])
 
   const initialBrochures =
@@ -43,27 +67,19 @@ export default async function Page() {
     bestsellersResult.status ===
     'fulfilled'
       ? bestsellersResult.value
-      : {
-          items: [],
-          total: 0,
-          page: 1,
-          pageSize:
-            HOME_PRODUCTS_PAGE_SIZE,
-          pages: 1,
-        }
+      : createEmptyProductsResult()
 
   const initialPromotions =
     promotionsResult.status ===
     'fulfilled'
       ? promotionsResult.value
-      : {
-          items: [],
-          total: 0,
-          page: 1,
-          pageSize:
-            HOME_PRODUCTS_PAGE_SIZE,
-          pages: 1,
-        }
+      : createEmptyProductsResult()
+
+  const initialRecentProducts =
+    recentProductsResult.status ===
+    'fulfilled'
+      ? recentProductsResult.value
+      : createEmptyProductsResult()
 
   const brochuresLoadFailed =
     brochuresResult.status ===
@@ -75,6 +91,10 @@ export default async function Page() {
 
   const promotionsLoadFailed =
     promotionsResult.status ===
+    'rejected'
+
+  const recentProductsLoadFailed =
+    recentProductsResult.status ===
     'rejected'
 
   if (brochuresLoadFailed) {
@@ -98,6 +118,15 @@ export default async function Page() {
     )
   }
 
+  if (
+    recentProductsLoadFailed
+  ) {
+    console.error(
+      'Erreur de chargement des nouveautés :',
+      recentProductsResult.reason
+    )
+  }
+
   return (
     <HomePage
       initialBrochures={
@@ -109,6 +138,9 @@ export default async function Page() {
       initialPromotions={
         initialPromotions
       }
+      initialRecentProducts={
+        initialRecentProducts
+      }
       brochuresLoadFailed={
         brochuresLoadFailed
       }
@@ -117,6 +149,9 @@ export default async function Page() {
       }
       promotionsLoadFailed={
         promotionsLoadFailed
+      }
+      recentProductsLoadFailed={
+        recentProductsLoadFailed
       }
     />
   )

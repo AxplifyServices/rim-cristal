@@ -606,6 +606,7 @@ function buildProductsQuery({
   featured,
   bestseller,
   promotion,
+  recent,
   isNew,
 } = {}) {
   const params =
@@ -708,6 +709,15 @@ if (
   params.set(
     'promotion',
     String(promotion)
+  )
+}
+
+if (
+  recent !== undefined
+) {
+  params.set(
+    'recent',
+    String(recent)
   )
 }
 
