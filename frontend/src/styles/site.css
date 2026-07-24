@@ -4919,12 +4919,16 @@ a {
   }
 
   .site-catalogue-navigation-body {
+    min-width: 0;
     min-height: 0;
     max-height: calc(100vh - 132px);
-    grid-template-columns: 1fr;
+    overflow-x: hidden;
+    overflow-y: auto;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .site-catalogue-rubriques {
+    min-width: 0;
     border-right: 0;
     border-bottom: 1px solid #e7e0d7;
     display: grid;
@@ -4933,9 +4937,15 @@ a {
   }
 
   .site-catalogue-rubriques button {
+    min-width: 0;
     min-height: 54px;
     border-left: 0;
     border-bottom: 1px solid #eee9e2;
+  }
+
+  .site-catalogue-rubriques button span {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .site-catalogue-rubriques button.is-active {
@@ -4943,21 +4953,63 @@ a {
     color: #fff;
   }
 
-  .site-catalogue-content {
+  /*
+   * La seconde règle est indispensable.
+   * Elle écrase explicitement la grille desktop à deux colonnes
+   * lorsqu'une catégorie est sélectionnée.
+   */
+  .site-catalogue-content,
+  .site-catalogue-content.has-family-column {
+    width: 100%;
+    min-width: 0;
     padding: 18px 14px 28px;
-    grid-template-columns: 1fr;
+    overflow-x: hidden;
+    grid-template-columns: minmax(0, 1fr);
     gap: 28px;
   }
 
+  .site-catalogue-column,
+  .site-catalogue-family-column {
+    width: 100%;
+    min-width: 0;
+  }
+
   .site-catalogue-column + .site-catalogue-column {
-    padding-left: 0;
-    border-left: 0;
     padding-top: 24px;
+    padding-left: 0;
     border-top: 1px solid #e6dfd6;
+    border-left: 0;
+  }
+
+  .site-catalogue-column-heading {
+    min-width: 0;
+  }
+
+  .site-catalogue-column-heading h2,
+  .site-catalogue-column-heading a {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .site-catalogue-links button {
+    min-width: 0;
+  }
+
+  .site-catalogue-links button span {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .site-catalogue-family-grid {
-    grid-template-columns: 1fr;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-catalogue-family-grid a {
+    width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .site-search-panel {
