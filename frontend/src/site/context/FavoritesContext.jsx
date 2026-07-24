@@ -22,6 +22,11 @@ export function FavoritesProvider({
     setFavoriteProductIds,
   ] = useState([])
 
+  const [
+    isReady,
+    setIsReady,
+  ] = useState(false)
+
   useEffect(() => {
     try {
       const saved =
@@ -35,35 +40,55 @@ export function FavoritesProvider({
         )
 
       if (Array.isArray(parsed)) {
-        setFavoriteProductIds(
-          parsed
-            .map(Number)
-            .filter(
-              productId =>
-                Number.isInteger(
-                  productId
-                ) &&
-                productId > 0
+        const normalizedIds =
+          Array.from(
+            new Set(
+              parsed
+                .map(Number)
+                .filter(
+                  productId =>
+                    Number.isInteger(
+                      productId
+                    ) &&
+                    productId > 0
+                )
             )
+          )
+
+        setFavoriteProductIds(
+          normalizedIds
         )
+      } else {
+        setFavoriteProductIds([])
       }
     } catch {
       setFavoriteProductIds([])
+    } finally {
+      setIsReady(true)
     }
   }, [])
 
   useEffect(() => {
+    if (!isReady) {
+      return
+    }
+
     window.localStorage.setItem(
       FAVORITES_STORAGE_KEY,
       JSON.stringify(
         favoriteProductIds
       )
     )
-  }, [favoriteProductIds])
+  }, [
+    favoriteProductIds,
+    isReady,
+  ])
 
   const value = useMemo(() => {
     return {
       favoriteProductIds,
+
+      isReady,
 
       count:
         favoriteProductIds.length,
@@ -108,7 +133,10 @@ export function FavoritesProvider({
         setFavoriteProductIds([])
       },
     }
-  }, [favoriteProductIds])
+  }, [
+    favoriteProductIds,
+    isReady,
+  ])
 
   return (
     <FavoritesContext.Provider

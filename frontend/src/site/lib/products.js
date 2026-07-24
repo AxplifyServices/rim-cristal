@@ -1122,6 +1122,54 @@ export async function getProducts(
   return result.items
 }
 
+export async function getProductById(
+  productId
+) {
+  const normalizedProductId =
+    Number(productId)
+
+  if (
+    !Number.isInteger(
+      normalizedProductId
+    ) ||
+    normalizedProductId <= 0
+  ) {
+    return null
+  }
+
+  const response = await fetch(
+    `${PUBLIC_API_BASE}/products/${normalizedProductId}`,
+    {
+      method: 'GET',
+
+      headers: {
+        Accept:
+          'application/json',
+      },
+
+      cache: 'no-store',
+    }
+  )
+
+  if (response.status === 404) {
+    return null
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Impossible de charger le produit ${normalizedProductId} : ${response.status}`
+    )
+  }
+
+  const product = mapProduct(
+    await response.json()
+  )
+
+  return product.available
+    ? product
+    : null
+}
+
 export async function getProductBySlug(
   slug
 ) {

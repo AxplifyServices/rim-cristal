@@ -18,6 +18,9 @@ import {
   PRODUCT_SECTIONS,
 } from '../constants/productSections'
 import { useCart } from '../context/CartContext'
+import {
+  useFavorites,
+} from '../context/FavoritesContext'
 import { useSiteI18n } from '../i18n/SiteI18nProvider'
 import {
   getProductFilters,
@@ -88,6 +91,17 @@ function ChevronRightIcon() {
   )
 }
 
+function CheckIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path d="m5 12 4 4L19 6" />
+    </svg>
+  )
+}
+
 function CloseIcon() {
   return (
     <svg
@@ -144,11 +158,14 @@ export default function SiteHeader() {
   const router =
     useRouter()
 
-  const searchInputRef =
-    useRef(null)
+const searchInputRef =
+  useRef(null)
 
-  const requestIdRef =
-    useRef(0)
+const languageMenuRef =
+  useRef(null)
+
+const requestIdRef =
+  useRef(0)
 
   const [
     catalogueOpen,
@@ -164,6 +181,11 @@ export default function SiteHeader() {
     searchOpen,
     setSearchOpen,
   ] = useState(false)
+
+  const [
+  languageMenuOpen,
+  setLanguageMenuOpen,
+] = useState(false)
 
   const [
     searchValue,
@@ -200,7 +222,13 @@ export default function SiteHeader() {
     setCatalogueError,
   ] = useState('')
 
-  const { count } = useCart()
+  const {
+    count: cartCount,
+  } = useCart()
+
+  const {
+    count: favoritesCount,
+  } = useFavorites()
 
   const {
     locale,
@@ -226,11 +254,12 @@ export default function SiteHeader() {
       )
     }, [selectedRubrique])
 
-  function closeAllPanels() {
-    setCatalogueOpen(false)
-    setMobileMenuOpen(false)
-    setSearchOpen(false)
-  }
+function closeAllPanels() {
+  setCatalogueOpen(false)
+  setMobileMenuOpen(false)
+  setSearchOpen(false)
+  setLanguageMenuOpen(false)
+}
 
   async function loadCatalogue({
     rubrique,
@@ -420,6 +449,57 @@ export default function SiteHeader() {
     )
   }
 
+useEffect(() => {
+  if (!languageMenuOpen) {
+    return undefined
+  }
+
+  function handleOutsideClick(
+    event
+  ) {
+    if (
+      languageMenuRef.current &&
+      !languageMenuRef.current.contains(
+        event.target
+      )
+    ) {
+      setLanguageMenuOpen(false)
+    }
+  }
+
+  function handleEscape(
+    event
+  ) {
+    if (
+      event.key === 'Escape'
+    ) {
+      setLanguageMenuOpen(false)
+    }
+  }
+
+  document.addEventListener(
+    'mousedown',
+    handleOutsideClick
+  )
+
+  window.addEventListener(
+    'keydown',
+    handleEscape
+  )
+
+  return () => {
+    document.removeEventListener(
+      'mousedown',
+      handleOutsideClick
+    )
+
+    window.removeEventListener(
+      'keydown',
+      handleEscape
+    )
+  }
+}, [languageMenuOpen])  
+
   useEffect(() => {
     closeAllPanels()
   }, [
@@ -565,43 +645,127 @@ export default function SiteHeader() {
               </span>
             </button>
 
-            <label className="site-language-select">
-              <span className="sr-only">
-                {t(
-                  'nav.language'
-                )}
-              </span>
+<div
+  ref={languageMenuRef}
+  className={[
+    'site-language-select',
+    languageMenuOpen
+      ? 'is-open'
+      : '',
+  ]
+    .filter(Boolean)
+    .join(' ')}
+>
+  <button
+    type="button"
+    className="site-language-trigger"
+    aria-label={t(
+      'nav.language'
+    )}
+    aria-haspopup="listbox"
+    aria-expanded={
+      languageMenuOpen
+    }
+    onClick={() => {
+      setLanguageMenuOpen(
+        current => !current
+      )
 
-              <select
-                value={locale}
-                onChange={event => {
-                  setLocale(
-                    event.target.value
-                  )
-                }}
-              >
-<option value="fr">
-  FR
-</option>
+      setCatalogueOpen(false)
+      setMobileMenuOpen(false)
+      setSearchOpen(false)
+    }}
+  >
+    <span>
+      {locale === 'ar'
+        ? 'AR'
+        : 'FR'}
+    </span>
+  </button>
 
-<option value="ar">
-  AR
-</option>
-              </select>
-            </label>
+  {languageMenuOpen && (
+    <div
+      className="site-language-menu"
+      role="listbox"
+      aria-label={t(
+        'nav.language'
+      )}
+    >
+      <button
+        type="button"
+        role="option"
+        aria-selected={
+          locale === 'fr'
+        }
+        className={[
+          'site-language-option',
+          locale === 'fr'
+            ? 'is-active'
+            : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        onClick={() => {
+          setLocale('fr')
+          setLanguageMenuOpen(false)
+        }}
+      >
+        <span>Français</span>
 
-            <button
-              type="button"
+        {locale === 'fr' && (
+          <CheckIcon />
+        )}
+      </button>
+
+      <button
+        type="button"
+        role="option"
+        aria-selected={
+          locale === 'ar'
+        }
+        className={[
+          'site-language-option',
+          locale === 'ar'
+            ? 'is-active'
+            : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        onClick={() => {
+          setLocale('ar')
+          setLanguageMenuOpen(false)
+        }}
+      >
+        <span>العربية</span>
+
+        {locale === 'ar' && (
+          <CheckIcon />
+        )}
+      </button>
+    </div>
+  )}
+</div>
+
+            <Link
+              href="/favorites"
               className="site-header-icon-link site-favorites-button"
               aria-label={t(
                 'nav.favorites'
               )}
-              onClick={() => {
-                router.push('/shop')
-              }}
+              onClick={
+                closeAllPanels
+              }
             >
               <HeartIcon />
-            </button>
+
+              {favoritesCount > 0 && (
+                <span className="site-favorites-count">
+                  {favoritesCount > 99
+                    ? '99+'
+                    : favoritesCount}
+                </span>
+              )}
+            </Link>
 
             <Link
               href="/cart"
@@ -612,11 +776,11 @@ export default function SiteHeader() {
             >
               <BagIcon />
 
-              {count > 0 && (
+              {cartCount > 0 && (
                 <span className="site-cart-count">
-                  {count > 99
+                  {cartCount > 99
                     ? '99+'
-                    : count}
+                    : cartCount}
                 </span>
               )}
             </Link>
@@ -936,29 +1100,77 @@ export default function SiteHeader() {
           </button>
         </div>
 
-        <form
-          className="site-mobile-search"
-          onSubmit={
-            submitSearch
-          }
-        >
-          <SearchIcon />
+<form
+  className="site-mobile-search"
+  onSubmit={
+    submitSearch
+  }
+>
+  <SearchIcon />
 
-          <input
-            type="search"
-            value={searchValue}
-            onChange={event => {
-              setSearchValue(
-                event.target.value
-              )
-            }}
-            placeholder={t(
-              'nav.searchPlaceholder'
-            )}
-          />
-        </form>
+  <input
+    type="search"
+    value={searchValue}
+    onChange={event => {
+      setSearchValue(
+        event.target.value
+      )
+    }}
+    placeholder={t(
+      'nav.searchPlaceholder'
+    )}
+  />
+</form>
 
-        <nav className="site-mobile-navigation-links">
+<div className="site-mobile-language-switcher">
+  <span className="site-mobile-language-label">
+    {t('nav.language')}
+  </span>
+
+  <div
+    className="site-mobile-language-options"
+    role="group"
+    aria-label={t(
+      'nav.language'
+    )}
+  >
+    <button
+      type="button"
+      className={
+        locale === 'fr'
+          ? 'is-active'
+          : ''
+      }
+      aria-pressed={
+        locale === 'fr'
+      }
+      onClick={() => {
+        setLocale('fr')
+      }}
+    >
+      FR
+    </button>
+
+    <button
+      type="button"
+      className={
+        locale === 'ar'
+          ? 'is-active'
+          : ''
+      }
+      aria-pressed={
+        locale === 'ar'
+      }
+      onClick={() => {
+        setLocale('ar')
+      }}
+    >
+      AR
+    </button>
+  </div>
+</div>
+
+<nav className="site-mobile-navigation-links">
           <Link
             href="/"
             onClick={
@@ -994,6 +1206,27 @@ export default function SiteHeader() {
           </Link>
 
           <Link
+            href="/favorites"
+            onClick={
+              closeAllPanels
+            }
+          >
+            <span>
+              {t(
+                'nav.favorites'
+              )}
+            </span>
+
+            {favoritesCount > 0 && (
+              <span className="site-mobile-navigation-count">
+                {favoritesCount > 99
+                  ? '99+'
+                  : favoritesCount}
+              </span>
+            )}
+          </Link>          
+
+          <Link
             href="/contact"
             onClick={
               closeAllPanels
@@ -1002,20 +1235,22 @@ export default function SiteHeader() {
             {t('nav.contact')}
           </Link>
 
-          <Link
-            href="/cart"
-            onClick={
-              closeAllPanels
-            }
-          >
-            {t('nav.cart')}
+<Link
+  href="/cart"
+  onClick={
+    closeAllPanels
+  }
+>
+  {t('nav.cart')}
 
-            {count > 0 && (
-              <span>
-                {count}
-              </span>
-            )}
-          </Link>
+  {cartCount > 0 && (
+    <span className="site-mobile-navigation-count">
+      {cartCount > 99
+        ? '99+'
+        : cartCount}
+    </span>
+  )}
+</Link>
         </nav>
       </aside>
 

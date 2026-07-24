@@ -111,6 +111,24 @@
   "selectCategory": "Sélectionnez une catégorie pour afficher les familles."
 }
   },
+  "favorites": {
+  "eyebrow": "Votre sélection",
+  "title": "Mes favoris",
+  "subtitle": "Retrouvez les pièces qui ont retenu votre regard et imaginez peu à peu l’intérieur qui vous ressemble.",
+  "loading": "Chargement de votre sélection...",
+  "product": "produit favori",
+  "products": "produits favoris",
+  "emptyEyebrow": "Votre inspiration commence ici",
+  "emptyTitle": "Votre sélection est encore vide",
+  "emptyDescription": "Parcourez nos collections et touchez le cœur des pièces que vous souhaitez garder près de vous.",
+  "discoverShop": "Découvrir la boutique",
+  "selectionTitle": "Les pièces que vous avez choisies",
+  "selectionDescription": "Comparez vos coups de cœur et retrouvez facilement chaque produit avant de faire votre choix.",
+  "clear": "Vider mes favoris",
+  "errorTitle": "Votre sélection ne peut pas être affichée",
+  "loadError": "Une erreur est survenue pendant le chargement de vos favoris.",
+  "partialLoadError": "Certains produits favoris ne sont plus disponibles ou n’ont pas pu être chargés."
+},
 "product": {
   "reference": "Référence",
   "brand": "Marque",
