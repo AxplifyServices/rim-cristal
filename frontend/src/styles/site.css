@@ -11060,3 +11060,419 @@ html[dir='rtl']
       scale(1);
   }
 }
+
+/* ---------------------------------------------------------
+   HOME / RUBRIQUES
+   --------------------------------------------------------- */
+
+.home-rubriques-section {
+  padding:
+    clamp(72px, 7vw, 112px)
+    0;
+  border-top:
+    1px solid
+    var(--line);
+  background:
+    var(--paper);
+}
+
+.home-rubriques-section
+  > .container {
+  width:
+    min(
+      1180px,
+      calc(100% - 48px)
+    );
+}
+
+.home-rubriques-heading {
+  max-width:
+    720px;
+  margin-bottom:
+    clamp(
+      34px,
+      4vw,
+      52px
+    );
+}
+
+.home-rubriques-heading h2 {
+  margin:
+    0;
+  font-family:
+    Georgia,
+    'Times New Roman',
+    serif;
+  font-size:
+    clamp(
+      34px,
+      4.2vw,
+      49px
+    );
+  font-weight:
+    500;
+  line-height:
+    1.04;
+  letter-spacing:
+    -0.038em;
+}
+
+.home-rubriques-heading p {
+  max-width:
+    620px;
+  margin:
+    14px 0 0;
+  color:
+    var(--muted);
+  font-size:
+    15px;
+  line-height:
+    1.65;
+}
+
+/*
+ * Trois colonnes sur ordinateur,
+ * deux colonnes sur tablette et mobile.
+ */
+.home-rubriques-grid {
+  display:
+    grid;
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+  gap:
+    22px;
+}
+
+.home-rubrique-card {
+  position:
+    relative;
+  min-height:
+    330px;
+  border-radius:
+    3px;
+  background:
+    var(--ink);
+  box-shadow:
+    0 16px 38px
+    rgba(
+      22,
+      22,
+      18,
+      0.1
+    );
+  overflow:
+    hidden;
+  isolation:
+    isolate;
+}
+
+.home-rubrique-image-wrapper,
+.home-rubrique-overlay {
+  position:
+    absolute;
+  inset:
+    0;
+}
+
+.home-rubrique-image {
+  object-fit:
+    cover;
+  transition:
+    transform 420ms ease,
+    filter 420ms ease;
+}
+
+.home-rubrique-overlay {
+  z-index:
+    1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(
+        20,
+        19,
+        16,
+        0.04
+      ) 28%,
+      rgba(
+        20,
+        19,
+        16,
+        0.78
+      ) 100%
+    );
+  transition:
+    background 300ms ease;
+}
+
+.home-rubrique-content {
+  position:
+    absolute;
+  inset-inline:
+    24px;
+  bottom:
+    23px;
+  z-index:
+    2;
+  display:
+    flex;
+  align-items:
+    flex-end;
+  justify-content:
+    space-between;
+  gap:
+    14px;
+  color:
+    var(--white);
+}
+
+.home-rubrique-name {
+  max-width:
+    72%;
+  font-family:
+    Georgia,
+    'Times New Roman',
+    serif;
+  font-size:
+    clamp(
+      23px,
+      2.2vw,
+      31px
+    );
+  font-weight:
+    500;
+  line-height:
+    1.05;
+  text-wrap:
+    balance;
+}
+
+.home-rubrique-action {
+  display:
+    inline-flex;
+  align-items:
+    center;
+  gap:
+    7px;
+  padding-bottom:
+    3px;
+  border-bottom:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.58
+    );
+  font-size:
+    10px;
+  font-weight:
+    800;
+  letter-spacing:
+    0.1em;
+  text-transform:
+    uppercase;
+  white-space:
+    nowrap;
+}
+
+.home-rubrique-arrow {
+  font-size:
+    16px;
+  line-height:
+    1;
+  transition:
+    transform 220ms ease;
+}
+
+/*
+ * En arabe, la flèche doit pointer
+ * dans le sens naturel de lecture.
+ */
+[dir='rtl']
+  .home-rubrique-arrow {
+  transform:
+    scaleX(-1);
+}
+
+/*
+ * Les effets de survol ne sont appliqués
+ * que sur les appareils disposant réellement
+ * d'un pointeur compatible avec le survol.
+ */
+@media (hover: hover) {
+  .home-rubrique-card:hover
+    .home-rubrique-image {
+    transform:
+      scale(1.035);
+    filter:
+      saturate(1.04);
+  }
+
+  .home-rubrique-card:hover
+    .home-rubrique-overlay {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(
+          20,
+          19,
+          16,
+          0.02
+        ) 20%,
+        rgba(
+          20,
+          19,
+          16,
+          0.86
+        ) 100%
+      );
+  }
+
+  .home-rubrique-card:hover
+    .home-rubrique-arrow {
+    transform:
+      translateX(4px);
+  }
+
+  [dir='rtl']
+    .home-rubrique-card:hover
+    .home-rubrique-arrow {
+    transform:
+      scaleX(-1)
+      translateX(4px);
+  }
+}
+
+/*
+ * Navigation clavier visible.
+ */
+.home-rubrique-card:focus-visible {
+  outline:
+    3px solid
+    var(
+      --bronze-dark,
+      var(--accent-dark)
+    );
+  outline-offset:
+    4px;
+}
+
+@media (min-width: 1600px) {
+  .home-rubriques-section
+    > .container {
+    width:
+      min(
+        1480px,
+        calc(100% - 80px)
+      );
+  }
+
+  .home-rubrique-card {
+    min-height:
+      390px;
+  }
+}
+
+@media (max-width: 900px) {
+  .home-rubriques-section
+    > .container {
+    width:
+      min(
+        100%,
+        calc(100% - 32px)
+      );
+  }
+
+  .home-rubriques-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+    gap:
+      14px;
+  }
+
+  .home-rubrique-card {
+    min-height:
+      300px;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-rubriques-section {
+    padding:
+      62px 0 72px;
+  }
+
+  .home-rubriques-heading {
+    margin-bottom:
+      29px;
+  }
+
+  .home-rubriques-heading h2 {
+    font-size:
+      clamp(
+        31px,
+        10vw,
+        40px
+      );
+  }
+
+  .home-rubriques-heading p {
+    font-size:
+      14px;
+    line-height:
+      1.55;
+  }
+
+  /*
+   * Deux cartes par ligne permettent
+   * d'afficher rapidement les six rubriques
+   * sans créer une section excessivement longue.
+   */
+  .home-rubriques-grid {
+    gap:
+      10px;
+  }
+
+  .home-rubrique-card {
+    min-height:
+      clamp(
+        205px,
+        62vw,
+        260px
+      );
+  }
+
+  .home-rubrique-content {
+    inset-inline:
+      14px;
+    bottom:
+      15px;
+  }
+
+  .home-rubrique-name {
+    max-width:
+      100%;
+    font-size:
+      clamp(
+        18px,
+        5.6vw,
+        24px
+      );
+  }
+
+  /*
+   * Sur petit écran, le nom suffit.
+   * Toute la carte reste cliquable.
+   */
+  .home-rubrique-action {
+    display:
+      none;
+  }
+}

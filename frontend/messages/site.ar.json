@@ -69,6 +69,22 @@
 "promotionsTitle": "العروض والتخفيضات",
 "promotionsSubtitle": "استفد من عروضنا الحالية على مجموعة مختارة من الأثاث والإنارة وقطع الديكور.",
 "noPromotions": "لا توجد عروض متاحة في الوقت الحالي.",
+"rubriques": {
+  "kicker": "اكتشف عوالمنا",
+  "title": "كل قطعة تحكي أسلوباً مختلفاً للحياة في المنزل.",
+  "subtitle": "من الأثاث الذي يرسم ملامح المساحة إلى التفاصيل التي تمنحها روحاً، اختر العالم الأقرب إلى ذوق منزلك.",
+  "navigationLabel": "استكشاف أقسام المتجر",
+  "discover": "اكتشف",
+  "openRubrique": "اكتشف قسم {rubrique}",
+  "items": {
+    "mobilier": "الأثاث",
+    "luminaires": "الإنارة",
+    "decoration": "الديكور",
+    "artMural": "فن الجدران",
+    "fleursArrangements": "الزهور والتنسيقات",
+    "artsDeLaTable": "فنون المائدة"
+  }
+},
 "newArrivalsKicker": "وصل حديثاً",
 "newArrivalsTitle": "أحدث منتجاتنا",
 "newArrivalsSubtitle": "اكتشف أحدث القطع المضافة إلى مجموعتنا لتجديد منزلك بلمسة أنيقة.",

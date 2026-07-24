@@ -7,6 +7,7 @@ import {
   useSiteI18n,
 } from '../i18n/SiteI18nProvider'
 import HomeReviewsCarousel from '../components/HomeReviewsCarousel'
+import HomeRubriquesGrid from '../components/HomeRubriquesGrid'
 
 export default function HomePage({
   initialBrochures = [],
@@ -84,6 +85,8 @@ export default function HomePage({
         }}
         viewAllHref="/shop"
       />
+
+      <HomeRubriquesGrid />
 
       <HomePaginatedProducts
         sectionId="new-arrivals"

@@ -69,6 +69,22 @@
 "promotionsTitle": "Nos promotions",
 "promotionsSubtitle": "Profitez de nos offres actuelles sur une sélection de mobilier, luminaires et objets de décoration.",
 "noPromotions": "Aucune promotion n’est disponible pour le moment.",
+"rubriques": {
+  "kicker": "Explorez nos univers",
+  "title": "Chaque pièce raconte une façon d’habiter.",
+  "subtitle": "Du mobilier qui structure l’espace aux détails qui lui donnent une âme, entrez dans l’univers qui ressemble à votre intérieur.",
+  "navigationLabel": "Découvrir les rubriques de la boutique",
+  "discover": "Découvrir",
+  "openRubrique": "Découvrir la rubrique {rubrique}",
+  "items": {
+    "mobilier": "Mobilier",
+    "luminaires": "Luminaires",
+    "decoration": "Décoration",
+    "artMural": "Art mural",
+    "fleursArrangements": "Fleurs & Arrangements",
+    "artsDeLaTable": "Arts de la table"
+  }
+},
 "newArrivalsKicker": "Fraîchement arrivés",
 "newArrivalsTitle": "Nos dernières nouveautés",
 "newArrivalsSubtitle": "Découvrez les dernières pièces ajoutées à notre collection pour renouveler votre intérieur avec élégance.",
