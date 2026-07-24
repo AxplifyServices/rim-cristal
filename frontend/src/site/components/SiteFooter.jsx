@@ -9,7 +9,7 @@ const FACEBOOK_URL =
 
 const INSTAGRAM_URL =
   process.env.NEXT_PUBLIC_INSTAGRAM_URL ||
-  'https://www.instagram.com/kaystia_home/'
+  'https://www.instagram.com/casaluxurydecor/'
 
 function normalizeWhatsAppNumber(value) {
   return String(value || '').replace(/\D/g, '')
