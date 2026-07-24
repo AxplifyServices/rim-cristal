@@ -3033,25 +3033,37 @@ export default function AdminProducts() {
                     styles.formSection
                   }
                 >
-                  <div
-                    style={
-                      styles.sectionHeading
-                    }
-                  >
-                    <h2
-                      style={
-                        styles.sectionTitle
-                      }
-                    >
-                      Images
-                    </h2>
-                  </div>
+<div
+  style={
+    styles.sectionHeading
+  }
+>
+  <div>
+    <h2
+      style={
+        styles.sectionTitle
+      }
+    >
+      Images
+    </h2>
 
-                  <div
-                    style={
-                      styles.imageGrid
-                    }
-                  >
+    <p
+      style={
+        styles.imageFormatHelp
+      }
+    >
+      {t(
+        'products.imageFormatHelp'
+      )}
+    </p>
+  </div>
+</div>
+
+<div
+  style={
+    styles.imageGrid
+  }
+>
                     {[1, 2, 3, 4, 5].map(
                       index => {
                         const field =
@@ -4043,6 +4055,14 @@ const styles = {
     fontSize: 17,
     color: '#1f1a14',
   },
+
+imageFormatHelp: {
+  margin: '8px 0 0',
+  maxWidth: '720px',
+  color: '#6f675f',
+  fontSize: '13px',
+  lineHeight: 1.55,
+},  
 
   sectionDescription: {
     margin: 0,

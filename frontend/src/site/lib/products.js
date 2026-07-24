@@ -954,29 +954,31 @@ export async function getProductsPage(
     typeof window ===
     'undefined'
 
-  const response = await fetch(
-    `${PUBLIC_API_BASE}/products?${query}`,
-    {
-      method: 'GET',
+const response = await fetch(
+  `${PUBLIC_API_BASE}/products?${query}`,
+  {
+    method: 'GET',
 
-      headers: {
-        Accept:
-          'application/json',
-      },
+    headers: {
+      Accept:
+        'application/json',
+    },
 
-      cache: isServer
-        ? 'force-cache'
-        : 'no-store',
+    cache: isServer
+      ? 'force-cache'
+      : 'no-store',
 
-      ...(isServer
-        ? {
-            next: {
-              revalidate: 60,
-            },
-          }
-        : {}),
-    }
-  )
+    signal: options.signal,
+
+    ...(isServer
+      ? {
+          next: {
+            revalidate: 60,
+          },
+        }
+      : {}),
+  }
+)
 
   if (!response.ok) {
     throw new Error(
@@ -1029,6 +1031,7 @@ export async function getProductsPage(
 export async function getProductFilters({
   rubrique = [],
   categorie = [],
+  signal,
 } = {}) {
   const params =
     new URLSearchParams()
@@ -1048,20 +1051,37 @@ export async function getProductFilters({
   const query =
     params.toString()
 
-  const response = await fetch(
-    `${PUBLIC_API_BASE}/products/filters${
-      query ? `?${query}` : ''
-    }`,
-    {
-      method: 'GET',
-      headers: {
-        Accept:
-          'application/json',
-      },
-      cache: 'no-store',
-    }
-  )
+const isServer =
+  typeof window ===
+  'undefined'
 
+const response = await fetch(
+  `${PUBLIC_API_BASE}/products/filters${
+    query ? `?${query}` : ''
+  }`,
+  {
+    method: 'GET',
+
+    headers: {
+      Accept:
+        'application/json',
+    },
+
+    cache: isServer
+      ? 'force-cache'
+      : 'no-store',
+
+    signal,
+
+    ...(isServer
+      ? {
+          next: {
+            revalidate: 300,
+          },
+        }
+      : {}),
+  }
+)
   if (!response.ok) {
     throw new Error(
       `Impossible de charger les filtres : ${response.status}`
@@ -1171,19 +1191,44 @@ export async function getProductById(
 }
 
 export async function getProductBySlug(
-  slug
+  slug,
+  options = {}
 ) {
+  const isServer =
+    typeof window === 'undefined'
+
+  const normalizedSlug =
+    String(slug || '').trim()
+
+  if (!normalizedSlug) {
+    return null
+  }
+
   const response = await fetch(
     `${PUBLIC_API_BASE}/products/slug/${encodeURIComponent(
-      String(slug)
+      normalizedSlug
     )}`,
     {
       method: 'GET',
+
       headers: {
         Accept:
           'application/json',
       },
-      cache: 'no-store',
+
+      signal: options.signal,
+
+      cache: isServer
+        ? 'force-cache'
+        : 'no-store',
+
+      ...(isServer
+        ? {
+            next: {
+              revalidate: 60,
+            },
+          }
+        : {}),
     }
   )
 

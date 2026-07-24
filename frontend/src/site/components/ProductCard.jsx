@@ -369,8 +369,8 @@ useEffect(() => {
          * On commence le téléchargement avant que
          * la carte entre complètement dans l'écran.
          */
-        rootMargin:
-          '220px 0px',
+rootMargin:
+  '80px 0px',
 
         threshold: 0.01,
       }
@@ -557,14 +557,31 @@ setShouldPreloadAdjacent(
       }, ADDED_FEEDBACK_DURATION)
   }
 
-  function handleProductAction() {
-    if (requiresConfiguration) {
-      router.push(
-        `/product/${product.slug}`
-      )
+function prefetchProductPage() {
+  if (!product.slug) {
+    return
+  }
 
-      return
-    }
+  router.prefetch(
+    `/product/${product.slug}`
+  )
+}  
+
+  function handleProductAction() {
+if (requiresConfiguration) {
+  const productHref =
+    `/product/${product.slug}`
+
+  router.prefetch(
+    productHref
+  )
+
+  router.push(
+    productHref
+  )
+
+  return
+}
 
     add({
       ...product,
@@ -596,6 +613,12 @@ setShouldPreloadAdjacent(
   return (
 <article
   ref={cardRef}
+  onMouseEnter={
+    prefetchProductPage
+  }
+  onTouchStartCapture={
+    prefetchProductPage
+  }
   className={[
         'product-card',
 
@@ -624,9 +647,10 @@ setShouldPreloadAdjacent(
             {promotionLabel}
           </span>
         )}        
-        <Link
-          href={`/product/${product.slug}`}
-          className="product-image-link"
+<Link
+  href={`/product/${product.slug}`}
+  prefetch
+  className="product-image-link"
           aria-label={product.name}
           onClick={
             handleImageLinkClick
@@ -647,30 +671,29 @@ setShouldPreloadAdjacent(
     imagePriority &&
     imageIndex === 0
   }
-  quality={76}
+  quality={72}
   className="product-image product-image-current"
 />
 
 {shouldPreloadAdjacent &&
-  adjacentImages.map(
-    image => (
-      <Image
-        key={`preload-${product.id}-${image}`}
-        src={image}
-        alt=""
-        aria-hidden="true"
-        fill
-        sizes="
-          (max-width: 520px) 50vw,
-          (max-width: 900px) 33vw,
-          (max-width: 1280px) 25vw,
-          320px
-        "
-        quality={76}
-        loading="eager"
-        className="product-image product-image-preload"
-      />
-    )
+  nextImageIndex !== imageIndex &&
+  productImages[nextImageIndex] && (
+    <Image
+      key={`preload-${product.id}-${productImages[nextImageIndex]}`}
+      src={productImages[nextImageIndex]}
+      alt=""
+      aria-hidden="true"
+      fill
+      sizes="
+        (max-width: 520px) 50vw,
+        (max-width: 900px) 33vw,
+        (max-width: 1280px) 25vw,
+        320px
+      "
+      quality={72}
+      loading="lazy"
+      className="product-image product-image-preload"
+    />
   )}
         </Link>
 
@@ -756,10 +779,11 @@ setShouldPreloadAdjacent(
             </p>
           )}
 
-          <Link
-            href={`/product/${product.slug}`}
-            className="product-name"
-          >
+<Link
+  href={`/product/${product.slug}`}
+  prefetch
+  className="product-name"
+>
             {product.name}
           </Link>
 

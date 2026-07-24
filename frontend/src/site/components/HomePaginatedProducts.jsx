@@ -64,6 +64,7 @@ export default function HomePaginatedProducts({
   queryOptions = {},
   sectionId,
   viewAllHref = '/shop',
+  prioritizeFirstImages = false,
 }) {
   const { t } =
     useSiteI18n()
@@ -400,11 +401,11 @@ export default function HomePaginatedProducts({
                       product={
                         product
                       }
-                      imagePriority={
-                        currentPage ===
-                          1 &&
-                        index < 3
-                      }
+imagePriority={
+  prioritizeFirstImages &&
+  currentPage === 1 &&
+  index < 2
+}
                     />
                   )
                 )}

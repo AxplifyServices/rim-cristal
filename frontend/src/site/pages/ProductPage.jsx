@@ -33,8 +33,23 @@ function normalizeWhatsAppNumber(value) {
   return String(value || '').replace(/\D/g, '')
 }
 
+function getDefaultSizeVariant(
+  product
+) {
+  if (!product) {
+    return null
+  }
+
+  return (
+    product.primarySizeVariant ||
+    product.sizeVariants?.[0] ||
+    null
+  )
+}
+
 export default function ProductPage({
   slug,
+  initialProduct = null,
 }) {
   const { add } = useCart()
   const { locale, t } =
@@ -45,8 +60,8 @@ export default function ProductPage({
       process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
     )
 
-  const [product, setProduct] =
-    useState(null)
+const [product, setProduct] =
+  useState(initialProduct)
 
 const [
   selectedImageIndex,
@@ -58,15 +73,36 @@ const [
   setTouchStartX,
 ] = useState(null)
 
-  const [
-    selectedColor,
-    setSelectedColor,
-  ] = useState('')
+const [
+  selectedColor,
+  setSelectedColor,
+] = useState(() => {
+  if (
+    initialProduct
+      ?.hasColorVariants &&
+    initialProduct.colors
+      ?.length > 0
+  ) {
+    return (
+      initialProduct.colors[0] ||
+      ''
+    )
+  }
+
+  return ''
+})
 
 const [
   selectedSizeVariantId,
   setSelectedSizeVariantId,
-] = useState('')  
+] = useState(() => {
+  const defaultVariant =
+    getDefaultSizeVariant(
+      initialProduct
+    )
+
+  return defaultVariant?.id || ''
+}) 
 
   const [quantity, setQuantity] =
     useState(1)
@@ -81,14 +117,58 @@ const [
   setImageZoom,
 ] = useState(1)    
 
-  const [loading, setLoading] =
-    useState(true)
+const [loading, setLoading] =
+  useState(!initialProduct)
 
   const [error, setError] =
     useState('')
 
 useEffect(() => {
-  let active = true
+  /*
+   * Lors du premier rendu, le produit a déjà
+   * été récupéré côté serveur.
+   *
+   * On évite donc de lancer immédiatement
+   * une seconde requête identique.
+   */
+  if (
+    initialProduct &&
+    String(initialProduct.slug) ===
+      String(slug)
+  ) {
+    setProduct(
+      initialProduct
+    )
+
+    setSelectedImageIndex(0)
+
+    const defaultSizeVariant =
+      getDefaultSizeVariant(
+        initialProduct
+      )
+
+    setSelectedSizeVariantId(
+      defaultSizeVariant?.id || ''
+    )
+
+    setSelectedColor(
+      initialProduct
+        .hasColorVariants &&
+      initialProduct.colors
+        ?.length > 0
+        ? initialProduct.colors[0]
+        : ''
+    )
+
+    setQuantity(1)
+    setLoading(false)
+    setError('')
+
+    return undefined
+  }
+
+  const controller =
+    new AbortController()
 
   async function loadProduct() {
     setLoading(true)
@@ -96,42 +176,64 @@ useEffect(() => {
 
     try {
       const result =
-        await getProductBySlug(slug)
+        await getProductBySlug(
+          slug,
+          {
+            signal:
+              controller.signal,
+          }
+        )
 
-      if (!active) {
+      if (!result) {
+        setProduct(null)
+
+        setError(
+          t('common.error')
+        )
+
         return
       }
 
       setProduct(result)
       setSelectedImageIndex(0)
 
-const defaultSizeVariant =
-  result.primarySizeVariant ||
-  result.sizeVariants?.[0] ||
-  null
+      const defaultSizeVariant =
+        getDefaultSizeVariant(
+          result
+        )
 
-setSelectedSizeVariantId(
-  defaultSizeVariant?.id || ''
-)      
+      setSelectedSizeVariantId(
+        defaultSizeVariant?.id || ''
+      )
 
       setSelectedColor(
         result.hasColorVariants &&
-        result.colors.length > 0
+        result.colors?.length > 0
           ? result.colors[0]
           : ''
       )
 
       setQuantity(1)
     } catch (loadError) {
-      console.error(loadError)
-
-      if (active) {
-        setError(
-          t('common.error')
-        )
+      if (
+        loadError?.name ===
+        'AbortError'
+      ) {
+        return
       }
+
+      console.error(
+        'Erreur chargement produit :',
+        loadError
+      )
+
+      setError(
+        t('common.error')
+      )
     } finally {
-      if (active) {
+      if (
+        !controller.signal.aborted
+      ) {
         setLoading(false)
       }
     }
@@ -140,9 +242,13 @@ setSelectedSizeVariantId(
   loadProduct()
 
   return () => {
-    active = false
+    controller.abort()
   }
-}, [slug, t])
+}, [
+  slug,
+  initialProduct,
+  t,
+])
 
 
 
@@ -756,18 +862,18 @@ const canAddToCart =
           <button
             type="button"
             onClick={() => {
-              setImageZoom(current =>
-                Math.min(
-                  3,
-                  Number(
-                    (
-                      current + 0.25
-                    ).toFixed(2)
-                  )
-                )
-              )
+setImageZoom(current =>
+  Math.min(
+    2,
+    Number(
+      (
+        current + 0.25
+      ).toFixed(2)
+    )
+  )
+)
             }}
-            disabled={imageZoom >= 3}
+            disabled={imageZoom >= 2}
             aria-label={t(
               'product.zoomIn'
             )}

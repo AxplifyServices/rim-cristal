@@ -3,6 +3,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import {
@@ -25,7 +26,11 @@ const PRODUCTS_PER_PAGE = 10
 const PRICE_DEBOUNCE_DELAY = 300
 const SEARCH_DEBOUNCE_DELAY = 400
 
-export default function ShopPage() {
+export default function ShopPage({
+  initialProductsResult = null,
+  initialFiltersResult = null,
+  initialLoadError = false,
+}) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { t } = useSiteI18n()
@@ -52,6 +57,7 @@ export default function ShopPage() {
       .getAll('famille')
       .filter(Boolean)
 
+
   const requestedMinPrice =
     searchParams.get('prix_min')
 
@@ -71,14 +77,33 @@ export default function ShopPage() {
   const urlSearch =
     searchParams.get('search') || ''
 
-  const [products, setProducts] =
-    useState([])
+const [products, setProducts] =
+  useState(() =>
+    Array.isArray(
+      initialProductsResult?.items
+    )
+      ? initialProductsResult.items
+      : []
+  )
 
-  const [total, setTotal] =
-    useState(0)
+const [total, setTotal] =
+  useState(() =>
+    Number(
+      initialProductsResult?.total ||
+        0
+    )
+  )
 
-  const [pages, setPages] =
-    useState(1)
+const [pages, setPages] =
+  useState(() =>
+    Math.max(
+      Number(
+        initialProductsResult?.pages ||
+          1
+      ),
+      1
+    )
+  )
 
   const [search, setSearch] =
     useState(urlSearch)
@@ -88,45 +113,143 @@ export default function ShopPage() {
     setDebouncedSearch,
   ] = useState(urlSearch)
 
-  const [loading, setLoading] =
-    useState(true)
+const [loading, setLoading] =
+  useState(
+    !initialProductsResult &&
+      !initialLoadError
+  )
 
-  const [error, setError] =
-    useState('')
+const [error, setError] =
+  useState(
+    initialLoadError
+      ? t('common.error')
+      : ''
+  )
 
   const [reloadKey, setReloadKey] =
     useState(0)
 
-  const [filters, setFilters] =
-    useState({
-      rubriques:
-        PRODUCT_SECTION_VALUES,
-      categories: [],
-      families: [],
-      price: {
-        min: 0,
-        max: 0,
-      },
-    })
+const [filters, setFilters] =
+  useState(() => ({
+    rubriques:
+      Array.isArray(
+        initialFiltersResult?.rubriques
+      )
+        ? initialFiltersResult.rubriques
+        : PRODUCT_SECTION_VALUES,
 
-  const [
-    filtersLoading,
-    setFiltersLoading,
-  ] = useState(true)
+    categories:
+      Array.isArray(
+        initialFiltersResult?.categories
+      )
+        ? initialFiltersResult.categories
+        : [],
+
+    families:
+      Array.isArray(
+        initialFiltersResult?.families
+      )
+        ? initialFiltersResult.families
+        : [],
+
+    price: {
+      min: Number(
+        initialFiltersResult?.price?.min ||
+          0
+      ),
+
+      max: Number(
+        initialFiltersResult?.price?.max ||
+          0
+      ),
+    },
+  }))
+
+const [
+  filtersLoading,
+  setFiltersLoading,
+] = useState(
+  !initialFiltersResult
+)
 
   const [filtersOpen, setFiltersOpen] =
     useState(false)
 
-  const [priceMin, setPriceMin] =
-    useState(0)
+const [priceMin, setPriceMin] =
+  useState(() => {
+    const defaultMin = Number(
+      initialFiltersResult?.price?.min ||
+        0
+    )
 
-  const [priceMax, setPriceMax] =
-    useState(0)
+    const requestedMin = Number(
+      requestedMinPrice ??
+        defaultMin
+    )
+
+    return Number.isFinite(
+      requestedMin
+    )
+      ? Math.max(
+          defaultMin,
+          requestedMin
+        )
+      : defaultMin
+  })
+
+const [priceMax, setPriceMax] =
+  useState(() => {
+    const defaultMax = Number(
+      initialFiltersResult?.price?.max ||
+        0
+    )
+
+    const requestedMax = Number(
+      requestedMaxPrice ??
+        defaultMax
+    )
+
+    return Number.isFinite(
+      requestedMax
+    )
+      ? Math.min(
+          defaultMax,
+          requestedMax
+        )
+      : defaultMax
+  })
 
   const [
     pendingPrice,
     setPendingPrice,
   ] = useState(null)
+
+const hasUsedInitialProducts =
+  useRef(
+    Boolean(
+      initialProductsResult ||
+        initialLoadError
+    )
+  )
+
+const hasUsedInitialFilters =
+  useRef(
+    Boolean(
+      initialFiltersResult
+    )
+  )
+
+const selectedRubriquesKey =
+  selectedRubriques
+    .slice()
+    .sort()
+    .join('|')
+
+const selectedCategoriesKey =
+  selectedCategories
+    .slice()
+    .sort()
+    .join('|')
 
   useEffect(() => {
     setSearch(urlSearch)
@@ -189,218 +312,263 @@ export default function ShopPage() {
     searchParamsString,
   ])
 
-  useEffect(() => {
-    let active = true
+useEffect(() => {
+  if (
+    hasUsedInitialFilters.current
+  ) {
+    hasUsedInitialFilters.current =
+      false
 
-    async function loadFilters() {
-      setFiltersLoading(true)
+    return undefined
+  }
 
-      try {
-        const result =
-          await getProductFilters({
-            rubrique:
-              selectedRubriques,
-            categorie:
-              selectedCategories,
-          })
+  const controller =
+    new AbortController()
 
-        if (!active) {
-          return
-        }
+  async function loadFilters() {
+    setFiltersLoading(true)
 
-        const defaultMin =
-          Number(result.price.min || 0)
+    try {
+      const result =
+        await getProductFilters({
+          rubrique:
+            selectedRubriques,
 
-        const defaultMax =
-          Number(result.price.max || 0)
+          categorie:
+            selectedCategories,
 
-        const parsedMin =
-          requestedMinPrice !== null
-            ? Number(
-                requestedMinPrice
-              )
-            : defaultMin
-
-        const parsedMax =
-          requestedMaxPrice !== null
-            ? Number(
-                requestedMaxPrice
-              )
-            : defaultMax
-
-        const nextMin =
-          Number.isFinite(parsedMin)
-            ? Math.max(
-                defaultMin,
-                Math.min(
-                  parsedMin,
-                  defaultMax
-                )
-              )
-            : defaultMin
-
-        const nextMax =
-          Number.isFinite(parsedMax)
-            ? Math.min(
-                defaultMax,
-                Math.max(
-                  parsedMax,
-                  defaultMin
-                )
-              )
-            : defaultMax
-
-        setFilters({
-          rubriques:
-            result.rubriques,
-          categories:
-            result.categories,
-          families:
-            result.families,
-          price: {
-            min: defaultMin,
-            max: defaultMax,
-          },
+          signal:
+            controller.signal,
         })
 
-        setPriceMin(
-          Math.min(
-            nextMin,
-            nextMax
-          )
-        )
+      const defaultMin =
+        Number(result.price.min || 0)
 
-        setPriceMax(
-          Math.max(
-            nextMin,
-            nextMax
-          )
+      const defaultMax =
+        Number(result.price.max || 0)
+
+      const parsedMin =
+        requestedMinPrice !== null
+          ? Number(
+              requestedMinPrice
+            )
+          : defaultMin
+
+      const parsedMax =
+        requestedMaxPrice !== null
+          ? Number(
+              requestedMaxPrice
+            )
+          : defaultMax
+
+      const nextMin =
+        Number.isFinite(parsedMin)
+          ? Math.max(
+              defaultMin,
+              Math.min(
+                parsedMin,
+                defaultMax
+              )
+            )
+          : defaultMin
+
+      const nextMax =
+        Number.isFinite(parsedMax)
+          ? Math.min(
+              defaultMax,
+              Math.max(
+                parsedMax,
+                defaultMin
+              )
+            )
+          : defaultMax
+
+      setFilters({
+        rubriques:
+          result.rubriques,
+
+        categories:
+          result.categories,
+
+        families:
+          result.families,
+
+        price: {
+          min: defaultMin,
+          max: defaultMax,
+        },
+      })
+
+      setPriceMin(
+        Math.min(
+          nextMin,
+          nextMax
         )
-      } catch (filterError) {
+      )
+
+      setPriceMax(
+        Math.max(
+          nextMin,
+          nextMax
+        )
+      )
+    } catch (filterError) {
+      if (
+        filterError?.name !==
+        'AbortError'
+      ) {
         console.error(
           'Erreur chargement filtres :',
           filterError
         )
-      } finally {
-        if (active) {
-          setFiltersLoading(false)
-        }
+      }
+    } finally {
+      if (
+        !controller.signal.aborted
+      ) {
+        setFiltersLoading(false)
       }
     }
+  }
 
-    loadFilters()
+  loadFilters()
 
-    return () => {
-      active = false
-    }
-  }, [
-    reloadKey,
-    searchParamsString,
-  ])
+  return () => {
+    controller.abort()
+  }
+}, [
+  reloadKey,
+  selectedRubriquesKey,
+  selectedCategoriesKey,
+])
 
-  useEffect(() => {
-    let active = true
+useEffect(() => {
+  if (
+    hasUsedInitialProducts.current
+  ) {
+    hasUsedInitialProducts.current =
+      false
 
-    async function loadProducts() {
-      setLoading(true)
-      setError('')
+    return undefined
+  }
 
-      try {
-        const result =
-          await getProductsPage({
-            page: currentPage,
-            pageSize:
-              PRODUCTS_PER_PAGE,
-            rubrique:
-              selectedRubriques,
-            categorie:
-              selectedCategories,
-            famille:
-              selectedFamilies,
-            minPrice:
-              requestedMinPrice ??
-              undefined,
-            maxPrice:
-              requestedMaxPrice ??
-              undefined,
-            search: urlSearch,
-          })
+  const controller =
+    new AbortController()
 
-        if (!active) {
-          return
-        }
+  async function loadProducts() {
+    setLoading(true)
+    setError('')
 
-        const resultPages =
-          Math.max(
-            Number(result.pages) || 1,
-            1
-          )
+    try {
+      const result =
+        await getProductsPage({
+          page: currentPage,
 
-        setProducts(
-          Array.isArray(result.items)
-            ? result.items
-            : []
+          pageSize:
+            PRODUCTS_PER_PAGE,
+
+          rubrique:
+            selectedRubriques,
+
+          categorie:
+            selectedCategories,
+
+          famille:
+            selectedFamilies,
+
+          minPrice:
+            requestedMinPrice ??
+            undefined,
+
+          maxPrice:
+            requestedMaxPrice ??
+            undefined,
+
+          search: urlSearch,
+
+          signal:
+            controller.signal,
+        })
+
+      const resultPages =
+        Math.max(
+          Number(result.pages) || 1,
+          1
         )
 
-        setTotal(
-          Number(result.total) || 0
+      setProducts(
+        Array.isArray(result.items)
+          ? result.items
+          : []
+      )
+
+      setTotal(
+        Number(result.total) || 0
+      )
+
+      setPages(resultPages)
+
+      if (
+        currentPage >
+        resultPages
+      ) {
+        const nextParams =
+          new URLSearchParams(
+            searchParamsString
+          )
+
+        nextParams.set(
+          'page',
+          String(resultPages)
         )
 
-        setPages(resultPages)
-
-        if (
-          currentPage >
-          resultPages
-        ) {
-          const nextParams =
-            new URLSearchParams(
-              searchParamsString
-            )
-
-          nextParams.set(
-            'page',
-            String(resultPages)
-          )
-
-          router.replace(
-            `/shop?${nextParams.toString()}`,
-            {
-              scroll: false,
-            }
-          )
-        }
-      } catch (loadError) {
-        console.error(
-          'Erreur chargement produits :',
-          loadError
+        router.replace(
+          `/shop?${nextParams.toString()}`,
+          {
+            scroll: false,
+          }
         )
+      }
+    } catch (loadError) {
+      if (
+        loadError?.name ===
+        'AbortError'
+      ) {
+        return
+      }
 
-        if (active) {
-          setProducts([])
-          setTotal(0)
-          setPages(1)
-          setError(
-            t('common.error')
-          )
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
+      console.error(
+        'Erreur chargement produits :',
+        loadError
+      )
+
+      setProducts([])
+      setTotal(0)
+      setPages(1)
+
+      setError(
+        t('common.error')
+      )
+    } finally {
+      if (
+        !controller.signal.aborted
+      ) {
+        setLoading(false)
       }
     }
+  }
 
-    loadProducts()
+  loadProducts()
 
-    return () => {
-      active = false
-    }
-  }, [
-    reloadKey,
-    searchParamsString,
-    router,
-    t,
-  ])
+  return () => {
+    controller.abort()
+  }
+}, [
+  reloadKey,
+  searchParamsString,
+  router,
+  t,
+])
 
   useEffect(() => {
     if (!pendingPrice) {

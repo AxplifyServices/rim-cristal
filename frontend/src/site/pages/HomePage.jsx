@@ -58,6 +58,7 @@ export default function HomePage({
           bestseller: true,
         }}
         viewAllHref="/shop"
+        prioritizeFirstImages
       />
 
       <HomePaginatedProducts
