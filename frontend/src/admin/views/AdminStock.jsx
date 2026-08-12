@@ -121,6 +121,93 @@ function formatDate(value) {
   ).toLocaleString('fr-FR')
 }
 
+function getMarkedPrice(
+  variant,
+  product
+) {
+  const directMarkedPrice =
+    Number(
+      variant?.marked_price ??
+        product?.marked_price
+    )
+
+  if (
+    Number.isFinite(
+      directMarkedPrice
+    )
+  ) {
+    return Math.max(
+      directMarkedPrice,
+      0
+    )
+  }
+
+  const basePrice =
+    Number(
+      variant?.base_price ??
+        variant?.price ??
+        product?.base_price ??
+        product?.price ??
+        0
+    )
+
+  const multiplier =
+    Number(
+      variant?.price_multiplier ??
+        product?.price_multiplier
+    )
+
+  if (
+    Number.isFinite(
+      basePrice
+    ) &&
+    Number.isFinite(
+      multiplier
+    ) &&
+    multiplier > 0
+  ) {
+    return (
+      Math.round(
+        basePrice *
+          multiplier *
+          100
+      ) / 100
+    )
+  }
+
+  return Number.isFinite(
+    basePrice
+  )
+    ? Math.max(
+        basePrice,
+        0
+      )
+    : 0
+}
+
+function getBasePrice(
+  variant,
+  product
+) {
+  const basePrice =
+    Number(
+      variant?.base_price ??
+        variant?.price ??
+        product?.base_price ??
+        product?.price ??
+        0
+    )
+
+  return Number.isFinite(
+    basePrice
+  )
+    ? Math.max(
+        basePrice,
+        0
+      )
+    : 0
+}
+
 export default function AdminStock() {
   const { t } =
     useAdminI18n()
@@ -1345,10 +1432,30 @@ function StockSummary({
         </span>
 
         <strong>
-          {Number(
-            variant.price || 0
-          ).toFixed(2)}{' '}
+          {getMarkedPrice(
+                              variant,
+                              product
+                            ).toFixed(
+                              2
+                            )}{' '}
           DH
+
+                            <div
+                              style={{
+                                marginTop: 4,
+                                fontSize: 12,
+                                color: '#8a7f72',
+                              }}
+                            >
+                              Prix de base :{' '}
+                              {getBasePrice(
+                                variant,
+                                product
+                              ).toFixed(
+                                2
+                              )}{' '}
+                              MAD
+                            </div>
         </strong>
       </div>
 
