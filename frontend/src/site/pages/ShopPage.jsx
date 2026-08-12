@@ -2,7 +2,6 @@
 
 import {
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react'
@@ -104,6 +103,28 @@ const [pages, setPages] =
       1
     )
   )
+
+const [loadedPage, setLoadedPage] =
+  useState(currentPage)
+
+const [
+  loadingMore,
+  setLoadingMore,
+] = useState(false)
+
+const [
+  loadMoreError,
+  setLoadMoreError,
+] = useState('')
+
+const loadMoreSentinelRef =
+  useRef(null)
+
+const loadMoreAbortRef =
+  useRef(null)
+
+const loadingMoreRef =
+  useRef(false)
 
   const [search, setSearch] =
     useState(urlSearch)
@@ -456,6 +477,18 @@ useEffect(() => {
     new AbortController()
 
   async function loadProducts() {
+    if (
+      loadMoreAbortRef.current
+    ) {
+      loadMoreAbortRef.current.abort()
+      loadMoreAbortRef.current = null
+    }
+
+    loadingMoreRef.current =
+      false
+
+    setLoadingMore(false)
+    setLoadMoreError('')
     setLoading(true)
     setError('')
 
@@ -508,6 +541,13 @@ useEffect(() => {
 
       setPages(resultPages)
 
+      setLoadedPage(
+        Math.min(
+          currentPage,
+          resultPages
+        )
+      )
+
       if (
         currentPage >
         resultPages
@@ -545,6 +585,7 @@ useEffect(() => {
       setProducts([])
       setTotal(0)
       setPages(1)
+      setLoadedPage(1)
 
       setError(
         t('common.error')
@@ -697,36 +738,6 @@ useEffect(() => {
     }
   }, [])
 
-  const visiblePages =
-    useMemo(() => {
-      const start = Math.max(
-        currentPage - 2,
-        1
-      )
-
-      const end = Math.min(
-        start + 4,
-        pages
-      )
-
-      const adjustedStart =
-        Math.max(
-          end - 4,
-          1
-        )
-
-      return Array.from(
-        {
-          length:
-            end -
-            adjustedStart +
-            1,
-        },
-        (_, index) =>
-          adjustedStart + index
-      )
-    }, [currentPage, pages])
-
   function navigateWithParams(
     params,
     options = {}
@@ -877,33 +888,289 @@ useEffect(() => {
     )
   }
 
-  function changePage(nextPage) {
-    const safePage =
-      Math.min(
-        Math.max(
-          Number(nextPage) || 1,
-          1
-        ),
-        Math.max(pages, 1)
+  /*
+   * Infinite scroll :
+   *
+   * - l'API reste paginée à 10 produits ;
+   * - la première page est conservée côté SSR ;
+   * - les pages suivantes sont chargées uniquement à
+   *   l'approche de la fin de la grille ;
+   * - l'URL ne change pas pendant le scroll ;
+   * - les nouveaux produits sont ajoutés à la suite.
+   *
+   * rootMargin permet de commencer le chargement un peu
+   * avant que l'utilisateur atteigne réellement le bas :
+   * sur mobile, la transition paraît ainsi instantanée.
+   */
+  useEffect(() => {
+    const sentinel =
+      loadMoreSentinelRef.current
+
+    if (
+      !sentinel ||
+      loading ||
+      loadingMore ||
+      loadMoreError ||
+      error ||
+      loadedPage >= pages
+    ) {
+      return undefined
+    }
+
+    if (
+      typeof IntersectionObserver ===
+      'undefined'
+    ) {
+      return undefined
+    }
+
+    const observer =
+      new IntersectionObserver(
+        entries => {
+          const entry =
+            entries[0]
+
+          if (
+            !entry?.isIntersecting ||
+            loadingMoreRef.current
+          ) {
+            return
+          }
+
+          async function loadNextPage() {
+            loadingMoreRef.current =
+              true
+
+            setLoadingMore(true)
+            setLoadMoreError('')
+
+            const controller =
+              new AbortController()
+
+            loadMoreAbortRef.current =
+              controller
+
+            try {
+              const activeParams =
+                new URLSearchParams(
+                  searchParamsString
+                )
+
+              const nextPage =
+                loadedPage + 1
+
+              const result =
+                await getProductsPage({
+                  page:
+                    nextPage,
+
+                  pageSize:
+                    PRODUCTS_PER_PAGE,
+
+                  rubrique:
+                    activeParams
+                      .getAll(
+                        'rubrique'
+                      )
+                      .filter(value =>
+                        PRODUCT_SECTION_VALUES.includes(
+                          value
+                        )
+                      ),
+
+                  categorie:
+                    activeParams
+                      .getAll(
+                        'categorie'
+                      )
+                      .filter(Boolean),
+
+                  famille:
+                    activeParams
+                      .getAll(
+                        'famille'
+                      )
+                      .filter(Boolean),
+
+                  minPrice:
+                    activeParams.get(
+                      'prix_min'
+                    ) ??
+                    undefined,
+
+                  maxPrice:
+                    activeParams.get(
+                      'prix_max'
+                    ) ??
+                    undefined,
+
+                  search:
+                    activeParams.get(
+                      'search'
+                    ) || '',
+
+                  signal:
+                    controller.signal,
+                })
+
+              if (
+                controller.signal.aborted
+              ) {
+                return
+              }
+
+              const nextItems =
+                Array.isArray(
+                  result.items
+                )
+                  ? result.items
+                  : []
+
+              /*
+               * Sécurité contre les doublons si deux lots se
+               * chevauchent après une modification de données.
+               */
+              setProducts(
+                currentProducts => {
+                  const knownIds =
+                    new Set(
+                      currentProducts.map(
+                        product =>
+                          String(
+                            product.id
+                          )
+                      )
+                    )
+
+                  const uniqueItems =
+                    nextItems.filter(
+                      product =>
+                        !knownIds.has(
+                          String(
+                            product.id
+                          )
+                        )
+                    )
+
+                  return [
+                    ...currentProducts,
+                    ...uniqueItems,
+                  ]
+                }
+              )
+
+              setTotal(
+                Number(
+                  result.total
+                ) || 0
+              )
+
+              setPages(
+                Math.max(
+                  Number(
+                    result.pages
+                  ) || 1,
+                  1
+                )
+              )
+
+              setLoadedPage(
+                nextPage
+              )
+            } catch (
+              loadError
+            ) {
+              if (
+                loadError?.name ===
+                'AbortError'
+              ) {
+                return
+              }
+
+              console.error(
+                'Erreur chargement page suivante :',
+                loadError
+              )
+
+              /*
+               * On conserve les produits déjà chargés.
+               * L'utilisateur peut relancer uniquement le lot
+               * suivant sans perdre sa position.
+               */
+              setLoadMoreError(
+                t('common.error')
+              )
+            } finally {
+              if (
+                loadMoreAbortRef.current ===
+                controller
+              ) {
+                loadMoreAbortRef.current =
+                  null
+              }
+
+              loadingMoreRef.current =
+                false
+
+              if (
+                !controller.signal.aborted
+              ) {
+                setLoadingMore(false)
+              }
+            }
+          }
+
+          loadNextPage()
+        },
+        {
+          root: null,
+
+          rootMargin:
+            '600px 0px',
+
+          threshold: 0.01,
+        }
       )
 
-    const nextParams =
-      new URLSearchParams(
-        searchParamsString
-      )
-
-    nextParams.set(
-      'page',
-      String(safePage)
+    observer.observe(
+      sentinel
     )
 
-    navigateWithParams(
-      nextParams,
-      {
-        scroll: true,
+    return () => {
+      observer.disconnect()
+    }
+  }, [
+    error,
+    loadMoreError,
+    loadedPage,
+    loading,
+    loadingMore,
+    pages,
+    searchParamsString,
+    t,
+  ])
+
+  /*
+   * Si un filtre ou la recherche change pendant le
+   * chargement d'un lot supplémentaire, on annule ce lot.
+   */
+  useEffect(() => {
+    return () => {
+      if (
+        loadMoreAbortRef.current
+      ) {
+        loadMoreAbortRef.current.abort()
+        loadMoreAbortRef.current =
+          null
       }
-    )
-  }
+
+      loadingMoreRef.current =
+        false
+    }
+  }, [
+    searchParamsString,
+    reloadKey,
+  ])
 
   const filtersProps = {
     t,
@@ -1151,102 +1418,48 @@ return (
                     )}
                   </div>
 
-                  {pages > 1 && (
-                    <nav
-                      className="pagination"
-                      aria-label="Pagination"
-                    >
-                      <button
-                        type="button"
-                        className="pagination-direction"
-                        disabled={
-                          currentPage === 1
-                        }
-                        onClick={() => {
-                          changePage(
-                            currentPage - 1
-                          )
-                        }}
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
+                  <div
+                    ref={
+                      loadMoreSentinelRef
+                    }
+                    className="shop-infinite-scroll-sentinel"
+                    aria-live="polite"
+                    aria-busy={
+                      loadingMore
+                    }
+                  >
+                    {loadingMore && (
+                      <div className="shop-infinite-scroll-loading">
+                        <span
+                          className="shop-infinite-scroll-spinner"
                           aria-hidden="true"
-                        >
-                          <path d="m15 18-6-6 6-6" />
-                        </svg>
+                        />
 
                         <span>
                           {t(
-                            'shop.previous'
+                            'common.loading'
                           )}
                         </span>
-                      </button>
-
-                      <div className="pagination-pages">
-                        {visiblePages.map(
-                          pageNumber => (
-                            <button
-                              key={pageNumber}
-                              type="button"
-                              className={
-                                pageNumber ===
-                                currentPage
-                                  ? 'pagination-page is-active'
-                                  : 'pagination-page'
-                              }
-                              aria-current={
-                                pageNumber ===
-                                currentPage
-                                  ? 'page'
-                                  : undefined
-                              }
-                              onClick={() => {
-                                changePage(
-                                  pageNumber
-                                )
-                              }}
-                            >
-                              {pageNumber}
-                            </button>
-                          )
-                        )}
                       </div>
+                    )}
 
-                      <button
-                        type="button"
-                        className="pagination-direction"
-                        disabled={
-                          currentPage ===
-                          pages
-                        }
-                        onClick={() => {
-                          changePage(
-                            currentPage + 1
-                          )
-                        }}
-                      >
-                        <span>
-                          {t(
-                            'shop.next'
-                          )}
-                        </span>
-
-                        <svg
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
+                    {!loadingMore &&
+                      loadMoreError && (
+                        <button
+                          type="button"
+                          className="shop-infinite-scroll-retry"
+                          onClick={() => {
+                            setLoadMoreError(
+                              ''
+                            )
+                          }}
                         >
-                          <path d="m9 18 6-6-6-6" />
-                        </svg>
-                      </button>
-                    </nav>
-                  )}
-
-                  <p className="pagination-summary">
-                    {t('shop.page')}{' '}
-                    {currentPage}{' '}
-                    {t('shop.of')}{' '}
-                    {pages}
-                  </p>
+                          {t(
+                            'common.retry'
+                          )}
+                        </button>
+                      )}
+                  </div>
                 </>
               )}
 

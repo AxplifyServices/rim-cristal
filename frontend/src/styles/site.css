@@ -9460,6 +9460,60 @@ html[dir='rtl']
   gap: 24px;
 }
 
+.shop-infinite-scroll-sentinel {
+  min-height: 96px;
+  display: grid;
+  place-items: center;
+  padding: 24px 0 8px;
+}
+
+.shop-infinite-scroll-loading {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  color: #8a7f72;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.shop-infinite-scroll-spinner {
+  width: 22px;
+  height: 22px;
+  display: block;
+  border: 2px solid #e2d8cc;
+  border-top-color: #2e251e;
+  border-radius: 50%;
+  animation:
+    shop-infinite-scroll-spin
+    0.75s linear infinite;
+}
+
+.shop-infinite-scroll-retry {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #2e251e;
+  border-radius: 14px;
+  background: #fff;
+  color: #2e251e;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.shop-infinite-scroll-retry:hover {
+  background: #2e251e;
+  color: #fff;
+}
+
+@keyframes shop-infinite-scroll-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .shop-card-skeleton {
   display: grid;
   gap: 12px;
@@ -9565,6 +9619,11 @@ html[dir='rtl']
 }
 
 @media (max-width: 760px) {
+
+  .shop-infinite-scroll-sentinel {
+    min-height: 82px;
+    padding-top: 18px;
+  }
 
   .shop-toolbar {
     grid-template-columns:
