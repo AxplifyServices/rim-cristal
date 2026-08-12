@@ -82,6 +82,64 @@ private serializeBigInt(value: any): any {
   return value;
 }
 
+private calculateMarkedRetailPrice(
+  basePrice: unknown,
+  priceMultiplier: unknown,
+): number {
+  const price =
+    Number(
+      basePrice || 0,
+    );
+
+  if (
+    !Number.isFinite(price) ||
+    price < 0
+  ) {
+    throw new BadRequestException(
+      'Invalid product price',
+    );
+  }
+
+  if (
+    priceMultiplier === null ||
+    priceMultiplier === undefined ||
+    String(
+      priceMultiplier,
+    ).trim() === ''
+  ) {
+    return price;
+  }
+
+  const multiplier =
+    Number(
+      priceMultiplier,
+    );
+
+  if (
+    !Number.isFinite(
+      multiplier,
+    ) ||
+    multiplier <= 0
+  ) {
+    /*
+     * Une donnée incohérente en base ne doit
+     * jamais permettre de facturer un prix
+     * arbitraire.
+     */
+    throw new BadRequestException(
+      'Invalid product price multiplier',
+    );
+  }
+
+  return (
+    Math.round(
+      price *
+        multiplier *
+        100,
+    ) / 100
+  );
+}
+
 private calculateWebPromotionalPrice(
   originalPrice: unknown,
   promotionPercentage: unknown,
@@ -574,6 +632,8 @@ private normalizeItems(
                   name: true,
                   reference: true,
                   price: true,
+                  price_multiplier:
+                    true,
                   price_wholesale:
                     true,
                   wholesale_min_qty:
@@ -616,10 +676,25 @@ private normalizeItems(
                   .reference,
 
               price:
-                Number(
-                  stock.products
-                    .price,
+                this.calculateMarkedRetailPrice(
+                  stock.products.price,
+                  stock.products.price_multiplier,
                 ),
+
+              base_price:
+                Number(
+                  stock.products.price,
+                ),
+
+              price_multiplier:
+                stock.products.price_multiplier ===
+                    null ||
+                  stock.products.price_multiplier ===
+                    undefined
+                  ? null
+                  : Number(
+                      stock.products.price_multiplier,
+                    ),
 
               price_wholesale:
                 Number(
@@ -670,6 +745,7 @@ private normalizeItems(
             name: true,
             reference: true,
             price: true,
+            price_multiplier: true,
             price_wholesale: true,
             wholesale_min_qty: true,
             stock: true,
@@ -700,9 +776,25 @@ private normalizeItems(
             ...product,
 
             price:
+              this.calculateMarkedRetailPrice(
+                product.price,
+                product.price_multiplier,
+              ),
+
+            base_price:
               Number(
                 product.price,
               ),
+
+            price_multiplier:
+              product.price_multiplier ===
+                  null ||
+                product.price_multiplier ===
+                  undefined
+                ? null
+                : Number(
+                    product.price_multiplier,
+                  ),
 
             price_wholesale:
               Number(
@@ -859,8 +951,11 @@ private async createOrder({
         has_size_variants:
           true,
 
-promotion_percentage:
-  true,          
+        price_multiplier:
+          true,
+
+        promotion_percentage:
+          true,
 
         product_size_variants: {
           where: {
@@ -1097,20 +1192,42 @@ promotion_percentage:
         );
       }
 
-const originalRetailPrice =
+const baseRetailPrice =
   Number(
     item.variant.price,
   );
 
+/*
+ * Le prix margé concerne uniquement
+ * le prix de vente retail.
+ *
+ * Si price_multiplier est NULL,
+ * calculateMarkedRetailPrice()
+ * retourne simplement le prix de base.
+ */
+const markedRetailPrice =
+  this.calculateMarkedRetailPrice(
+    baseRetailPrice,
+    item.product
+      .price_multiplier,
+  );
+
+/*
+ * Une promotion web est toujours calculée
+ * sur le prix commercial :
+ *
+ * - prix margé si un multiplicateur existe ;
+ * - prix de base sinon.
+ */
 const promotionalRetailPrice =
   context.orderOrigin ===
   'website'
     ? this.calculateWebPromotionalPrice(
-        originalRetailPrice,
+        markedRetailPrice,
         item.product
           .promotion_percentage,
       )
-    : originalRetailPrice;
+    : markedRetailPrice;
 
 const wholesalePrice =
   Number(
@@ -1142,7 +1259,7 @@ const unitPrice =
         item.quantity >=
           wholesaleMinQty
       ? wholesalePrice
-      : originalRetailPrice;
+      : markedRetailPrice;
 
       return {
         product_id:

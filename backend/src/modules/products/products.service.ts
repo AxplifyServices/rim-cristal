@@ -193,6 +193,75 @@ private normalizePromotionPercentage(
   ) / 100;
 }
 
+private normalizePriceMultiplier(
+  value: unknown,
+): number | null {
+  if (
+    value === undefined ||
+    value === null ||
+    String(value).trim() === ''
+  ) {
+    return null;
+  }
+
+  const multiplier = Number(value);
+
+  if (!Number.isFinite(multiplier)) {
+    throw new BadRequestException(
+      'price_multiplier must be a valid number',
+    );
+  }
+
+  if (multiplier <= 0) {
+    throw new BadRequestException(
+      'price_multiplier must be greater than 0',
+    );
+  }
+
+  return Math.round(
+    multiplier * 10000,
+  ) / 10000;
+}
+
+private calculateMarkedPrice(
+  basePrice: unknown,
+  priceMultiplier: unknown,
+): number {
+  const price = Number(
+    basePrice || 0,
+  );
+
+  if (
+    !Number.isFinite(price) ||
+    price < 0
+  ) {
+    return 0;
+  }
+
+  if (
+    priceMultiplier === null ||
+    priceMultiplier === undefined ||
+    String(priceMultiplier).trim() === ''
+  ) {
+    return price;
+  }
+
+  const multiplier = Number(
+    priceMultiplier,
+  );
+
+  if (
+    !Number.isFinite(multiplier) ||
+    multiplier <= 0
+  ) {
+    return price;
+  }
+
+  return Math.round(
+    price * multiplier * 100,
+  ) / 100;
+}
+
 private calculatePromotionalPrice(
   originalPrice: unknown,
   promotionPercentage: unknown,
@@ -236,13 +305,41 @@ private calculatePromotionalPrice(
 }
 
 private buildPromotionData(
-  originalPrice: unknown,
+  basePrice: unknown,
+  priceMultiplier: unknown,
   promotionPercentage: unknown,
 ) {
+  const basePriceNumber = Number(
+    basePrice || 0,
+  );
+
+  const normalizedMultiplier =
+    priceMultiplier === null ||
+    priceMultiplier === undefined ||
+    String(priceMultiplier).trim() === ''
+      ? null
+      : Number(priceMultiplier);
+
+  const hasMarkedPrice =
+    normalizedMultiplier !== null &&
+    Number.isFinite(normalizedMultiplier) &&
+    normalizedMultiplier > 0;
+
+  const markedPrice =
+    hasMarkedPrice
+      ? this.calculateMarkedPrice(
+          basePriceNumber,
+          normalizedMultiplier,
+        )
+      : null;
+
+  /*
+   * Le prix commercial avant promotion est le prix margé
+   * lorsqu'un multiplicateur existe. Sinon, on conserve
+   * le prix de base comme référence commerciale.
+   */
   const originalPriceNumber =
-    Number(
-      originalPrice || 0,
-    );
+    markedPrice ?? basePriceNumber;
 
   const percentage =
     promotionPercentage === null ||
@@ -268,6 +365,26 @@ private buildPromotionData(
       : originalPriceNumber;
 
   return {
+    /*
+     * Le champ historique `price` du produit n'est pas
+     * écrasé ici : l'admin doit continuer à recevoir le
+     * prix de base éditable. Les nouveaux champs exposent
+     * explicitement la chaîne de calcul commerciale.
+     */
+    base_price:
+      basePriceNumber,
+
+    price_multiplier:
+      hasMarkedPrice
+        ? normalizedMultiplier
+        : null,
+
+    has_marked_price:
+      hasMarkedPrice,
+
+    marked_price:
+      markedPrice,
+
     has_promotion:
       hasPromotion,
 
@@ -747,6 +864,7 @@ private serializeProduct(
   const productPromotion =
     this.buildPromotionData(
       product.price,
+      product.price_multiplier,
       product.promotion_percentage,
     );    
 
@@ -810,6 +928,7 @@ product_size_variants:
           const variantPromotion =
             this.buildPromotionData(
               variant.price,
+              product.price_multiplier,
               product.promotion_percentage,
             );
 
@@ -1662,10 +1781,15 @@ async create(body: any) {
                 price:
                   primaryVariant.price,
 
-promotion_percentage:
-  this.normalizePromotionPercentage(
-    body.promotion_percentage,
-  ),                  
+                price_multiplier:
+                  this.normalizePriceMultiplier(
+                    body.price_multiplier,
+                  ),
+
+                promotion_percentage:
+                  this.normalizePromotionPercentage(
+                    body.promotion_percentage,
+                  ),                  
 
                 price_wholesale:
                   primaryVariant
@@ -2451,6 +2575,14 @@ async update(
   badge:
     body.badge ||
     null,
+}),
+
+...(body.price_multiplier !==
+  undefined && {
+  price_multiplier:
+    this.normalizePriceMultiplier(
+      body.price_multiplier,
+    ),
 }),
 
 ...(body.promotion_percentage !==

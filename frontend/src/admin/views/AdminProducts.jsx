@@ -154,6 +154,7 @@ function createEmptyForm() {
 
     badge: '',
 
+    price_multiplier: '',
     promotion_percentage: '',
 
     is_active: true,
@@ -225,6 +226,49 @@ function nonNegativeNumber(
   }
 
   return number
+}
+
+function calculateMarkedPrice(
+  basePrice,
+  priceMultiplier
+) {
+  const base =
+    Number(basePrice)
+
+  if (
+    !Number.isFinite(base) ||
+    base < 0
+  ) {
+    return 0
+  }
+
+  if (
+    priceMultiplier === '' ||
+    priceMultiplier === null ||
+    priceMultiplier === undefined
+  ) {
+    return base
+  }
+
+  const multiplier =
+    Number(priceMultiplier)
+
+  if (
+    !Number.isFinite(
+      multiplier
+    ) ||
+    multiplier <= 0
+  ) {
+    return base
+  }
+
+  return (
+    Math.round(
+      base *
+        multiplier *
+        100
+    ) / 100
+  )
 }
 
 function positiveInteger(
@@ -967,6 +1011,10 @@ export default function AdminProducts() {
       badge:
         product.badge || '',
 
+      price_multiplier:
+        product.price_multiplier ??
+        '',
+
       promotion_percentage:
         product.promotion_percentage ??
         '',
@@ -1166,6 +1214,33 @@ export default function AdminProducts() {
         )
       }
     )
+    if (
+      form.price_multiplier !==
+        '' &&
+      form.price_multiplier !==
+        null &&
+      form.price_multiplier !==
+        undefined
+    ) {
+      const priceMultiplier =
+        Number(
+          form.price_multiplier
+        )
+
+      if (
+        !Number.isFinite(
+          priceMultiplier
+        ) ||
+        priceMultiplier <= 0
+      ) {
+        throw new Error(
+          t(
+            'products.invalidPriceMultiplier'
+          )
+        )
+      }
+    }
+
     if (
       form.promotion_percentage !==
         '' &&
@@ -1413,6 +1488,18 @@ export default function AdminProducts() {
       badge:
         form.badge.trim() ||
         null,
+
+      price_multiplier:
+        form.price_multiplier ===
+          '' ||
+        form.price_multiplier ===
+          null ||
+        form.price_multiplier ===
+          undefined
+          ? null
+          : Number(
+              form.price_multiplier
+            ),
 
       promotion_percentage:
         form.promotion_percentage ===
@@ -1891,7 +1978,7 @@ export default function AdminProducts() {
                     style={styles.th}
                   >
                     {t(
-                      'products.retailPrice'
+                      'products.markedPrice'
                     )}
                   </th>
 
@@ -2060,14 +2147,47 @@ export default function AdminProducts() {
                             styles.td
                           }
                         >
-                          {Number(
+                          {calculateMarkedPrice(
                             primaryVariant?.price ??
                               product.price ??
-                              0
+                              0,
+                            product.price_multiplier
                           ).toFixed(
                             2
                           )}{' '}
                           DH
+
+                          {product.price_multiplier !==
+                            null &&
+                            product.price_multiplier !==
+                              undefined &&
+                            String(
+                              product.price_multiplier
+                            ).trim() !==
+                              '' && (
+                              <>
+                                <br />
+
+                                <span
+                                  style={
+                                    styles.muted
+                                  }
+                                >
+                                  {t(
+                                    'products.basePrice'
+                                  )}
+                                  {' : '}
+                                  {Number(
+                                    primaryVariant?.price ??
+                                      product.price ??
+                                      0
+                                  ).toFixed(
+                                    2
+                                  )}{' '}
+                                  DH
+                                </span>
+                              </>
+                            )}
                         </td>
 
                         <td
@@ -2611,7 +2731,35 @@ export default function AdminProducts() {
     }
   >
     <NumberField
-      label="Promotion (%)"
+      label={t(
+        'products.priceMultiplier'
+      )}
+      value={
+        form.price_multiplier
+      }
+      onChange={value =>
+        updateForm(
+          'price_multiplier',
+          value
+        )
+      }
+      min="0.0001"
+    />
+
+    <div
+      style={
+        styles.pricingHelp
+      }
+    >
+      {t(
+        'products.priceMultiplierHelp'
+      )}
+    </div>
+
+    <NumberField
+      label={t(
+        'products.discountPercent'
+      )}
       value={
         form.promotion_percentage
       }
@@ -2622,6 +2770,7 @@ export default function AdminProducts() {
         )
       }
       min="0.01"
+      max="99.99"
     />
 
     <BooleanField
@@ -2917,7 +3066,7 @@ export default function AdminProducts() {
 
                             <NumberField
                               label={t(
-                                'products.retailPrice'
+                                'products.basePrice'
                               )}
                               value={
                                 variant.price
@@ -2932,6 +3081,60 @@ export default function AdminProducts() {
                               required
                               min="0"
                             />
+
+                            <div
+                              style={
+                                styles.readOnlyPriceField
+                              }
+                              aria-live="polite"
+                            >
+                              <span
+                                style={
+                                  styles.readOnlyPriceLabel
+                                }
+                              >
+                                {t(
+                                  'products.markedPrice'
+                                )}
+                              </span>
+
+                              <strong
+                                style={
+                                  styles.readOnlyPriceValue
+                                }
+                              >
+                                {calculateMarkedPrice(
+                                  variant.price,
+                                  form.price_multiplier
+                                ).toFixed(
+                                  2
+                                )}{' '}
+                                DH
+                              </strong>
+
+                              <span
+                                style={
+                                  styles.readOnlyPriceHint
+                                }
+                              >
+                                {form.price_multiplier ===
+                                  '' ||
+                                form.price_multiplier ===
+                                  null ||
+                                form.price_multiplier ===
+                                  undefined
+                                  ? t(
+                                      'products.markedPriceFallback'
+                                    )
+                                  : t(
+                                      'products.markedPriceCalculated',
+                                      {
+                                        multiplier:
+                                          form.price_multiplier,
+                                      }
+                                    )}
+                              </span>
+                            </div>
 
                             <NumberField
                               label={t(
@@ -4076,6 +4279,48 @@ imageFormatHelp: {
     gridTemplateColumns:
       'repeat(auto-fit, minmax(190px, 1fr))',
     gap: 12,
+  },
+
+  pricingHelp: {
+    gridColumn: '1 / -1',
+    marginTop: -4,
+    padding: '10px 12px',
+    borderRadius: 12,
+    background: '#f8f6f2',
+    color: '#8a7f72',
+    fontSize: 12,
+    lineHeight: 1.5,
+  },
+
+  readOnlyPriceField: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    minHeight: 72,
+    padding: '10px 12px',
+    border:
+      '1px solid #e6ded2',
+    borderRadius: 12,
+    background: '#f8f6f2',
+  },
+
+  readOnlyPriceLabel: {
+    color: '#6f6559',
+    fontSize: 12,
+    fontWeight: 800,
+  },
+
+  readOnlyPriceValue: {
+    marginTop: 4,
+    color: '#1f1a14',
+    fontSize: 16,
+  },
+
+  readOnlyPriceHint: {
+    marginTop: 3,
+    color: '#8a7f72',
+    fontSize: 11,
+    lineHeight: 1.4,
   },
 
   imageGrid: {

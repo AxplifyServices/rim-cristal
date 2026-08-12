@@ -18,7 +18,10 @@ function getApiOrigin() {
   return PUBLIC_API_BASE.endsWith(
     '/api'
   )
-    ? PUBLIC_API_BASE.slice(0, -4)
+    ? PUBLIC_API_BASE.slice(
+        0,
+        -4
+      )
     : PUBLIC_API_BASE
 }
 
@@ -37,27 +40,41 @@ export function resolveImageUrl(
   }
 
   if (
-    source.startsWith('http://') ||
-    source.startsWith('https://') ||
-    source.startsWith('data:') ||
-    source.startsWith('blob:')
+    source.startsWith(
+      'http://'
+    ) ||
+    source.startsWith(
+      'https://'
+    ) ||
+    source.startsWith(
+      'data:'
+    ) ||
+    source.startsWith(
+      'blob:'
+    )
   ) {
     return source
   }
 
-  const normalized = source
-    .replace(/\\/g, '/')
-    .replace(
-      /^backend\//,
-      '/'
-    )
-    .replace(
-      /^\/?uploads\//,
-      '/uploads/'
-    )
+  const normalized =
+    source
+      .replace(
+        /\\/g,
+        '/'
+      )
+      .replace(
+        /^backend\//,
+        '/'
+      )
+      .replace(
+        /^\/?uploads\//,
+        '/uploads/'
+      )
 
   const finalPath =
-    normalized.startsWith('/')
+    normalized.startsWith(
+      '/'
+    )
       ? normalized
       : `/${normalized}`
 
@@ -76,7 +93,8 @@ function toBoolean(
   }
 
   if (
-    typeof value === 'boolean'
+    typeof value ===
+    'boolean'
   ) {
     return value
   }
@@ -87,17 +105,25 @@ function toBoolean(
     'yes',
     'oui',
   ].includes(
-    String(value).toLowerCase()
+    String(
+      value
+    ).toLowerCase()
   )
 }
 
 function normalizeStringArray(
   value
 ) {
-  if (Array.isArray(value)) {
+  if (
+    Array.isArray(
+      value
+    )
+  ) {
     return value
       .map(item =>
-        String(item).trim()
+        String(
+          item
+        ).trim()
       )
       .filter(Boolean)
   }
@@ -111,18 +137,23 @@ function normalizeStringArray(
   }
 
   if (
-    typeof value === 'string'
+    typeof value ===
+    'string'
   ) {
     const trimmedValue =
       value.trim()
 
-    if (!trimmedValue) {
+    if (
+      !trimmedValue
+    ) {
       return []
     }
 
     try {
       const parsedValue =
-        JSON.parse(trimmedValue)
+        JSON.parse(
+          trimmedValue
+        )
 
       if (
         Array.isArray(
@@ -131,9 +162,13 @@ function normalizeStringArray(
       ) {
         return parsedValue
           .map(item =>
-            String(item).trim()
+            String(
+              item
+            ).trim()
           )
-          .filter(Boolean)
+          .filter(
+            Boolean
+          )
       }
     } catch {
       return trimmedValue
@@ -141,16 +176,22 @@ function normalizeStringArray(
         .map(item =>
           item.trim()
         )
-        .filter(Boolean)
+        .filter(
+          Boolean
+        )
     }
   }
 
   return [
-    String(value).trim(),
+    String(
+      value
+    ).trim(),
   ].filter(Boolean)
 }
 
-function nullableNumber(value) {
+function nullableNumber(
+  value
+) {
   if (
     value === undefined ||
     value === null ||
@@ -159,21 +200,78 @@ function nullableNumber(value) {
     return null
   }
 
-  const number = Number(value)
+  const number =
+    Number(value)
 
-  return Number.isFinite(number)
+  return Number.isFinite(
+    number
+  )
     ? number
     : null
+}
+
+function calculateMarkedPrice(
+  basePrice,
+  priceMultiplier
+) {
+  const base =
+    Number(
+      basePrice || 0
+    )
+
+  if (
+    !Number.isFinite(
+      base
+    ) ||
+    base < 0
+  ) {
+    return 0
+  }
+
+  if (
+    priceMultiplier ===
+      null ||
+    priceMultiplier ===
+      undefined ||
+    String(
+      priceMultiplier
+    ).trim() === ''
+  ) {
+    return base
+  }
+
+  const multiplier =
+    Number(
+      priceMultiplier
+    )
+
+  if (
+    !Number.isFinite(
+      multiplier
+    ) ||
+    multiplier <= 0
+  ) {
+    return base
+  }
+
+  return (
+    Math.round(
+      base *
+        multiplier *
+        100
+    ) / 100
+  )
 }
 
 function normalizeProductImage(
   image,
   fallbackUrl = null
 ) {
-  const original = resolveImageUrl(
-    image?.original ||
-      fallbackUrl
-  )
+  const original =
+    resolveImageUrl(
+      image?.original ||
+        fallbackUrl
+    )
 
   const thumbnail =
     resolveImageUrl(
@@ -184,13 +282,14 @@ function normalizeProductImage(
         original
     )
 
-  const card = resolveImageUrl(
-    image?.card ||
-      image?.detail ||
-      image?.large ||
-      image?.thumbnail ||
-      original
-  )
+  const card =
+    resolveImageUrl(
+      image?.card ||
+        image?.detail ||
+        image?.large ||
+        image?.thumbnail ||
+        original
+    )
 
   const detail =
     resolveImageUrl(
@@ -200,17 +299,19 @@ function normalizeProductImage(
         original
     )
 
-  const large = resolveImageUrl(
-    image?.large ||
-      image?.detail ||
-      image?.card ||
-      original
-  )
+  const large =
+    resolveImageUrl(
+      image?.large ||
+        image?.detail ||
+        image?.card ||
+        original
+    )
 
   return {
     slot:
       String(
-        image?.slot || ''
+        image?.slot ||
+          ''
       ).trim(),
 
     displayOrder:
@@ -235,19 +336,26 @@ function normalizeProductImage(
 export function mapProduct(
   product
 ) {
-  const legacyImageUrls = [
-    product.url_image1,
-    product.url_image2,
-    product.url_image3,
-    product.url_image4,
-    product.url_image5,
-  ]
-    .map(value => {
-      return String(
-        value || ''
-      ).trim()
-    })
-    .filter(Boolean)
+  if (!product) {
+    return null
+  }
+
+  const legacyImageUrls =
+    [
+      product.url_image1,
+      product.url_image2,
+      product.url_image3,
+      product.url_image4,
+      product.url_image5,
+    ]
+      .map(value => {
+        return String(
+          value || ''
+        ).trim()
+      })
+      .filter(
+        Boolean
+      )
 
   const apiImages =
     Array.isArray(
@@ -269,13 +377,18 @@ export function mapProduct(
                 legacyImageUrls[
                   index
                 ] ||
-                  legacyImageUrls[0] ||
+                  legacyImageUrls[
+                    0
+                  ] ||
                   null
               )
             }
           )
           .sort(
-            (first, second) => {
+            (
+              first,
+              second
+            ) => {
               return (
                 first.displayOrder -
                 second.displayOrder
@@ -283,20 +396,35 @@ export function mapProduct(
             }
           )
       : legacyImageUrls.map(
-          (url, index) => {
+          (
+            url,
+            index
+          ) => {
             return normalizeProductImage(
               {
                 slot:
-                  `PRODUCT_IMAGE_${index + 1}`,
+                  `PRODUCT_IMAGE_${
+                    index +
+                    1
+                  }`,
 
                 displayOrder:
                   index,
 
-                original: url,
-                thumbnail: url,
-                card: url,
-                detail: url,
-                large: url,
+                original:
+                  url,
+
+                thumbnail:
+                  url,
+
+                card:
+                  url,
+
+                detail:
+                  url,
+
+                large:
+                  url,
               },
               url
             )
@@ -322,322 +450,623 @@ export function mapProduct(
 
   const primaryImage =
     uniqueImages[0] ||
-    normalizeProductImage({
-      slot:
-        'PRODUCT_IMAGE_1',
+    normalizeProductImage(
+      {
+        slot:
+          'PRODUCT_IMAGE_1',
 
-      original:
-        '/images/product-placeholder.svg',
-    })
+        original:
+          '/images/product-placeholder.svg',
+      }
+    )
 
   const categoryName =
     product.categorie ||
-    product.category?.name_fr ||
-    product.category?.name ||
+    product.category
+      ?.name_fr ||
+    product.category
+      ?.name ||
     ''
 
   const hasColorVariants =
     toBoolean(
-      product.has_color_variants,
+      product
+        .has_color_variants,
       false
     )
 
-  const originalPrice =
+  /*
+   * ===================================================
+   * PRICING
+   * ===================================================
+   *
+   * La source de vérité reste le backend.
+   *
+   * base_price
+   *   prix enregistré en base.
+   *
+   * price_multiplier
+   *   multiplicateur saisi dans l'admin.
+   *
+   * marked_price
+   *   prix de base × multiplicateur.
+   *
+   * original_price
+   *   prix commercial avant promotion.
+   *
+   * promotional_price
+   *   prix commercial promotionnel.
+   *
+   * price
+   *   prix réellement vendu.
+   */
+
+  const basePrice =
     Number(
-      product.price || 0
+      product.base_price ??
+        product.price ??
+        0
     )
 
-  const promotionPercentage =
-    product.promotion_percentage ===
+  const priceMultiplier =
+    product
+      .price_multiplier ===
       null ||
-    product.promotion_percentage ===
+    product
+      .price_multiplier ===
       undefined ||
-    product.promotion_percentage ===
+    product
+      .price_multiplier ===
       ''
       ? null
       : Number(
-          product.promotion_percentage
+          product
+            .price_multiplier
+        )
+
+  /*
+   * Normalement le backend fournit
+   * marked_price.
+   *
+   * Le calcul local n'est qu'un
+   * fallback pour conserver la
+   * compatibilité pendant le
+   * déploiement.
+   */
+  const markedPrice =
+    product.marked_price ===
+      null ||
+    product.marked_price ===
+      undefined ||
+    product.marked_price ===
+      ''
+      ? calculateMarkedPrice(
+          basePrice,
+          priceMultiplier
+        )
+      : Number(
+          product
+            .marked_price
+        )
+
+  const originalPrice =
+    Number(
+      product
+        .original_price ??
+        markedPrice ??
+        basePrice
+    )
+
+  const promotionPercentage =
+    product
+      .promotion_percentage ===
+      null ||
+    product
+      .promotion_percentage ===
+      undefined ||
+    product
+      .promotion_percentage ===
+      ''
+      ? null
+      : Number(
+          product
+            .promotion_percentage
         )
 
   const promotionalPrice =
     Number(
-      product.promotional_price ??
-      originalPrice
+      product
+        .promotional_price ??
+        originalPrice
     )
 
   const hasPromotion =
     Boolean(
-      product.has_promotion
+      product
+        .has_promotion
     ) &&
     Number.isFinite(
       promotionPercentage
     ) &&
-    promotionPercentage > 0 &&
-    promotionPercentage < 100 &&
+    promotionPercentage >
+      0 &&
+    promotionPercentage <
+      100 &&
     Number.isFinite(
       promotionalPrice
     ) &&
     promotionalPrice <
-      originalPrice    
+      originalPrice
 
-const sizeVariants =
-  Array.isArray(
-    product.product_size_variants
-  )
-    ? product.product_size_variants
-        .map(variant => {
-          const widthCm =
-            nullableNumber(
-              variant.width_cm
-            )
+  const sizeVariants =
+    Array.isArray(
+      product
+        .product_size_variants
+    )
+      ? product
+          .product_size_variants
+          .map(
+            variant => {
+              const widthCm =
+                nullableNumber(
+                  variant
+                    .width_cm
+                )
 
-          const depthCm =
-            nullableNumber(
-              variant.depth_cm
-            )
+              const depthCm =
+                nullableNumber(
+                  variant
+                    .depth_cm
+                )
 
-          const heightCm =
-            nullableNumber(
-              variant.height_cm
-            )
+              const heightCm =
+                nullableNumber(
+                  variant
+                    .height_cm
+                )
 
-          const dimensions = [
-            widthCm,
-            depthCm,
-            heightCm,
-          ]
-            .filter(value => {
-              return (
-                value !== null &&
-                value !== undefined
-              )
-            })
-            .map(value => {
-              return new Intl.NumberFormat(
-                'fr-MA',
-                {
-                  maximumFractionDigits:
-                    2,
-                }
-              ).format(value)
-            })
+              const dimensions =
+                [
+                  widthCm,
+                  depthCm,
+                  heightCm,
+                ]
+                  .filter(
+                    value => {
+                      return (
+                        value !==
+                          null &&
+                        value !==
+                          undefined
+                      )
+                    }
+                  )
+                  .map(
+                    value => {
+                      return new Intl.NumberFormat(
+                        'fr-MA',
+                        {
+                          maximumFractionDigits:
+                            2,
+                        }
+                      ).format(
+                        value
+                      )
+                    }
+                  )
 
-          const generatedLabel =
-            dimensions.length > 0
-              ? `${dimensions.join(
-                  ' × '
-                )} cm`
-              : ''
+              const generatedLabel =
+                dimensions.length >
+                0
+                  ? `${dimensions.join(
+                      ' × '
+                    )} cm`
+                  : ''
 
-          return {
-            id:
-              String(
-                variant.id
-              ),
+              const variantBasePrice =
+                Number(
+                  variant
+                    .base_price ??
+                    variant.price ??
+                    0
+                )
 
-            productId:
-              Number(
-                variant.product_id ||
-                  product.id
-              ),
-
-            label:
-              String(
-                variant.label ||
-                  generatedLabel ||
-                  variant.reference ||
+              const variantPriceMultiplier =
+                variant
+                  .price_multiplier ===
+                  null ||
+                variant
+                  .price_multiplier ===
+                  undefined ||
+                variant
+                  .price_multiplier ===
                   ''
-              ).trim(),
+                  ? priceMultiplier
+                  : Number(
+                      variant
+                        .price_multiplier
+                    )
 
-            reference:
-              String(
-                variant.reference || ''
-              ).trim(),
+              const variantMarkedPrice =
+                variant
+                  .marked_price ===
+                  null ||
+                variant
+                  .marked_price ===
+                  undefined ||
+                variant
+                  .marked_price ===
+                  ''
+                  ? calculateMarkedPrice(
+                      variantBasePrice,
+                      variantPriceMultiplier
+                    )
+                  : Number(
+                      variant
+                        .marked_price
+                    )
 
-            widthCm,
+              const variantOriginalPrice =
+                Number(
+                  variant
+                    .original_price ??
+                    variantMarkedPrice ??
+                    variantBasePrice
+                )
 
-            depthCm,
+              const variantPromotionPercentage =
+                variant
+                  .promotion_percentage ===
+                  null ||
+                variant
+                  .promotion_percentage ===
+                  undefined ||
+                variant
+                  .promotion_percentage ===
+                  ''
+                  ? promotionPercentage
+                  : Number(
+                      variant
+                        .promotion_percentage
+                    )
 
-            heightCm,
+              const variantPromotionalPrice =
+                Number(
+                  variant
+                    .promotional_price ??
+                    variantOriginalPrice
+                )
 
-            price:
-              Number(
-                variant.price || 0
-              ),
+              const variantHasPromotion =
+                Boolean(
+                  variant
+                    .has_promotion
+                ) &&
+                Number.isFinite(
+                  variantPromotionPercentage
+                ) &&
+                variantPromotionPercentage >
+                  0 &&
+                variantPromotionPercentage <
+                  100 &&
+                Number.isFinite(
+                  variantPromotionalPrice
+                ) &&
+                variantPromotionalPrice <
+                  variantOriginalPrice
 
-            originalPrice:
-              Number(
-                variant.original_price ??
-                  variant.price ??
-                  0
-              ),
-
-            promotionalPrice:
-              Number(
-                variant.promotional_price ??
-                  variant.price ??
-                  0
-              ),
-
-            promotionPercentage:
-              variant
-                .promotion_percentage ===
-                null ||
-              variant
-                .promotion_percentage ===
-                undefined
-                ? null
-                : Number(
-                    variant
-                      .promotion_percentage
+              return {
+                id:
+                  String(
+                    variant.id
                   ),
 
-            hasPromotion:
-              Boolean(
-                variant.has_promotion
-              ),
+                productId:
+                  Number(
+                    variant
+                      .product_id ||
+                      product.id
+                  ),
 
-            stock:
-              Math.max(
-                Number(
-                  variant.stock || 0
-                ),
-                0
-              ),
+                label:
+                  String(
+                    variant.label ||
+                      generatedLabel ||
+                      variant.reference ||
+                      ''
+                  ).trim(),
 
-            isPrimary:
-              toBoolean(
-                variant.is_primary,
-                false
-              ),
+                reference:
+                  String(
+                    variant
+                      .reference ||
+                      ''
+                  ).trim(),
 
-            isActive:
-              toBoolean(
-                variant.is_active,
-                true
-              ),
+                widthCm,
 
-            displayOrder:
-              Number(
-                variant.display_order ||
-                  0
-              ),
-          }
-        })
-        .filter(variant => {
-          return variant.isActive
-        })
-        .sort(
-          (
-            firstVariant,
-            secondVariant
-          ) => {
-            if (
-              firstVariant.isPrimary !==
-              secondVariant.isPrimary
-            ) {
-              return firstVariant.isPrimary
-                ? -1
-                : 1
+                depthCm,
+
+                heightCm,
+
+                basePrice:
+                  variantBasePrice,
+
+                priceMultiplier:
+                  Number.isFinite(
+                    variantPriceMultiplier
+                  )
+                    ? variantPriceMultiplier
+                    : null,
+
+                markedPrice:
+                  variantMarkedPrice,
+
+                /*
+                 * IMPORTANT :
+                 * variant.price représente
+                 * maintenant le montant
+                 * réellement vendu.
+                 *
+                 * ProductPage utilise déjà
+                 * variant.price.
+                 */
+                price:
+                  variantHasPromotion
+                    ? variantPromotionalPrice
+                    : variantOriginalPrice,
+
+                originalPrice:
+                  variantOriginalPrice,
+
+                promotionalPrice:
+                  variantHasPromotion
+                    ? variantPromotionalPrice
+                    : variantOriginalPrice,
+
+                promotionPercentage:
+                  variantHasPromotion
+                    ? variantPromotionPercentage
+                    : null,
+
+                hasPromotion:
+                  variantHasPromotion,
+
+                stock:
+                  Math.max(
+                    Number(
+                      variant.stock ||
+                        0
+                    ),
+                    0
+                  ),
+
+                isPrimary:
+                  toBoolean(
+                    variant
+                      .is_primary,
+                    false
+                  ),
+
+                isActive:
+                  toBoolean(
+                    variant
+                      .is_active,
+                    true
+                  ),
+
+                displayOrder:
+                  Number(
+                    variant
+                      .display_order ||
+                      0
+                  ),
+              }
             }
-
-            if (
-              firstVariant.displayOrder !==
-              secondVariant.displayOrder
-            ) {
-              return (
-                firstVariant.displayOrder -
-                secondVariant.displayOrder
-              )
+          )
+          .filter(
+            variant => {
+              return variant
+                .isActive
             }
+          )
+          .sort(
+            (
+              firstVariant,
+              secondVariant
+            ) => {
+              if (
+                firstVariant
+                  .isPrimary !==
+                secondVariant
+                  .isPrimary
+              ) {
+                return firstVariant
+                  .isPrimary
+                  ? -1
+                  : 1
+              }
 
-            return firstVariant.id.localeCompare(
-              secondVariant.id
-            )
-          }
-        )
-    : []
+              if (
+                firstVariant
+                  .displayOrder !==
+                secondVariant
+                  .displayOrder
+              ) {
+                return (
+                  firstVariant
+                    .displayOrder -
+                  secondVariant
+                    .displayOrder
+                )
+              }
 
-const hasSizeVariants =
-  toBoolean(
-    product.has_size_variants,
-    false
-  ) &&
-  sizeVariants.length > 0
+              return firstVariant
+                .id
+                .localeCompare(
+                  secondVariant.id
+                )
+            }
+          )
+      : []
 
-const primarySizeVariant =
-  sizeVariants.find(
-    variant => variant.isPrimary
-  ) ||
-  sizeVariants[0] ||
-  null      
+  const hasSizeVariants =
+    toBoolean(
+      product
+        .has_size_variants,
+      false
+    ) &&
+    sizeVariants.length >
+      0
+
+  const primarySizeVariant =
+    sizeVariants.find(
+      variant =>
+        variant.isPrimary
+    ) ||
+    sizeVariants[0] ||
+    null
+
+  /*
+   * Pour un produit possédant des
+   * tailles, la variante principale
+   * est la référence de prix utilisée
+   * sur les cartes produit.
+   */
+  const effectiveBasePrice =
+    primarySizeVariant
+      ? primarySizeVariant
+          .basePrice
+      : basePrice
+
+  const effectiveMarkedPrice =
+    primarySizeVariant
+      ? primarySizeVariant
+          .markedPrice
+      : markedPrice
+
+  const effectiveOriginalPrice =
+    primarySizeVariant
+      ? primarySizeVariant
+          .originalPrice
+      : originalPrice
+
+  const effectivePromotionalPrice =
+    primarySizeVariant
+      ? primarySizeVariant
+          .promotionalPrice
+      : hasPromotion
+        ? promotionalPrice
+        : originalPrice
+
+  const effectivePromotionPercentage =
+    primarySizeVariant
+      ? primarySizeVariant
+          .promotionPercentage
+      : hasPromotion
+        ? promotionPercentage
+        : null
+
+  const effectiveHasPromotion =
+    primarySizeVariant
+      ? primarySizeVariant
+          .hasPromotion
+      : hasPromotion
+
+  const effectivePrice =
+    effectiveHasPromotion
+      ? effectivePromotionalPrice
+      : effectiveOriginalPrice
 
   return {
-    id: product.id,
+    id:
+      product.id,
 
     slug:
       product.slug ||
-      String(product.id),
+      String(
+        product.id
+      ),
 
     name:
       product.name ||
       'Produit',
 
     reference:
-      product.reference || '',
+      product.reference ||
+      '',
 
     marque:
-      product.marque || '',
+      product.marque ||
+      '',
 
     rubrique:
-      product.rubrique || '',
+      product.rubrique ||
+      '',
 
     famille:
-      product.famille || '',
+      product.famille ||
+      '',
 
     categorie:
       categoryName,
 
     description:
-      product.description || '',
+      product.description ||
+      '',
 
-price:
-  hasPromotion
-    ? promotionalPrice
-    : originalPrice,
+    basePrice:
+      effectiveBasePrice,
 
-originalPrice,
+    priceMultiplier,
 
-promotionalPrice:
-  hasPromotion
-    ? promotionalPrice
-    : originalPrice,
+    markedPrice:
+      effectiveMarkedPrice,
 
-promotionPercentage:
-  hasPromotion
-    ? promotionPercentage
-    : null,
+    /*
+     * C'est ce champ que les
+     * ProductCard et le panier
+     * utilisent.
+     */
+    price:
+      effectivePrice,
 
-hasPromotion,
+    originalPrice:
+      effectiveOriginalPrice,
 
-stock:
-  hasSizeVariants &&
-  primarySizeVariant
-    ? primarySizeVariant.stock
-    : Math.max(
-        Number(
-          product.stock || 0
-        ),
-        0
-      ),
+    promotionalPrice:
+      effectiveHasPromotion
+        ? effectivePromotionalPrice
+        : effectiveOriginalPrice,
 
-hasSizeVariants,
+    promotionPercentage:
+      effectiveHasPromotion
+        ? effectivePromotionPercentage
+        : null,
 
-sizeVariants,
+    hasPromotion:
+      effectiveHasPromotion,
 
-primarySizeVariant,
+    stock:
+      hasSizeVariants &&
+      primarySizeVariant
+        ? primarySizeVariant
+            .stock
+        : Math.max(
+            Number(
+              product.stock ||
+                0
+            ),
+            0
+          ),
 
-hasColorVariants,
+    hasSizeVariants,
+
+    sizeVariants,
+
+    primarySizeVariant,
+
+    hasColorVariants,
 
     colors:
       hasColorVariants
@@ -661,46 +1090,42 @@ hasColorVariants,
         product.height_cm
       ),
 
-imageVariants:
-  uniqueImages,
+    imageVariants:
+      uniqueImages,
 
-/*
- * Compatibilité avec les composants
- * qui attendent encore une liste d'URL.
- *
- * Sur les cartes, on utilise les variantes CARD.
- */
-images:
-  uniqueImages.map(
-    image =>
-      image.card
-  ),
+    /*
+     * Compatibilité avec les
+     * composants existants.
+     */
+    images:
+      uniqueImages.map(
+        image =>
+          image.card
+      ),
 
-/*
- * Image légère pour les cartes et
- * ajout au panier.
- */
-image:
-  primaryImage.card,
+    image:
+      primaryImage.card,
 
-thumbnailImage:
-  primaryImage.thumbnail,
+    thumbnailImage:
+      primaryImage.thumbnail,
 
-cardImage:
-  primaryImage.card,
+    cardImage:
+      primaryImage.card,
 
-detailImage:
-  primaryImage.detail,
+    detailImage:
+      primaryImage.detail,
 
-largeImage:
-  primaryImage.large,
+    largeImage:
+      primaryImage.large,
 
     badge:
-      product.badge || '',
+      product.badge ||
+      '',
 
     isFeatured:
       toBoolean(
-        product.is_featured,
+        product
+          .is_featured,
         false
       ),
 
@@ -712,13 +1137,15 @@ largeImage:
 
     isBestseller:
       toBoolean(
-        product.is_bestseller,
+        product
+          .is_bestseller,
         false
       ),
 
     available:
       toBoolean(
-        product.is_available_on_site,
+        product
+          .is_available_on_site,
         true
       ) &&
       toBoolean(
@@ -726,30 +1153,40 @@ largeImage:
         true
       ),
 
-inStock:
-  hasSizeVariants
-    ? sizeVariants.some(
-        variant =>
-          variant.stock > 0
-      )
-    : Number(
-        product.stock || 0
-      ) > 0,
+    inStock:
+      hasSizeVariants
+        ? sizeVariants.some(
+            variant =>
+              variant.stock >
+              0
+          )
+        : Number(
+            product.stock ||
+              0
+          ) > 0,
 
-isOutOfStock:
-  hasSizeVariants
-    ? sizeVariants.every(
-        variant =>
-          variant.stock <= 0
-      )
-    : Number(
-        product.stock || 0
-      ) <= 0,
+    isOutOfStock:
+      hasSizeVariants
+        ? sizeVariants.every(
+            variant =>
+              variant.stock <=
+              0
+          )
+        : Number(
+            product.stock ||
+              0
+          ) <= 0,
   }
 }
 
-function unwrapProducts(payload) {
-  if (Array.isArray(payload)) {
+function unwrapProducts(
+  payload
+) {
+  if (
+    Array.isArray(
+      payload
+    )
+  ) {
     return payload
   }
 
@@ -786,7 +1223,9 @@ function appendListParams(
   values
 ) {
   const normalizedValues =
-    Array.isArray(values)
+    Array.isArray(
+      values
+    )
       ? values
       : values
         ? [values]
@@ -794,7 +1233,9 @@ function appendListParams(
 
   normalizedValues
     .map(value =>
-      String(value).trim()
+      String(
+        value
+      ).trim()
     )
     .filter(Boolean)
     .forEach(value => {
@@ -827,7 +1268,8 @@ function buildProductsQuery({
     'page',
     String(
       Math.max(
-        Number(page) || 1,
+        Number(page) ||
+          1,
         1
       )
     )
@@ -838,8 +1280,9 @@ function buildProductsQuery({
     String(
       Math.min(
         Math.max(
-          Number(pageSize) ||
-            10,
+          Number(
+            pageSize
+          ) || 10,
           1
         ),
         20
@@ -866,7 +1309,8 @@ function buildProductsQuery({
   )
 
   if (
-    minPrice !== undefined &&
+    minPrice !==
+      undefined &&
     minPrice !== null &&
     minPrice !== ''
   ) {
@@ -877,7 +1321,8 @@ function buildProductsQuery({
   }
 
   if (
-    maxPrice !== undefined &&
+    maxPrice !==
+      undefined &&
     maxPrice !== null &&
     maxPrice !== ''
   ) {
@@ -888,56 +1333,75 @@ function buildProductsQuery({
   }
 
   if (
-    String(search).trim()
+    String(
+      search
+    ).trim()
   ) {
     params.set(
       'search',
-      String(search).trim()
+      String(
+        search
+      ).trim()
     )
   }
 
   if (
-    featured !== undefined
+    featured !==
+    undefined
   ) {
     params.set(
       'featured',
-      String(featured)
+      String(
+        featured
+      )
     )
   }
 
-if (
-  bestseller !== undefined
-) {
-  params.set(
-    'bestseller',
-    String(bestseller)
-  )
-}
+  if (
+    bestseller !==
+    undefined
+  ) {
+    params.set(
+      'bestseller',
+      String(
+        bestseller
+      )
+    )
+  }
 
-if (
-  promotion !== undefined
-) {
-  params.set(
-    'promotion',
-    String(promotion)
-  )
-}
+  if (
+    promotion !==
+    undefined
+  ) {
+    params.set(
+      'promotion',
+      String(
+        promotion
+      )
+    )
+  }
 
-if (
-  recent !== undefined
-) {
-  params.set(
-    'recent',
-    String(recent)
-  )
-}
+  if (
+    recent !==
+    undefined
+  ) {
+    params.set(
+      'recent',
+      String(
+        recent
+      )
+    )
+  }
 
-if (
-  isNew !== undefined
-) {
+  if (
+    isNew !==
+    undefined
+  ) {
     params.set(
       'is_new',
-      String(isNew)
+      String(
+        isNew
+      )
     )
   }
 
@@ -948,39 +1412,56 @@ export async function getProductsPage(
   options = {}
 ) {
   const query =
-    buildProductsQuery(options)
+    buildProductsQuery(
+      options
+    )
 
   const isServer =
     typeof window ===
     'undefined'
 
-const response = await fetch(
-  `${PUBLIC_API_BASE}/products?${query}`,
-  {
-    method: 'GET',
+  const response =
+    await fetch(
+      `${PUBLIC_API_BASE}/products?${query}`,
+      {
+        method:
+          'GET',
 
-    headers: {
-      Accept:
-        'application/json',
-    },
+        headers: {
+          Accept:
+            'application/json',
+        },
 
-    cache: isServer
-      ? 'force-cache'
-      : 'no-store',
+        /*
+         * Next.js :
+         * on utilise uniquement
+         * next.revalidate côté
+         * serveur.
+         *
+         * On évite de cumuler
+         * cache: force-cache et
+         * revalidate.
+         */
+        ...(isServer
+          ? {
+              next: {
+                revalidate:
+                  60,
+              },
+            }
+          : {
+              cache:
+                'no-store',
+            }),
 
-    signal: options.signal,
+        signal:
+          options.signal,
+      }
+    )
 
-    ...(isServer
-      ? {
-          next: {
-            revalidate: 60,
-          },
-        }
-      : {}),
-  }
-)
-
-  if (!response.ok) {
+  if (
+    !response.ok
+  ) {
     throw new Error(
       `Impossible de charger les produits : ${response.status}`
     )
@@ -990,8 +1471,12 @@ const response = await fetch(
     await response.json()
 
   const items =
-    unwrapProducts(payload)
-      .map(mapProduct)
+    unwrapProducts(
+      payload
+    )
+      .map(
+        mapProduct
+      )
       .filter(
         product =>
           product.available
@@ -1008,20 +1493,24 @@ const response = await fetch(
 
     page:
       Number(
-        payload?.page || 1
+        payload?.page ||
+          1
       ),
 
     pageSize:
       Number(
-        payload?.page_size ||
-          options.pageSize ||
+        payload
+          ?.page_size ||
+          options
+            .pageSize ||
           10
       ),
 
     pages:
       Math.max(
         Number(
-          payload?.pages || 1
+          payload?.pages ||
+            1
         ),
         1
       ),
@@ -1051,38 +1540,45 @@ export async function getProductFilters({
   const query =
     params.toString()
 
-const isServer =
-  typeof window ===
-  'undefined'
+  const isServer =
+    typeof window ===
+    'undefined'
 
-const response = await fetch(
-  `${PUBLIC_API_BASE}/products/filters${
-    query ? `?${query}` : ''
-  }`,
-  {
-    method: 'GET',
+  const response =
+    await fetch(
+      `${PUBLIC_API_BASE}/products/filters${
+        query
+          ? `?${query}`
+          : ''
+      }`,
+      {
+        method:
+          'GET',
 
-    headers: {
-      Accept:
-        'application/json',
-    },
+        headers: {
+          Accept:
+            'application/json',
+        },
 
-    cache: isServer
-      ? 'force-cache'
-      : 'no-store',
+        ...(isServer
+          ? {
+              next: {
+                revalidate:
+                  300,
+              },
+            }
+          : {
+              cache:
+                'no-store',
+            }),
 
-    signal,
+        signal,
+      }
+    )
 
-    ...(isServer
-      ? {
-          next: {
-            revalidate: 300,
-          },
-        }
-      : {}),
-  }
-)
-  if (!response.ok) {
+  if (
+    !response.ok
+  ) {
     throw new Error(
       `Impossible de charger les filtres : ${response.status}`
     )
@@ -1094,35 +1590,45 @@ const response = await fetch(
   return {
     rubriques:
       Array.isArray(
-        payload?.rubriques
+        payload
+          ?.rubriques
       )
-        ? payload.rubriques
+        ? payload
+            .rubriques
         : [],
 
     categories:
       Array.isArray(
-        payload?.categories
+        payload
+          ?.categories
       )
-        ? payload.categories
+        ? payload
+            .categories
         : [],
 
     families:
       Array.isArray(
-        payload?.families
+        payload
+          ?.families
       )
-        ? payload.families
+        ? payload
+            .families
         : [],
 
     price: {
       min:
         Number(
-          payload?.price?.min ||
+          payload
+            ?.price
+            ?.min ||
             0
         ),
 
       max:
         Number(
-          payload?.price?.max ||
+          payload
+            ?.price
+            ?.max ||
             0
         ),
     },
@@ -1133,11 +1639,13 @@ export async function getProducts(
   options = {}
 ) {
   const result =
-    await getProductsPage({
-      page: 1,
-      pageSize: 10,
-      ...options,
-    })
+    await getProductsPage(
+      {
+        page: 1,
+        pageSize: 10,
+        ...options,
+      }
+    )
 
   return result.items
 }
@@ -1146,46 +1654,59 @@ export async function getProductById(
   productId
 ) {
   const normalizedProductId =
-    Number(productId)
+    Number(
+      productId
+    )
 
   if (
     !Number.isInteger(
       normalizedProductId
     ) ||
-    normalizedProductId <= 0
+    normalizedProductId <=
+      0
   ) {
     return null
   }
 
-  const response = await fetch(
-    `${PUBLIC_API_BASE}/products/${normalizedProductId}`,
-    {
-      method: 'GET',
+  const response =
+    await fetch(
+      `${PUBLIC_API_BASE}/products/${normalizedProductId}`,
+      {
+        method:
+          'GET',
 
-      headers: {
-        Accept:
-          'application/json',
-      },
+        headers: {
+          Accept:
+            'application/json',
+        },
 
-      cache: 'no-store',
-    }
-  )
+        cache:
+          'no-store',
+      }
+    )
 
-  if (response.status === 404) {
+  if (
+    response.status ===
+    404
+  ) {
     return null
   }
 
-  if (!response.ok) {
+  if (
+    !response.ok
+  ) {
     throw new Error(
       `Impossible de charger le produit ${normalizedProductId} : ${response.status}`
     )
   }
 
-  const product = mapProduct(
-    await response.json()
-  )
+  const product =
+    mapProduct(
+      await response.json()
+    )
 
-  return product.available
+  return product
+    ?.available
     ? product
     : null
 }
@@ -1195,58 +1716,73 @@ export async function getProductBySlug(
   options = {}
 ) {
   const isServer =
-    typeof window === 'undefined'
+    typeof window ===
+    'undefined'
 
   const normalizedSlug =
-    String(slug || '').trim()
+    String(
+      slug || ''
+    ).trim()
 
-  if (!normalizedSlug) {
+  if (
+    !normalizedSlug
+  ) {
     return null
   }
 
-  const response = await fetch(
-    `${PUBLIC_API_BASE}/products/slug/${encodeURIComponent(
-      normalizedSlug
-    )}`,
-    {
-      method: 'GET',
+  const response =
+    await fetch(
+      `${PUBLIC_API_BASE}/products/slug/${encodeURIComponent(
+        normalizedSlug
+      )}`,
+      {
+        method:
+          'GET',
 
-      headers: {
-        Accept:
-          'application/json',
-      },
+        headers: {
+          Accept:
+            'application/json',
+        },
 
-      signal: options.signal,
+        signal:
+          options.signal,
 
-      cache: isServer
-        ? 'force-cache'
-        : 'no-store',
+        ...(isServer
+          ? {
+              next: {
+                revalidate:
+                  60,
+              },
+            }
+          : {
+              cache:
+                'no-store',
+            }),
+      }
+    )
 
-      ...(isServer
-        ? {
-            next: {
-              revalidate: 60,
-            },
-          }
-        : {}),
-    }
-  )
-
-  if (response.status === 404) {
+  if (
+    response.status ===
+    404
+  ) {
     return null
   }
 
-  if (!response.ok) {
+  if (
+    !response.ok
+  ) {
     throw new Error(
       `Impossible de charger le produit : ${response.status}`
     )
   }
 
-  const product = mapProduct(
-    await response.json()
-  )
+  const product =
+    mapProduct(
+      await response.json()
+    )
 
-  return product.available
+  return product
+    ?.available
     ? product
     : null
 }
@@ -1258,15 +1794,23 @@ export function formatPrice(
   const language =
     locale === 'ar'
       ? 'ar-MA'
-      : 'fr-MA'
+      : locale ===
+          'en'
+        ? 'en-MA'
+        : 'fr-MA'
 
   return new Intl.NumberFormat(
     language,
     {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
+      minimumFractionDigits:
+        0,
+
+      maximumFractionDigits:
+        2,
     }
   ).format(
-    Number(price || 0)
+    Number(
+      price || 0
+    )
   )
 }

@@ -53,4 +53,6 @@ cd /opt/apps/rim_cristal
 
 sudo -u postgres psql -d rim_cristal  -f database/schema/023_add_product_price_multiplier.sql
 
-
+*** Compte Instagram : 
+NDC : casa.luxury.decor
+MDP : zakizaki20021
