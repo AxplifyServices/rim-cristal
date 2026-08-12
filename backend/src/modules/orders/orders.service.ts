@@ -623,6 +623,10 @@ private normalizeItems(
               products: {
                 is_active: true,
               },
+
+              product_size_variants: {
+                is_active: true,
+              },
             },
 
             include: {
@@ -638,148 +642,93 @@ private normalizeItems(
                     true,
                   wholesale_min_qty:
                     true,
+                  stock: true,
                   has_color_variants:
+                    true,
+                  has_size_variants:
                     true,
                   colors: true,
                   url_image1: true,
                 },
               },
+
+              product_size_variants: {
+                select: {
+                  id: true,
+                  product_id: true,
+                  label: true,
+                  reference: true,
+                  width_cm: true,
+                  depth_cm: true,
+                  height_cm: true,
+                  price: true,
+                  price_wholesale:
+                    true,
+                  wholesale_min_qty:
+                    true,
+                  stock: true,
+                  is_primary: true,
+                  is_active: true,
+                  display_order: true,
+                },
+              },
             },
 
-            orderBy: {
-              product_id: 'asc',
-            },
+            orderBy: [
+              {
+                product_id:
+                  'asc',
+              },
+              {
+                product_size_variant_id:
+                  'asc',
+              },
+            ],
           },
         );
 
-      return {
-        stock_source_type:
-          source.stockSourceType,
+      const productMap =
+        new Map<
+          number,
+          any
+        >();
 
-        point_of_sale_id:
-          source.pointOfSaleId,
+      for (
+        const stock of stocks
+      ) {
+        const product =
+          stock.products;
 
-        points_of_sale:
-          pointsOfSale,
+        const variant =
+          stock.product_size_variants;
 
-        products:
-          stocks.map(
-            stock => ({
-              id:
-                stock.products.id,
+        let mappedProduct =
+          productMap.get(
+            product.id,
+          );
 
-              name:
-                stock.products.name,
+        if (!mappedProduct) {
+          const markedProductPrice =
+            this.calculateMarkedRetailPrice(
+              product.price,
+              product.price_multiplier,
+            );
 
-              reference:
-                stock.products
-                  .reference,
+          mappedProduct = {
+            id:
+              product.id,
 
-              price:
-                this.calculateMarkedRetailPrice(
-                  stock.products.price,
-                  stock.products.price_multiplier,
-                ),
+            name:
+              product.name,
 
-              base_price:
-                Number(
-                  stock.products.price,
-                ),
-
-              price_multiplier:
-                stock.products.price_multiplier ===
-                    null ||
-                  stock.products.price_multiplier ===
-                    undefined
-                  ? null
-                  : Number(
-                      stock.products.price_multiplier,
-                    ),
-
-              price_wholesale:
-                Number(
-                  stock.products
-                    .price_wholesale ||
-                    0,
-                ),
-
-              wholesale_min_qty:
-                Number(
-                  stock.products
-                    .wholesale_min_qty ||
-                    1,
-                ),
-
-              stock:
-                stock.quantity,
-
-              has_color_variants:
-                stock.products
-                  .has_color_variants,
-
-              colors:
-                stock.products
-                  .colors,
-
-              url_image1:
-                stock.products
-                  .url_image1,
-            }),
-          ),
-      };
-    }
-
-    const products =
-      await this.prisma.products.findMany(
-        {
-          where: {
-            is_active: true,
-
-            stock: {
-              gt: 0,
-            },
-          },
-
-          select: {
-            id: true,
-            name: true,
-            reference: true,
-            price: true,
-            price_multiplier: true,
-            price_wholesale: true,
-            wholesale_min_qty: true,
-            stock: true,
-            has_color_variants:
-              true,
-            colors: true,
-            url_image1: true,
-          },
-
-          orderBy: {
-            name: 'asc',
-          },
-        },
-      );
-
-    return {
-      stock_source_type:
-        source.stockSourceType,
-
-      point_of_sale_id: null,
-
-      points_of_sale:
-        pointsOfSale,
-
-      products:
-        products.map(
-          product => ({
-            ...product,
+            reference:
+              product.reference,
 
             price:
-              this.calculateMarkedRetailPrice(
-                product.price,
-                product.price_multiplier,
-              ),
+              markedProductPrice,
+
+            marked_price:
+              markedProductPrice,
 
             base_price:
               Number(
@@ -807,7 +756,445 @@ private normalizeItems(
                 product.wholesale_min_qty ||
                   1,
               ),
-          }),
+
+            stock: 0,
+
+            has_color_variants:
+              product.has_color_variants,
+
+            has_size_variants:
+              product.has_size_variants,
+
+            colors:
+              product.colors,
+
+            url_image1:
+              product.url_image1,
+
+            product_size_variants:
+              [],
+          };
+
+          productMap.set(
+            product.id,
+            mappedProduct,
+          );
+        }
+
+        const markedVariantPrice =
+          this.calculateMarkedRetailPrice(
+            variant.price,
+            product.price_multiplier,
+          );
+
+        mappedProduct
+          .product_size_variants
+          .push({
+            id:
+              variant.id,
+
+            product_id:
+              variant.product_id,
+
+            label:
+              variant.label,
+
+            reference:
+              variant.reference,
+
+            width_cm:
+              variant.width_cm,
+
+            depth_cm:
+              variant.depth_cm,
+
+            height_cm:
+              variant.height_cm,
+
+            price:
+              markedVariantPrice,
+
+            marked_price:
+              markedVariantPrice,
+
+            base_price:
+              Number(
+                variant.price,
+              ),
+
+            price_multiplier:
+              product.price_multiplier ===
+                  null ||
+                product.price_multiplier ===
+                  undefined
+                ? null
+                : Number(
+                    product.price_multiplier,
+                  ),
+
+            price_wholesale:
+              Number(
+                variant.price_wholesale ||
+                  0,
+              ),
+
+            wholesale_min_qty:
+              Number(
+                variant.wholesale_min_qty ||
+                  1,
+              ),
+
+            stock:
+              stock.quantity,
+
+            pos_quantity:
+              stock.quantity,
+
+            is_primary:
+              variant.is_primary,
+
+            is_active:
+              variant.is_active,
+
+            display_order:
+              variant.display_order,
+          });
+
+        mappedProduct.stock +=
+          stock.quantity;
+      }
+
+      const mappedProducts =
+        Array.from(
+          productMap.values(),
+        )
+          .map(product => ({
+            ...product,
+
+            product_size_variants:
+              product
+                .product_size_variants
+                .sort(
+                  (
+                    first: any,
+                    second: any,
+                  ) => {
+                    if (
+                      Boolean(
+                        first.is_primary,
+                      ) !==
+                      Boolean(
+                        second.is_primary,
+                      )
+                    ) {
+                      return first.is_primary
+                        ? -1
+                        : 1;
+                    }
+
+                    const orderDifference =
+                      Number(
+                        first.display_order ||
+                          0,
+                      ) -
+                      Number(
+                        second.display_order ||
+                          0,
+                      );
+
+                    if (
+                      orderDifference !==
+                      0
+                    ) {
+                      return orderDifference;
+                    }
+
+                    return String(
+                      first.id,
+                    ).localeCompare(
+                      String(
+                        second.id,
+                      ),
+                    );
+                  },
+                ),
+          }))
+          .sort(
+            (
+              first,
+              second,
+            ) =>
+              String(
+                first.name,
+              ).localeCompare(
+                String(
+                  second.name,
+                ),
+                'fr',
+                {
+                  sensitivity:
+                    'base',
+                },
+              ),
+          );
+
+      return {
+        stock_source_type:
+          source.stockSourceType,
+
+        point_of_sale_id:
+          source.pointOfSaleId,
+
+        points_of_sale:
+          pointsOfSale,
+
+        products:
+          mappedProducts,
+      };
+    }
+
+    const products =
+      await this.prisma.products.findMany(
+        {
+          where: {
+            is_active: true,
+
+            product_size_variants: {
+              some: {
+                is_active: true,
+
+                stock: {
+                  gt: 0,
+                },
+              },
+            },
+          },
+
+          select: {
+            id: true,
+            name: true,
+            reference: true,
+            price: true,
+            price_multiplier: true,
+            price_wholesale: true,
+            wholesale_min_qty: true,
+            stock: true,
+            has_color_variants:
+              true,
+            has_size_variants:
+              true,
+            colors: true,
+            url_image1: true,
+
+            product_size_variants: {
+              where: {
+                is_active: true,
+              },
+
+              orderBy: [
+                {
+                  is_primary:
+                    'desc',
+                },
+                {
+                  display_order:
+                    'asc',
+                },
+                {
+                  id:
+                    'asc',
+                },
+              ],
+
+              select: {
+                id: true,
+                product_id: true,
+                label: true,
+                reference: true,
+                width_cm: true,
+                depth_cm: true,
+                height_cm: true,
+                price: true,
+                price_wholesale:
+                  true,
+                wholesale_min_qty:
+                  true,
+                stock: true,
+                is_primary: true,
+                is_active: true,
+                display_order: true,
+              },
+            },
+          },
+
+          orderBy: {
+            name: 'asc',
+          },
+        },
+      );
+
+    return {
+      stock_source_type:
+        source.stockSourceType,
+
+      point_of_sale_id: null,
+
+      points_of_sale:
+        pointsOfSale,
+
+      products:
+        products.map(
+          product => {
+            const markedProductPrice =
+              this.calculateMarkedRetailPrice(
+                product.price,
+                product.price_multiplier,
+              );
+
+            return {
+              id:
+                product.id,
+
+              name:
+                product.name,
+
+              reference:
+                product.reference,
+
+              price:
+                markedProductPrice,
+
+              marked_price:
+                markedProductPrice,
+
+              base_price:
+                Number(
+                  product.price,
+                ),
+
+              price_multiplier:
+                product.price_multiplier ===
+                    null ||
+                  product.price_multiplier ===
+                    undefined
+                  ? null
+                  : Number(
+                      product.price_multiplier,
+                    ),
+
+              price_wholesale:
+                Number(
+                  product.price_wholesale ||
+                    0,
+                ),
+
+              wholesale_min_qty:
+                Number(
+                  product.wholesale_min_qty ||
+                    1,
+                ),
+
+              stock:
+                Number(
+                  product.stock ||
+                    0,
+                ),
+
+              has_color_variants:
+                product.has_color_variants,
+
+              has_size_variants:
+                product.has_size_variants,
+
+              colors:
+                product.colors,
+
+              url_image1:
+                product.url_image1,
+
+              product_size_variants:
+                product
+                  .product_size_variants
+                  .map(variant => {
+                    const markedVariantPrice =
+                      this.calculateMarkedRetailPrice(
+                        variant.price,
+                        product.price_multiplier,
+                      );
+
+                    return {
+                      id:
+                        variant.id,
+
+                      product_id:
+                        variant.product_id,
+
+                      label:
+                        variant.label,
+
+                      reference:
+                        variant.reference,
+
+                      width_cm:
+                        variant.width_cm,
+
+                      depth_cm:
+                        variant.depth_cm,
+
+                      height_cm:
+                        variant.height_cm,
+
+                      price:
+                        markedVariantPrice,
+
+                      marked_price:
+                        markedVariantPrice,
+
+                      base_price:
+                        Number(
+                          variant.price,
+                        ),
+
+                      price_multiplier:
+                        product.price_multiplier ===
+                            null ||
+                          product.price_multiplier ===
+                            undefined
+                          ? null
+                          : Number(
+                              product.price_multiplier,
+                            ),
+
+                      price_wholesale:
+                        Number(
+                          variant.price_wholesale ||
+                            0,
+                        ),
+
+                      wholesale_min_qty:
+                        Number(
+                          variant.wholesale_min_qty ||
+                            1,
+                        ),
+
+                      stock:
+                        Number(
+                          variant.stock ||
+                            0,
+                        ),
+
+                      is_primary:
+                        variant.is_primary,
+
+                      is_active:
+                        variant.is_active,
+
+                      display_order:
+                        variant.display_order,
+                    };
+                  }),
+            };
+          },
         ),
     };
   }

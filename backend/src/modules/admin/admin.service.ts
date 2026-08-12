@@ -10,6 +10,55 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
+private calculateMarkedRetailPrice(
+  basePrice: unknown,
+  priceMultiplier: unknown,
+): number {
+  const price =
+    Number(
+      basePrice || 0,
+    );
+
+  if (
+    !Number.isFinite(price) ||
+    price < 0
+  ) {
+    throw new BadRequestException(
+      'Invalid product price',
+    );
+  }
+
+  if (
+    priceMultiplier === null ||
+    priceMultiplier === undefined ||
+    String(priceMultiplier).trim() === ''
+  ) {
+    return price;
+  }
+
+  const multiplier =
+    Number(
+      priceMultiplier,
+    );
+
+  if (
+    !Number.isFinite(multiplier) ||
+    multiplier <= 0
+  ) {
+    throw new BadRequestException(
+      'Invalid product price multiplier',
+    );
+  }
+
+  return (
+    Math.round(
+      price *
+        multiplier *
+        100,
+    ) / 100
+  );
+}
+
 private parseProductSizeVariantId(
   value: unknown,
 ): bigint | null {
@@ -1515,9 +1564,11 @@ async createPointOfSaleSale(
          * le prix fourni par le frontend est ignoré.
          * Le prix est toujours lu depuis la variante.
          */
-        const retailPrice = Number(
-          variant.price || 0,
-        );
+        const retailPrice =
+          this.calculateMarkedRetailPrice(
+            variant.price,
+            product.price_multiplier,
+          );
 
         const wholesalePrice = Number(
           variant.price_wholesale || 0,

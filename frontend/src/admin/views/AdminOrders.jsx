@@ -244,14 +244,37 @@ function getVariantAvailableStock(
   )
 }
 
+function getVariantRetailPrice(
+  variant
+) {
+  if (!variant) {
+    return 0
+  }
+
+  const retailPrice =
+    Number(
+      variant.marked_price ??
+        variant.price ??
+        0
+    )
+
+  return Number.isFinite(
+    retailPrice
+  )
+    ? Math.max(
+        retailPrice,
+        0
+      )
+    : 0
+}
+
 function getVariantPrice(
   variant,
   quantity
 ) {
   const retailPrice =
-    Number(
-      variant?.price ||
-        0
+    getVariantRetailPrice(
+      variant
     )
 
   const wholesalePrice =
@@ -2171,9 +2194,8 @@ function CreateWebOrderModal({
 
                                       {' — '}
 
-                                      {Number(
-                                        variantOption.price ||
-                                          0
+                                      {getVariantRetailPrice(
+                                        variantOption
                                       ).toFixed(
                                         2
                                       )}{' '}

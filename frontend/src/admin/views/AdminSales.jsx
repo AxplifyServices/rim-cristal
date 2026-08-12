@@ -178,7 +178,10 @@ function getVariantUnitPrice(
 ) {
   const retailPrice =
     Number(
-      variant?.price || 0
+      variant?.marked_price ??
+        variant?.markedPrice ??
+        variant?.price ??
+        0
     )
 
   const wholesalePrice =
@@ -902,7 +905,9 @@ export default function AdminSales() {
                                   : ''}
                                 {' — '}
                                 {Number(
-                                  variantOption.price ||
+                                  variantOption.marked_price ??
+                                    variantOption.markedPrice ??
+                                    variantOption.price ??
                                     0
                                 ).toFixed(
                                   2

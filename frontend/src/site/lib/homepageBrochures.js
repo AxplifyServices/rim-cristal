@@ -226,17 +226,15 @@ export async function getHomepageBrochures(
           'application/json',
       },
 
-      cache: isServer
-        ? 'force-cache'
-        : 'no-store',
-
-      ...(isServer
-        ? {
-            next: {
-              revalidate: 60,
-            },
-          }
-        : {}),
+...(isServer
+  ? {
+      next: {
+        revalidate: 60,
+      },
+    }
+  : {
+      cache: 'no-store',
+    }),
 
       ...(signal
         ? {

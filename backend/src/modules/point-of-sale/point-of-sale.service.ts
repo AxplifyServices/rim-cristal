@@ -12,6 +12,55 @@ export class PointOfSaleService {
     private readonly prisma: PrismaService,
   ) {}
 
+  private calculateMarkedRetailPrice(
+    basePrice: unknown,
+    priceMultiplier: unknown,
+  ): number {
+    const price =
+      Number(
+        basePrice || 0,
+      );
+
+    if (
+      !Number.isFinite(price) ||
+      price < 0
+    ) {
+      throw new BadRequestException(
+        'Invalid product price',
+      );
+    }
+
+    if (
+      priceMultiplier === null ||
+      priceMultiplier === undefined ||
+      String(priceMultiplier).trim() === ''
+    ) {
+      return price;
+    }
+
+    const multiplier =
+      Number(
+        priceMultiplier,
+      );
+
+    if (
+      !Number.isFinite(multiplier) ||
+      multiplier <= 0
+    ) {
+      throw new BadRequestException(
+        'Invalid product price multiplier',
+      );
+    }
+
+    return (
+      Math.round(
+        price *
+          multiplier *
+          100,
+      ) / 100
+    );
+  }
+
   private getPointOfSaleId(
     user: any,
   ): number {
@@ -196,8 +245,84 @@ export class PointOfSaleService {
           ],
         });
 
+    const pricedStocks =
+      stocks.map(stock => {
+        const product =
+          stock.products;
+
+        const variant =
+          stock.product_size_variants;
+
+        const productMarkedPrice =
+          this.calculateMarkedRetailPrice(
+            product.price,
+            product.price_multiplier,
+          );
+
+        const variantMarkedPrice =
+          this.calculateMarkedRetailPrice(
+            variant.price,
+            product.price_multiplier,
+          );
+
+        return {
+          ...stock,
+
+          products: {
+            ...product,
+
+            base_price:
+              Number(
+                product.price || 0,
+              ),
+
+            price_multiplier:
+              product.price_multiplier === null ||
+              product.price_multiplier === undefined
+                ? null
+                : Number(
+                    product.price_multiplier,
+                  ),
+
+            marked_price:
+              productMarkedPrice,
+
+            /*
+             * Dans le contexte POS, `price`
+             * représente le prix retail margé
+             * hors promotion web.
+             */
+            price:
+              productMarkedPrice,
+          },
+
+          product_size_variants: {
+            ...variant,
+
+            base_price:
+              Number(
+                variant.price || 0,
+              ),
+
+            price_multiplier:
+              product.price_multiplier === null ||
+              product.price_multiplier === undefined
+                ? null
+                : Number(
+                    product.price_multiplier,
+                  ),
+
+            marked_price:
+              variantMarkedPrice,
+
+            price:
+              variantMarkedPrice,
+          },
+        };
+      });
+
     return this.serializeBigInt(
-      stocks,
+      pricedStocks,
     );
   }
 
@@ -393,8 +518,9 @@ export class PointOfSaleService {
              * n'est jamais utilisé.
              */
             const retailPrice =
-              Number(
+              this.calculateMarkedRetailPrice(
                 variant.price,
+                variant.products.price_multiplier,
               );
 
             const wholesalePrice =

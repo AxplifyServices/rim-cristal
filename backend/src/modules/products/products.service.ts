@@ -847,6 +847,45 @@ private buildProductImages(
     });
 }
 
+private getEffectivePublicPrice(
+  basePrice: unknown,
+  priceMultiplier: unknown,
+  promotionPercentage: unknown,
+): number {
+  const pricing =
+    this.buildPromotionData(
+      basePrice,
+      priceMultiplier,
+      promotionPercentage,
+    );
+
+  /*
+   * buildPromotionData() retourne déjà :
+   *
+   * promotional_price =
+   * - prix promotionnel si promotion active ;
+   * - prix commercial normal sinon.
+   *
+   * C'est donc directement le prix réellement visible
+   * par le client.
+   */
+  const publicPrice =
+    Number(
+      pricing.promotional_price ??
+        pricing.original_price ??
+        0,
+    );
+
+  return Number.isFinite(
+    publicPrice,
+  )
+    ? Math.max(
+        publicPrice,
+        0,
+      )
+    : 0;
+}
+
 private serializeProduct(
   product: any,
   mediaVariants: any[] = [],
@@ -1258,13 +1297,13 @@ private async generateReference() {
           },
         }),
 
-        this.prisma.products.aggregate({
+        this.prisma.products.findMany({
           where: priceWhere,
-          _min: {
+
+          select: {
             price: true,
-          },
-          _max: {
-            price: true,
+            price_multiplier: true,
+            promotion_percentage: true,
           },
         }),
       ]);
@@ -1282,19 +1321,44 @@ private async generateReference() {
         .map(row => row.famille)
         .filter(Boolean),
 
-      price: {
-        min: Math.floor(
-          Number(
-            priceRange._min.price || 0,
-          ),
-        ),
+      price: (() => {
+        const publicPrices =
+          priceRange
+            .map(product =>
+              this.getEffectivePublicPrice(
+                product.price,
+                product.price_multiplier,
+                product.promotion_percentage,
+              ),
+            )
+            .filter(price =>
+              Number.isFinite(price) &&
+              price >= 0,
+            );
 
-        max: Math.ceil(
-          Number(
-            priceRange._max.price || 0,
+        if (
+          publicPrices.length === 0
+        ) {
+          return {
+            min: 0,
+            max: 0,
+          };
+        }
+
+        return {
+          min: Math.floor(
+            Math.min(
+              ...publicPrices,
+            ),
           ),
-        ),
-      },
+
+          max: Math.ceil(
+            Math.max(
+              ...publicPrices,
+            ),
+          ),
+        };
+      })(),
     };
   }
 
@@ -1388,28 +1452,13 @@ if (isPublicCatalog) {
       );
 
     if (
-      minPrice !== undefined ||
-      maxPrice !== undefined
+      minPrice !== undefined &&
+      maxPrice !== undefined &&
+      minPrice > maxPrice
     ) {
-      if (
-        minPrice !== undefined &&
-        maxPrice !== undefined &&
-        minPrice > maxPrice
-      ) {
-        throw new BadRequestException(
-          'prix_min cannot be greater than prix_max',
-        );
-      }
-
-      where.price = {
-        ...(minPrice !== undefined && {
-          gte: minPrice,
-        }),
-
-        ...(maxPrice !== undefined && {
-          lte: maxPrice,
-        }),
-      };
+      throw new BadRequestException(
+        'prix_min cannot be greater than prix_max',
+      );
     }
 
     if (query.featured !== undefined) {
@@ -1508,6 +1557,73 @@ const search = query.search || query.q;
         },
       ];
     }
+
+/*
+ * Le filtre de prix public doit utiliser exactement le
+ * montant présenté au client :
+ *
+ * prix de base
+ *   -> multiplicateur éventuel
+ *   -> promotion éventuelle
+ *
+ * On applique d'abord tous les autres critères dans
+ * `where`, puis on conserve uniquement les IDs dont le
+ * prix public correspond à la plage demandée.
+ *
+ * Le filtre est appliqué AVANT le count et la pagination :
+ * `total`, `pages` et le nombre d'éléments par page restent
+ * donc cohérents.
+ */
+if (
+  minPrice !== undefined ||
+  maxPrice !== undefined
+) {
+  const priceCandidates =
+    await this.prisma.products.findMany({
+      where,
+
+      select: {
+        id: true,
+        price: true,
+        price_multiplier: true,
+        promotion_percentage: true,
+      },
+    });
+
+  const matchingPriceIds =
+    priceCandidates
+      .filter(product => {
+        const publicPrice =
+          this.getEffectivePublicPrice(
+            product.price,
+            product.price_multiplier,
+            product.promotion_percentage,
+          );
+
+        if (
+          minPrice !== undefined &&
+          publicPrice < minPrice
+        ) {
+          return false;
+        }
+
+        if (
+          maxPrice !== undefined &&
+          publicPrice > maxPrice
+        ) {
+          return false;
+        }
+
+        return true;
+      })
+      .map(product =>
+        product.id,
+      );
+
+  where.id = {
+    in: matchingPriceIds,
+  };
+}
 
 /*
  * La section des nouveautés est limitée aux
