@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import SiteAgentation from './SiteAgentation'
 import SiteFooter from './SiteFooter'
 import SiteHeader from './SiteHeader'
+import ScrollToTopButton from './ScrollToTopButton'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -33,6 +34,7 @@ function HeaderFallback() {
 
 export default function SiteLayout({
   children,
+  showScrollToTop = false,
 }) {
   return (
     <div className="site-shell">
@@ -47,6 +49,10 @@ export default function SiteLayout({
       </main>
 
       <SiteFooter />
+
+      {showScrollToTop && (
+        <ScrollToTopButton />
+      )}
 
       <SiteAgentation />
     </div>

@@ -1,17 +1,14 @@
 Reste à faire cristal : 
 
---- créer un prix margé = prix de base + marge (en %) 
---- switch des pages automatique dans la boutique 
-- 4 images par ligne dans la boutique 
-- Dans la dernière image : flèche avec les dimensions, voir comment modéliser ça  
+X Dans la dernière image : flèche avec les dimensions, voir comment modéliser ça  
 
-- Corriger les références, dimensions et images
-- Marge de 2.2 
-
+- Bouton remonter en haut : boutique & home page 
+- Insta & FB : Bouton vers site web
 - Intégration d'un moyen de paiement en ligne ???
 - Connexion avec les réseaux sociaux
 
-- Remplir Facebook & Instagram
+- Vérif finale SEO & GEO 
+
 - Première campagne marketing
 
 - Voir serveur orange et inwi pour prod

@@ -24,7 +24,7 @@ export default function HomePage({
     useSiteI18n()
 
   return (
-    <SiteLayout>
+    <SiteLayout showScrollToTop>
       <HomeBrochureCarousel
         initialBrochures={
           initialBrochures

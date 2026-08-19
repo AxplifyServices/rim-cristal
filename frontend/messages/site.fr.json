@@ -43,7 +43,8 @@
     "loading": "Chargement…",
     "currency": "MAD",
     "error": "Une erreur est survenue.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "scrollToTop": "Remonter en haut de la page"
   },
   "home": {
     "eyebrow": "Maison & décoration",

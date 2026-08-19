@@ -11980,3 +11980,76 @@ html[dir='rtl']
     animation: none;
   }
 }
+/* Bouton flottant de retour en haut — Home / Boutique */
+.scroll-to-top-button {
+  position: fixed;
+  z-index: 90;
+  inset-inline-end: clamp(18px, 2.4vw, 34px);
+  bottom: clamp(18px, 2.4vw, 30px);
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid rgba(25, 26, 23, 0.14);
+  border-radius: 50%;
+  background: rgba(251, 250, 247, 0.96);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(10px) scale(0.94);
+  box-shadow: 0 10px 30px rgba(22, 22, 18, 0.14);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition:
+    opacity 180ms ease,
+    visibility 180ms ease,
+    transform 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+.scroll-to-top-button.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.scroll-to-top-button svg {
+  width: 23px;
+  height: 23px;
+}
+
+.scroll-to-top-button:hover {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--white);
+}
+
+.scroll-to-top-button:focus-visible {
+  outline: 3px solid rgba(116, 120, 93, 0.28);
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .scroll-to-top-button {
+    inset-inline-end: 14px;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    width: 44px;
+    height: 44px;
+  }
+
+  .scroll-to-top-button svg {
+    width: 21px;
+    height: 21px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-to-top-button {
+    transition: none;
+  }
+}

@@ -1227,7 +1227,7 @@ useEffect(() => {
   }
 
 return (
-  <SiteLayout>
+  <SiteLayout showScrollToTop>
 <section className="shop-hero">
   <div className="container">
     <div className="shop-hero-inner">
